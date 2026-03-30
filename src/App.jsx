@@ -1,7 +1,7 @@
+// App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
-
-import Landing from "./pages/Landing"; // Changed 'landing' to 'Landing'
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -33,27 +33,42 @@ const LoadingSpinner = () => (
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, profile, loading } = useAuth();
 
-  // 1. Auth is still initializing
+  // 1. Auth is still initializing — wait, never redirect yet
   if (loading) return <LoadingSpinner />;
 
   // 2. Not logged in at all
   if (!user) return <Navigate to="/login" replace />;
 
-  // ✅ FIX: If user exists but profile hasn't loaded yet — keep showing spinner.
-  // Previously this fell through and rendered the wrong dashboard.
+  // 3. User exists but profile not loaded yet — keep spinning
   if (!profile) return <LoadingSpinner />;
 
-  // 3. Profile loaded but role not yet set (edge case during signup)
+  // 4. Profile loaded but role missing (edge case right after signup)
   if (!profile.role) return <LoadingSpinner />;
 
-  // 4. Logged in but accessing wrong role's route — redirect to correct one
+  // 5. Wrong role for this route — redirect to correct dashboard
   if (allowedRoles && !allowedRoles.includes(profile.role)) {
     if (profile.role === "industry") return <Navigate to="/industry" replace />;
-    if (profile.role === "admin") return <Navigate to="/admin" replace />;
+    if (profile.role === "admin")    return <Navigate to="/admin"    replace />;
     return <Navigate to="/student" replace />;
   }
 
   return children;
+}
+
+// Redirect already-logged-in users away from /login and /register
+function PublicRoute({ children }) {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) return <LoadingSpinner />;
+  if (!user)   return children;
+
+  // User is logged in — send to their dashboard
+  if (profile?.role === "industry") return <Navigate to="/industry" replace />;
+  if (profile?.role === "admin")    return <Navigate to="/admin"    replace />;
+  if (profile?.role === "student")  return <Navigate to="/student"  replace />;
+
+  // Profile still loading
+  return <LoadingSpinner />;
 }
 
 function App() {
@@ -61,33 +76,38 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public pages */}
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/student"
-            element={
-              <ProtectedRoute allowedRoles={["student"]}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/industry"
-            element={
-              <ProtectedRoute allowedRoles={["industry"]}>
-                <IndustryDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+
+          <Route path="/login" element={
+            <PublicRoute><Login /></PublicRoute>
+          } />
+
+          <Route path="/register" element={
+            <PublicRoute><Register /></PublicRoute>
+          } />
+
+          {/* Protected dashboards */}
+          <Route path="/student" element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/industry" element={
+            <ProtectedRoute allowedRoles={["industry"]}>
+              <IndustryDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
