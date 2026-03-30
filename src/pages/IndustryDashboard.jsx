@@ -384,6 +384,18 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .apply-status-banner.success { background: var(--green2); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
 .apply-status-banner.warning { background: var(--amber2); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
 
+/* ── EXIT CONFIRM ── */
+.exit-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem}
+.exit-box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,0.6);text-align:center}
+.exit-icon{font-size:2.5rem;margin-bottom:0.75rem}
+.exit-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:0.4rem}
+.exit-sub{font-size:0.82rem;color:var(--text3);line-height:1.55;margin-bottom:1.5rem}
+.exit-btn-row{display:flex;gap:0.65rem}
+.exit-btn-stay{flex:1;padding:0.72rem;border-radius:10px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s}
+.exit-btn-stay:hover{background:var(--surface4);color:var(--text)}
+.exit-btn-leave{flex:1;padding:0.72rem;border-radius:10px;border:none;background:var(--accent);color:white;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s;box-shadow:0 3px 12px rgba(59,130,246,0.3)}
+.exit-btn-leave:hover{opacity:0.88}
+
 @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 900px) {
   .id-sidebar { width: 64px; }
@@ -441,6 +453,8 @@ export default function IndustryDashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [newAchievement, setNewAchievement] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  // ── CHANGE 2: showExitConfirm state ────────────────────────────────────────
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Data
   const [jobs, setJobs] = useState([]);
@@ -467,10 +481,12 @@ export default function IndustryDashboard() {
   const [profileForm, setProfileForm] = useState({});
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJobDetail, setViewingJobDetail] = useState(null);
-  const [applyingStudent, setApplyingStudent] = useState(null); // for shortlisting modal
+  const [applyingStudent, setApplyingStudent] = useState(null);
 
+  // ── CHANGE 1: Refs ─────────────────────────────────────────────────────────
   const chatEndRef = useRef();
   const fileInputRef = useRef();
+  const pendingNavRef = useRef(null);
 
   // ── Init ────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -590,7 +606,27 @@ export default function IndustryDashboard() {
     init();
   }, [authUser?.id]);
 
+  // Scroll to latest chat message
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, activeChat]);
+
+  // ── CHANGE 3a: Back button (popstate) guard ─────────────────────────────────
+  useEffect(() => {
+    window.history.pushState({ dashboardGuard: true }, '');
+    const handlePop = () => {
+      window.history.pushState({ dashboardGuard: true }, '');
+      setShowExitConfirm(true);
+      pendingNavRef.current = '/login';
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
+
+  // ── CHANGE 3b: beforeunload guard ──────────────────────────────────────────
+  useEffect(() => {
+    const handle = e => { e.preventDefault(); e.returnValue = ''; return ''; };
+    window.addEventListener('beforeunload', handle);
+    return () => window.removeEventListener('beforeunload', handle);
+  }, []);
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   const toast = useCallback((msg, color = "var(--accent2)") => {
@@ -697,6 +733,49 @@ export default function IndustryDashboard() {
   return (
     <div className="id-root">
       <style>{CSS}</style>
+
+      {/* ── CHANGE 5: EXIT CONFIRM OVERLAY ─────────────────────────────────── */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div
+            className="exit-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="exit-box"
+              initial={{ scale: 0.92, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.92, y: 20 }}
+            >
+              <div className="exit-icon">🚪</div>
+              <div className="exit-title">Leave CareerBridge?</div>
+              <div className="exit-sub">
+                You'll be signed out and returned to login. Any unsaved changes will be lost.
+              </div>
+              <div className="exit-btn-row">
+                <button
+                  className="exit-btn-stay"
+                  onClick={() => setShowExitConfirm(false)}
+                >
+                  Stay Here
+                </button>
+                <button
+                  className="exit-btn-leave"
+                  onClick={async () => {
+                    setShowExitConfirm(false);
+                    try { await signOut(); } catch (_) {}
+                    navigate(pendingNavRef.current || '/login');
+                  }}
+                >
+                  Yes, Leave
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* SIDEBAR */}
       <aside className="id-sidebar">
@@ -1551,10 +1630,8 @@ export default function IndustryDashboard() {
                     if (!jobId) return;
                     const job = myJobs.find(j => String(j.id) === jobId);
                     if (!job) return;
-                    // Check if already applied
                     const existing = job.applications?.find(a => String(a.studentId) === String(selectedStudent.id));
                     if (existing) { toast("Student already in this job's pipeline", "var(--amber)"); return; }
-                    // Add as manually shortlisted
                     const newApp = { id: `manual-${Date.now()}`, studentId: selectedStudent.id, name: selectedStudent.name, email: selectedStudent.email, status: "Shortlisted", appliedOn: new Date().toLocaleDateString(), coverLetter: "" };
                     setJobs(prev => prev.map(j => String(j.id) === jobId ? { ...j, applications: [...(j.applications || []), newApp] } : j));
                     toast(`✅ ${selectedStudent.name} shortlisted for ${job.title}`, "var(--green)");
