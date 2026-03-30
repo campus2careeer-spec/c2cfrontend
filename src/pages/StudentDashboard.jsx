@@ -1,8 +1,10 @@
-// ─── PASTE THIS ENTIRE FILE OVER YOUR StudentDashboard.jsx ───────────────────
-// KEY FIXES:
-//  1. Profile never gets stuck loading – authUser email used as instant fallback
-//  2. Back button shows confirmation dialog instead of silently navigating away
-//  3. beforeunload warns on tab close / refresh too
+// ─── StudentDashboard.jsx — Complete Redesign ────────────────────────────────
+// CHANGES:
+//  1. Jobs posted by industry now appear in real-time from Supabase vacancies table
+//  2. Full Chat section added (real messages via API + live UI)
+//  3. Completely redesigned professional dark UI (matching IndustryDashboard quality)
+//  4. Back button guard + beforeunload preserved
+//  5. AI skill match + course recommendations preserved
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,22 +13,15 @@ import axios from 'axios';
 import { useAuth } from '../AuthContext';
 import API_BASE_URL from '../apiConfig';
 
-const BASE = API_BASE_URL;
+const API = `${API_BASE_URL}/api`;
 
-// ─── CONSTANTS (unchanged) ────────────────────────────────────────────────────
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const SKILL_SUGGESTIONS = [
   'Python','JavaScript','React','Node.js','Django','Flask','Java','C++','TypeScript',
   'SQL','MongoDB','PostgreSQL','AWS','Docker','Kubernetes','Git','Machine Learning',
   'Deep Learning','TensorFlow','PyTorch','Figma','UI/UX','HTML','CSS','Spring Boot',
   'GraphQL','DevOps','REST APIs','Data Science','Excel','Power BI','Tableau',
   'Android','Flutter','Swift','Kotlin','PHP','Laravel','Vue.js','Angular',
-];
-
-const MOCK_INDUSTRIES = [
-  { id: 1, name: 'TechNova Solutions', logo: 'TN', domain: 'Cloud Computing', location: 'Bangalore', tagline: 'Cloud Native Excellence' },
-  { id: 2, name: 'Quantum AI', logo: 'QA', domain: 'Artificial Intelligence', location: 'Hyderabad', tagline: 'Pioneering AI' },
-  { id: 3, name: 'Nexus Fintech', logo: 'NF', domain: 'Blockchain', location: 'Mumbai', tagline: 'Next-Gen Finance' },
-  { id: 4, name: 'GreenEnergy Co', logo: 'GE', domain: 'Sustainability', location: 'Pune', tagline: 'Sustainable Power' },
 ];
 
 const MOCK_COURSES = [
@@ -37,19 +32,10 @@ const MOCK_COURSES = [
   { id: 5, title: 'Python for Data Science', provider: 'edX', duration: '35 hrs', level: 'Beginner', link: '#', rating: 4.7, skills: ['Python','Pandas'] },
 ];
 
-const MOCK_VACANCIES = [
-  { id: 101, ownerId: 1, ownerName: 'TechNova Solutions', ownerLogo: 'TN', type: 'Internship', title: 'MERN Stack Intern', desc: 'Seeking proactive students with React and Node.js expertise.', skills: 'React, Node.js, Express, MongoDB', duration: '6 Months', offerings: '₹20,000/month stipend', date: '2 hours ago', likes: 24 },
-  { id: 102, ownerId: 2, ownerName: 'Quantum AI', ownerLogo: 'QA', type: 'Job Vacancy', title: 'AI Research Associate', desc: 'Join our neural network research team. Masters preferred.', skills: 'Python, PyTorch, Deep Learning', duration: 'Full-Time', offerings: 'Competitive Salary', date: '3 days ago', likes: 89 },
-  { id: 103, ownerId: 3, ownerName: 'Nexus Fintech', ownerLogo: 'NF', type: 'Internship', title: 'Blockchain Developer Intern', desc: 'Work on Ethereum smart contracts and DApps.', skills: 'Solidity, Web3.js, JavaScript', duration: '3 Months', offerings: '₹15,000/month', date: '1 day ago', likes: 41 },
-];
-
 const MOCK_JOBS = [
   { industry: 'TechCorp India', job: 'Frontend Developer', desc: 'Build scalable React UIs.', role: 'SDE-1', ug: 'B.Tech/BCA', pg: 'Not Required', url: '#', dept: 'Engineering', skills: 'React, TypeScript, CSS' },
   { industry: 'Infosys Ltd.', job: 'Java Backend Engineer', desc: 'Develop REST APIs with Spring Boot.', role: 'Software Engineer', ug: 'B.Tech', pg: 'M.Tech preferred', url: '#', dept: 'Backend', skills: 'Java, Spring Boot, AWS' },
   { industry: 'Analytics Co.', job: 'Data Analyst', desc: 'Insights from large datasets.', role: 'Analyst', ug: 'Any Graduate', pg: 'MBA/MCA', url: '#', dept: 'Analytics', skills: 'Python, SQL, Tableau' },
-  { industry: 'CloudSoft', job: 'DevOps Engineer', desc: 'CI/CD pipelines and cloud infra.', role: 'DevOps', ug: 'B.Tech/BCA', pg: 'Not Required', url: '#', dept: 'Infrastructure', skills: 'Docker, Kubernetes, AWS' },
-  { industry: 'DataViz Inc.', job: 'ML Engineer', desc: 'Build and deploy ML models.', role: 'MLE', ug: 'B.Tech/MCA', pg: 'M.Tech preferred', url: '#', dept: 'AI/ML', skills: 'Python, TensorFlow, MLflow' },
-  { industry: 'StartupHub', job: 'Full Stack Developer', desc: 'End-to-end feature development.', role: 'SDE-2', ug: 'Any CS Degree', pg: 'Not Required', url: '#', dept: 'Product', skills: 'React, Node.js, PostgreSQL' },
 ];
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
@@ -69,7 +55,6 @@ function calcCompletion(p) {
     !!(p.about?.length > 10), !!(p.skills?.length > 0),
     !!p.photo, !!p.tenth, !!p.twelfth, !!p.graduation,
     !!(p.certificates?.length > 0), !!(p.resumes?.length > 0),
-    !!p.linkedin, !!p.github,
   ];
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
@@ -80,20 +65,18 @@ function buildProfile(d, fallback = {}) {
     name: d.name || d.full_name || fallback.name || 'Student',
     email: d.email || fallback.email || '',
     username: d.username || (d.name || 'student').toLowerCase().replace(/\s+/g, '_'),
-    qualification: d.qualification || fallback.qualification || '',
+    qualification: d.qualification || '',
     phone: d.phone || '',
     address: d.address || d.location || '',
     about: d.about || '',
     skills: Array.isArray(d.skills) ? d.skills : [],
     photo: d.photo || null,
-    coverPhoto: d.coverPhoto || null,
     tenth: d.tenth || '',
     twelfth: d.twelfth || '',
     graduation: d.graduation || '',
     certificates: Array.isArray(d.certificates) ? d.certificates : [],
     personalPosts: Array.isArray(d.personalPosts || d.personal_posts) ? (d.personalPosts || d.personal_posts) : [],
     resumes: Array.isArray(d.resumes) ? d.resumes : [],
-    chats: d.chats || {},
     linkedin: d.linkedin || '',
     github: d.github || '',
     website: d.website || '',
@@ -104,306 +87,436 @@ function buildProfile(d, fallback = {}) {
   };
 }
 
-// ─── CSS (unchanged — keep your original CSS string here) ────────────────────
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Clash+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;600;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--brand:#6366f1;--brand-dark:#4f46e5;--brand-light:#818cf8;--brand-xlight:#e0e7ff;--accent:#f472b6;--emerald:#10b981;--amber:#f59e0b;--rose:#f43f5e;--sky:#0ea5e9;--bg:#f8faff;--bg2:#f1f4fe;--surface:#ffffff;--surface2:#f8faff;--surface3:#f1f4fe;--text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;--border:rgba(99,102,241,0.1);--border-strong:rgba(99,102,241,0.2);--shadow-xs:0 1px 3px rgba(15,23,42,0.06);--shadow-sm:0 2px 8px rgba(99,102,241,0.08);--shadow-md:0 4px 20px rgba(99,102,241,0.14);--shadow-lg:0 12px 40px rgba(99,102,241,0.18);--grad:linear-gradient(135deg,#6366f1,#8b5cf6);--grad-soft:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));--r:16px;--r-sm:10px;--r-xs:6px;--nav-h:64px;--sidebar-w:300px}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-primary);-webkit-font-smoothing:antialiased;line-height:1.5}
-::selection{background:var(--brand-xlight);color:var(--brand-dark)}
+
+:root{
+  --bg:#07090f;
+  --surface:#0d1117;
+  --surface2:#131923;
+  --surface3:#1a2332;
+  --surface4:#202d40;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.1);
+  --border3:rgba(255,255,255,0.18);
+  --accent:#6366f1;
+  --accent2:#818cf8;
+  --accent3:rgba(99,102,241,0.12);
+  --accent-glow:rgba(99,102,241,0.2);
+  --green:#10b981;
+  --green2:rgba(16,185,129,0.12);
+  --amber:#f59e0b;
+  --amber2:rgba(245,158,11,0.12);
+  --red:#ef4444;
+  --red2:rgba(239,68,68,0.12);
+  --violet:#8b5cf6;
+  --violet2:rgba(139,92,246,0.12);
+  --cyan:#06b6d4;
+  --cyan2:rgba(6,182,212,0.1);
+  --text:#f1f5f9;
+  --text2:#94a3b8;
+  --text3:#4b5a6b;
+  --r:14px;
+  --r-lg:20px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --shadow-accent:0 4px 24px rgba(99,102,241,0.18);
+}
+
+html,body{height:100%}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:99px}
-.s-nav{height:var(--nav-h);background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:300;box-shadow:var(--shadow-xs)}
-.brand-wrap{display:flex;align-items:center;gap:10px}
-.brand-icon{width:34px;height:34px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.brand-icon svg{width:18px;height:18px;fill:white}
-.brand{font-family:'Clash Display',sans-serif;font-size:1.1rem;font-weight:600;letter-spacing:-0.02em;color:var(--text-primary)}
-.brand span{color:var(--brand)}
-.brand-sub{font-size:0.58rem;font-weight:600;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:1px}
-.s-search{position:relative;flex:1;max-width:320px;margin:0 2rem}
-.s-search input{width:100%;padding:.5rem 1rem .5rem 2.4rem;border:1.5px solid var(--border-strong);border-radius:99px;background:var(--surface2);font-family:inherit;font-size:.82rem;color:var(--text-primary);outline:none;transition:.2s}
-.s-search input:focus{border-color:var(--brand);background:white;box-shadow:0 0 0 4px rgba(99,102,241,.08)}
-.s-search input::placeholder{color:var(--text-muted)}
-.s-search-ico{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:.85rem}
-.nav-tabs{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:3px}
-.nav-tab{padding:.38rem .9rem;border-radius:9px;font-size:.75rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:transparent;font-family:inherit;transition:.18s;white-space:nowrap}
-.nav-tab:hover{color:var(--text-secondary);background:rgba(99,102,241,.06)}
-.nav-tab.active{background:white;color:var(--brand);box-shadow:var(--shadow-xs);font-weight:700}
-.nav-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nav-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border-strong);background:white;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);font-size:1rem;position:relative;transition:.18s}
-.nav-btn:hover{background:var(--surface2);border-color:var(--brand)}
-.nav-btn .badge{position:absolute;top:5px;right:5px;width:8px;height:8px;background:var(--rose);border-radius:50%;border:2px solid white}
-.nav-av{width:36px;height:36px;border-radius:10px;overflow:hidden;background:var(--grad);color:white;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--brand-xlight);transition:.18s;flex-shrink:0}
-.nav-av:hover{transform:scale(1.05)}
-.nav-av img{width:100%;height:100%;object-fit:cover}
-.signout-btn{padding:.38rem .85rem;border-radius:8px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.2);color:var(--rose);font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s}
-.signout-btn:hover{background:var(--rose);color:white}
-.s-layout{display:flex;height:calc(100vh - var(--nav-h));overflow:hidden}
-.s-sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:white;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
-.s-content{flex:1;overflow-y:auto;padding:2rem 2.5rem;background:var(--bg)}
-.sb-header{padding:1.5rem 1.4rem 1.2rem;background:linear-gradient(160deg,#6366f1 0%,#8b5cf6 100%);position:relative;overflow:hidden}
-.sb-header::after{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none}
-.sb-av-wrap{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
-.sb-av{width:50px;height:50px;border-radius:14px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:white}
-.sb-av img{width:100%;height:100%;object-fit:cover}
-.sb-name{font-size:.97rem;font-weight:700;color:white;line-height:1.2}
-.sb-handle{font-size:.65rem;color:rgba(255,255,255,.6);margin-top:2px}
-.sb-edit-btn{margin-left:auto;padding:.28rem .7rem;border-radius:7px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:rgba(255,255,255,.92);font-size:.7rem;font-weight:700;cursor:pointer;transition:.18s;font-family:inherit;flex-shrink:0}
-.sb-edit-btn:hover{background:rgba(255,255,255,.25)}
-.sb-save-btn{margin-left:auto;padding:.28rem .7rem;border-radius:7px;border:none;background:#10b981;color:white;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit}
-.sb-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;position:relative;z-index:1}
-.sb-tag{display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:99px;padding:.18rem .6rem;font-size:.65rem;color:rgba(255,255,255,.9);font-weight:600}
-.comp-wrap{padding:.9rem 1.4rem;border-bottom:1px solid var(--border)}
-.comp-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.45rem;font-size:.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em}
-.comp-num{font-size:.75rem;font-weight:800}
-.comp-track{height:5px;background:var(--surface3);border-radius:99px;overflow:hidden}
-.comp-fill{height:100%;background:var(--grad);border-radius:99px;transition:width .9s ease}
-.sb-form-section{padding:.85rem 1.4rem;border-bottom:1px solid var(--border)}
-.sb-form-label{font-size:.62rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.55rem;display:block}
-.sb-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
-.sb-input{width:100%;padding:.45rem .75rem;border-radius:var(--r-xs);border:1.5px solid var(--border-strong);background:var(--surface2);font-family:inherit;font-size:.8rem;color:var(--text-primary);outline:none;transition:.18s}
-.sb-input:focus{border-color:var(--brand);background:white;box-shadow:0 0 0 3px rgba(99,102,241,.08)}
-.sb-input::placeholder{color:var(--text-muted)}
-.sb-upload-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.5rem;border-radius:var(--r-xs);border:1.5px dashed rgba(99,102,241,.25);background:rgba(99,102,241,.03);color:var(--text-muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:.18s;font-family:inherit}
-.sb-upload-btn:hover{border-color:var(--brand);color:var(--brand);background:rgba(99,102,241,.06)}
-.sb-details-btn{display:flex;align-items:center;gap:6px;background:none;border:none;font-family:inherit;font-size:.78rem;font-weight:700;color:var(--brand);cursor:pointer;padding:.9rem 1.4rem;width:100%;border-bottom:1px solid var(--border);transition:.18s}
-.sb-details-btn:hover{background:var(--surface2)}
-.details-box{background:var(--surface2);border-bottom:1px solid var(--border)}
-.detail-row{display:flex;align-items:center;gap:8px;padding:.5rem 1.4rem;font-size:.78rem;color:var(--text-secondary);font-weight:500;border-bottom:1px solid var(--border)}
-.detail-row:last-child{border-bottom:none}
-.detail-row-label{font-size:.58rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;padding:.35rem 1.4rem .2rem;background:rgba(99,102,241,.04);border-bottom:1px solid var(--border)}
-.sb-media-sec{padding:.85rem 1.4rem;border-bottom:1px solid var(--border)}
-.sb-media-title{font-size:.62rem;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.65rem;opacity:.8}
-.media-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.media-cell{aspect-ratio:1;border-radius:7px;overflow:hidden;position:relative;background:var(--surface3);cursor:pointer}
-.media-cell img,.media-cell video{width:100%;height:100%;object-fit:cover;transition:.2s}
-.media-cell:hover img,.media-cell:hover video{transform:scale(1.05)}
-.media-del{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.95);border:none;color:var(--rose);font-size:.52rem;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:.18s}
-.media-cell:hover .media-del{opacity:1}
-.resume-pill{display:flex;align-items:center;gap:8px;padding:.5rem .75rem;border-radius:var(--r-xs);background:rgba(99,102,241,.05);border:1px solid var(--border-strong);margin-bottom:.4rem;cursor:pointer;transition:.18s}
-.resume-pill:hover{background:rgba(99,102,241,.1);border-color:var(--brand)}
-.resume-pill-name{font-size:.75rem;font-weight:600;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.resume-del-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.7rem;font-weight:700;padding:2px 4px;transition:.18s}
-.resume-del-btn:hover{color:var(--rose)}
-.page-sec{margin-bottom:2.5rem}
-.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
-.sec-title{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;color:var(--text-primary);letter-spacing:-0.02em}
-.sec-sub{font-size:.75rem;color:var(--text-muted);margin-top:2px}
-.sec-action-btn{padding:.35rem .9rem;border-radius:8px;background:white;border:1.5px solid var(--border-strong);font-size:.73rem;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;transition:.18s}
-.sec-action-btn:hover{background:var(--brand-xlight);border-color:var(--brand)}
-.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}
-.ind-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:1.3rem 1.1rem;cursor:pointer;transition:.22s;text-align:center;box-shadow:var(--shadow-xs)}
-.ind-card:hover{box-shadow:var(--shadow-md);border-color:var(--brand-light);transform:translateY(-3px)}
-.ind-logo{width:52px;height:52px;border-radius:14px;background:var(--grad);color:white;font-family:'Clash Display',sans-serif;font-weight:600;font-size:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;box-shadow:0 6px 16px rgba(99,102,241,.25)}
-.ind-name{font-size:.88rem;font-weight:700;color:var(--text-primary);margin-bottom:.3rem}
-.ind-domain-tag{display:inline-block;font-size:.67rem;font-weight:700;color:var(--brand);background:var(--brand-xlight);border-radius:99px;padding:.15rem .55rem;margin-bottom:.35rem}
-.ind-loc{font-size:.7rem;color:var(--text-muted)}
-.ind-tagline{font-size:.7rem;color:var(--text-muted);margin-top:.3rem;font-style:italic;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.msg-btn{margin-top:.85rem;width:100%;padding:.42rem;border-radius:8px;background:var(--grad-soft);border:1.5px solid var(--border-strong);font-size:.72rem;font-weight:700;color:var(--brand);cursor:pointer;font-family:inherit;transition:.18s}
-.msg-btn:hover{background:var(--grad);color:white;border-color:transparent}
-.feed-grid{display:flex;flex-direction:column;gap:1rem}
-.vac-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-xs);transition:.22s}
-.vac-card:hover{box-shadow:var(--shadow-md);border-color:var(--brand-light)}
-.vac-body{padding:1.35rem}
-.vac-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
-.vac-logo-wrap{display:flex;align-items:center;gap:.75rem}
-.vac-logo{width:42px;height:42px;border-radius:11px;flex-shrink:0;background:var(--brand-xlight);color:var(--brand);font-family:'Clash Display',sans-serif;font-weight:600;font-size:.82rem;display:flex;align-items:center;justify-content:center}
-.vac-company{font-size:.82rem;font-weight:700;color:var(--text-primary)}
-.vac-date{font-size:.67rem;color:var(--text-muted);margin-top:1px}
-.type-badge{padding:.2rem .65rem;border-radius:99px;font-size:.64rem;font-weight:800;letter-spacing:.03em}
-.badge-intern{background:#ede9fe;color:#5b21b6}
-.badge-job{background:#e0f2fe;color:#0369a1}
-.badge-train{background:#dcfce7;color:#166534}
-.badge-campus{background:#fef3c7;color:#92400e}
-.vac-title{font-family:'Clash Display',sans-serif;font-size:1rem;font-weight:600;color:var(--text-primary);margin-bottom:.35rem;letter-spacing:-0.01em}
-.vac-desc{font-size:.8rem;color:var(--text-secondary);margin-bottom:.85rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.skill-pills{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.85rem}
-.s-pill{padding:.15rem .52rem;border-radius:5px;font-size:.67rem;font-weight:700;background:var(--brand-xlight);color:var(--brand)}
-.vac-foot{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.35rem;border-top:1px solid var(--border);background:var(--surface2)}
+::selection{background:rgba(99,102,241,0.3);color:var(--text)}
+
+/* ── LAYOUT ── */
+.sd-root{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sd-sidebar{
+  width:240px;flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  height:100vh;overflow:hidden;
+}
+.sidebar-brand{
+  padding:1.4rem 1.4rem 1rem;
+  border-bottom:1px solid var(--border);
+}
+.brand-logo{
+  font-family:'Cabinet Grotesk',sans-serif;
+  font-size:1.2rem;font-weight:900;
+  letter-spacing:-0.03em;
+  background:linear-gradient(135deg,var(--accent2),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.brand-tag{font-size:0.6rem;font-weight:600;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px}
+
+.sidebar-nav{flex:1;padding:0.75rem 0.6rem;overflow-y:auto}
+.nav-group-label{font-size:0.55rem;font-weight:700;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;padding:0.6rem 0.8rem 0.3rem}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:0.62rem 0.85rem;border-radius:10px;
+  font-size:0.82rem;font-weight:500;color:var(--text2);
+  cursor:pointer;margin-bottom:2px;
+  transition:all 0.15s ease;position:relative;
+}
+.nav-item:hover{background:var(--surface3);color:var(--text)}
+.nav-item.active{background:var(--accent3);color:var(--accent2);font-weight:600}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:22%;bottom:22%;
+  width:2.5px;background:var(--accent);border-radius:0 2px 2px 0;
+}
+.nav-icon{width:18px;text-align:center;font-size:0.85rem;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;background:var(--accent);
+  color:white;font-size:0.58rem;font-weight:800;
+  min-width:17px;height:17px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;
+}
+.nav-badge.green{background:var(--green)}
+.nav-badge.amber{background:var(--amber)}
+
+.sidebar-footer{padding:0.8rem 0.6rem;border-top:1px solid var(--border)}
+.sidebar-user{
+  display:flex;align-items:center;gap:9px;
+  padding:0.7rem 0.85rem;background:var(--surface3);
+  border-radius:10px;cursor:pointer;transition:0.15s;
+}
+.sidebar-user:hover{background:var(--surface4)}
+.s-avatar{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--accent3);font-size:0.75rem;font-weight:800;color:var(--accent2);overflow:hidden;
+}
+.s-avatar img{width:100%;height:100%;object-fit:cover}
+.s-name{font-size:0.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.s-role{font-size:0.6rem;color:var(--text3);margin-top:1px}
+.logout-btn{
+  margin-top:6px;width:100%;padding:0.48rem;
+  border-radius:9px;background:var(--red2);
+  color:var(--red);border:1px solid rgba(239,68,68,0.15);
+  font-size:0.74rem;font-weight:700;cursor:pointer;
+  transition:0.15s;font-family:inherit;
+}
+.logout-btn:hover{background:var(--red);color:white}
+
+/* ── MAIN ── */
+.sd-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{
+  height:58px;background:rgba(7,9,15,0.9);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:0 2rem;
+  display:flex;align-items:center;gap:1rem;flex-shrink:0;z-index:50;
+}
+.topbar-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1rem;font-weight:700;flex:1}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;padding:0.45rem 0.9rem;width:240px;
+  transition:0.15s;
+}
+.search-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent3)}
+.search-box input{background:none;border:none;outline:none;font-family:inherit;font-size:0.82rem;color:var(--text);flex:1}
+.search-box input::placeholder{color:var(--text3)}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:0.15s;color:var(--text2);font-size:0.9rem;position:relative;
+}
+.icon-btn:hover{background:var(--surface3);color:var(--text)}
+.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:var(--accent);border-radius:50%;border:1.5px solid var(--surface)}
+
+.content-area{flex:1;overflow-y:auto}
+.page{padding:2rem}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0.55rem 1.1rem;border-radius:9px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#4f46e5;transform:translateY(-1px);box-shadow:var(--shadow-accent)}
+.btn-ghost{background:var(--surface3);color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--surface4);color:var(--text)}
+.btn-danger{background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.btn-danger:hover{background:var(--red);color:white}
+.btn-success{background:var(--green2);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.btn-success:hover{background:var(--green);color:white}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.75rem;border-radius:7px}
+.btn-xs{padding:0.25rem 0.6rem;font-size:0.68rem;border-radius:6px}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg)}
+.card-p{padding:1.5rem}
+.card-hover{transition:all 0.18s}
+.card-hover:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:var(--shadow)}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.8rem}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1.4rem;position:relative;overflow:hidden;transition:0.18s;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-label{font-size:0.65rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.65rem}
+.stat-value{font-family:'Cabinet Grotesk',sans-serif;font-size:2rem;font-weight:900;line-height:1;margin-bottom:0.45rem}
+.stat-badge{display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:5px}
+.stat-icon{position:absolute;top:1.1rem;right:1.1rem;font-size:1.3rem;opacity:0.25}
+
+/* ── SECTION ── */
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.section-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1rem;font-weight:800}
+.section-sub{font-size:0.72rem;color:var(--text3);margin-top:2px}
+
+/* ── FEED / VACANCY CARDS ── */
+.feed-grid{display:flex;flex-direction:column;gap:0.9rem}
+.vac-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  overflow:hidden;transition:0.18s;position:relative;
+}
+.vac-card:hover{border-color:rgba(99,102,241,0.3);box-shadow:var(--shadow)}
+.vac-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--line,transparent);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.vac-body{padding:1.3rem}
+.vac-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem}
+.vac-logo-wrap{display:flex;align-items:center;gap:0.7rem}
+.vac-logo{
+  width:40px;height:40px;border-radius:10px;flex-shrink:0;
+  background:var(--accent3);color:var(--accent2);
+  font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:0.82rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.vac-company{font-size:0.82rem;font-weight:700;color:var(--text)}
+.vac-date{font-size:0.65rem;color:var(--text3);margin-top:1px}
+.type-chip{font-size:0.62rem;font-weight:800;padding:3px 9px;border-radius:5px;text-transform:uppercase;letter-spacing:0.05em}
+.chip-vacancy{background:var(--accent3);color:var(--accent2)}
+.chip-internship{background:var(--violet2);color:#c4b5fd}
+.chip-training{background:var(--green2);color:#6ee7b7}
+.chip-campus{background:var(--amber2);color:#fcd34d}
+.vac-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:0.35rem;line-height:1.3}
+.vac-desc{font-size:0.8rem;color:var(--text2);margin-bottom:0.8rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.skill-pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.8rem}
+.s-pill{background:var(--surface3);color:var(--text2);border:1px solid var(--border2);padding:2px 8px;border-radius:5px;font-size:0.66rem;font-weight:600}
+.vac-foot{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1.3rem;border-top:1px solid var(--border);background:rgba(255,255,255,0.01)}
 .vac-meta{display:flex;gap:1rem}
-.vac-meta-item{font-size:.73rem;color:var(--text-muted);font-weight:500;display:flex;align-items:center;gap:4px}
-.vac-actions{display:flex;gap:.5rem}
-.detail-btn{padding:.42rem .85rem;border-radius:8px;background:white;border:1.5px solid var(--border-strong);font-size:.71rem;font-weight:700;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:.18s}
-.detail-btn:hover{border-color:var(--brand);color:var(--brand)}
-.apply-btn{padding:.42rem 1.1rem;border-radius:8px;border:none;background:var(--grad);color:white;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s;box-shadow:0 3px 10px rgba(99,102,241,.25)}
-.apply-btn:hover{opacity:.88;transform:translateY(-1px)}
-.apply-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.applied-badge{padding:.42rem 1.1rem;border-radius:8px;background:#dcfce7;color:#166534;font-size:.73rem;font-weight:700}
+.vac-meta-item{font-size:0.72rem;color:var(--text3);display:flex;align-items:center;gap:4px;font-weight:500}
+.vac-actions{display:flex;gap:0.45rem}
+.apply-btn{padding:0.42rem 1rem;border-radius:8px;border:none;background:var(--accent);color:white;font-size:0.73rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;box-shadow:0 3px 10px rgba(99,102,241,0.25)}
+.apply-btn:hover{background:#4f46e5;transform:translateY(-1px)}
+.apply-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.applied-badge{padding:0.42rem 1rem;border-radius:8px;background:var(--green2);color:var(--green);font-size:0.73rem;font-weight:700;border:1px solid rgba(16,185,129,0.2)}
+
+/* ── JOBS GRID ── */
 .jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
-.job-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem;box-shadow:var(--shadow-xs);transition:.22s;cursor:pointer}
-.job-card:hover{box-shadow:var(--shadow-md);border-color:var(--brand-light);transform:translateY(-2px)}
-.job-company{font-size:.65rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.22rem}
-.job-title{font-family:'Clash Display',sans-serif;font-size:.92rem;font-weight:600;color:var(--text-primary);margin-bottom:.42rem;letter-spacing:-0.01em;line-height:1.3}
-.job-desc{font-size:.77rem;color:var(--text-secondary);line-height:1.5;margin-bottom:.65rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.job-tags{display:flex;gap:.28rem;flex-wrap:wrap;margin-bottom:.65rem}
-.j-tag{padding:.13rem .48rem;border-radius:99px;font-size:.63rem;font-weight:700;border:1.5px solid}
-.job-foot{display:flex;align-items:center;justify-content:space-between}
-.job-pg{font-size:.68rem;color:var(--text-muted);font-weight:500}
-.job-apply-link{padding:.38rem .9rem;border-radius:8px;border:none;background:var(--grad);color:white;font-size:.71rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:.18s;font-family:inherit}
-.job-apply-link:hover{opacity:.85}
+.job-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:1.2rem;transition:0.18s;cursor:pointer;position:relative;overflow:hidden;
+}
+.job-card:hover{border-color:rgba(99,102,241,0.25);transform:translateY(-2px);box-shadow:var(--shadow)}
+.job-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--line,transparent);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.job-company{font-size:0.65rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.22rem}
+.job-title{font-family:'Cabinet Grotesk',sans-serif;font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:0.38rem;line-height:1.3}
+.job-desc{font-size:0.77rem;color:var(--text2);line-height:1.5;margin-bottom:0.65rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.job-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:0.65rem}
+.j-tag{padding:2px 8px;border-radius:5px;font-size:0.63rem;font-weight:700;border:1px solid var(--border2);color:var(--text2);background:var(--surface3)}
+.job-foot{display:flex;align-items:center;justify-content:space-between;padding-top:0.8rem;border-top:1px solid var(--border)}
+
+/* ── MATCH CARDS ── */
 .match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
-.match-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:1.3rem;box-shadow:var(--shadow-xs);transition:.22s}
-.match-card:hover{box-shadow:var(--shadow-md);border-color:var(--brand-light);transform:translateY(-2px)}
-.match-pct{font-family:'Clash Display',sans-serif;font-size:2rem;font-weight:700;color:var(--brand);line-height:1;margin-bottom:2px}
-.match-lbl{font-size:.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem}
-.match-bar-track{height:4px;background:var(--surface3);border-radius:99px;margin-bottom:.9rem;overflow:hidden}
-.match-bar-fill{height:100%;background:var(--grad);border-radius:99px}
-.match-job{font-family:'Clash Display',sans-serif;font-size:.95rem;font-weight:600;color:var(--text-primary);margin-bottom:.25rem;letter-spacing:-0.01em}
-.match-industry{font-size:.7rem;color:var(--text-muted);font-weight:600;margin-bottom:.7rem}
-.missing-label{font-size:.63rem;font-weight:800;text-transform:uppercase;color:var(--rose);letter-spacing:.06em;margin-bottom:.35rem}
-.miss-chip{display:inline-block;padding:.14rem .5rem;border-radius:5px;font-size:.66rem;font-weight:700;background:rgba(244,63,94,.07);color:var(--rose);border:1px solid rgba(244,63,94,.15);margin:.2rem .2rem 0 0}
-.course-rec-item{display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r-xs);margin-top:.4rem;cursor:pointer;transition:.18s;text-decoration:none}
-.course-rec-item:hover{background:var(--brand-xlight);border-color:var(--brand)}
-.course-rec-name{font-size:.76rem;font-weight:700;color:var(--text-primary);flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
-.courses-rec-label{font-size:.63rem;font-weight:800;text-transform:uppercase;color:var(--emerald);letter-spacing:.06em;margin:.7rem 0 .35rem}
+.match-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.3rem;transition:0.18s}
+.match-card:hover{border-color:rgba(99,102,241,0.25);transform:translateY(-2px);box-shadow:var(--shadow)}
+.match-pct{font-family:'Cabinet Grotesk',sans-serif;font-size:2rem;font-weight:900;color:var(--accent2);line-height:1;margin-bottom:2px}
+.match-lbl{font-size:0.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem}
+.match-bar-track{height:4px;background:var(--surface3);border-radius:99px;margin-bottom:0.9rem;overflow:hidden}
+.match-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--violet));border-radius:99px}
+.match-job{font-family:'Cabinet Grotesk',sans-serif;font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:0.25rem}
+.match-industry{font-size:0.7rem;color:var(--text3);font-weight:600;margin-bottom:0.7rem}
+.miss-chip{display:inline-block;padding:2px 8px;border-radius:5px;font-size:0.66rem;font-weight:700;background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,0.2);margin:0.15rem 0.15rem 0 0}
+.course-rec-item{display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.7rem;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;margin-top:0.4rem;cursor:pointer;transition:0.15s;text-decoration:none}
+.course-rec-item:hover{background:var(--accent3);border-color:var(--accent)}
+.course-rec-name{font-size:0.76rem;font-weight:700;color:var(--text);flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+
+/* ── COURSES ── */
 .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-.course-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-xs);transition:.22s}
-.course-card:hover{box-shadow:var(--shadow-md);border-color:var(--brand-light);transform:translateY(-2px)}
-.course-top{padding:1.2rem;background:var(--grad);position:relative;overflow:hidden}
-.course-top::before{content:'';position:absolute;top:-25px;right:-25px;width:90px;height:90px;background:rgba(255,255,255,.08);border-radius:50%}
-.course-provider{font-size:.63rem;font-weight:800;color:rgba(255,255,255,.65);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem}
-.course-name{font-family:'Clash Display',sans-serif;font-size:.92rem;font-weight:600;color:white;line-height:1.3;position:relative;z-index:1}
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:0.18s}
+.course-card:hover{border-color:rgba(99,102,241,0.25);transform:translateY(-2px);box-shadow:var(--shadow)}
+.course-top{padding:1.2rem;background:linear-gradient(135deg,#1a2040 0%,#1a2332 100%);position:relative;overflow:hidden}
+.course-top::before{content:'';position:absolute;top:-25px;right:-25px;width:90px;height:90px;background:rgba(99,102,241,0.08);border-radius:50%}
+.course-provider{font-size:0.63rem;font-weight:800;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem}
+.course-name{font-family:'Cabinet Grotesk',sans-serif;font-size:0.92rem;font-weight:700;color:var(--text);line-height:1.3;position:relative;z-index:1}
 .course-body{padding:1rem}
-.course-meta-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem}
-.course-meta-item{font-size:.67rem;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:3px}
-.level-badge{display:inline-block;padding:.15rem .55rem;border-radius:5px;font-size:.65rem;font-weight:800}
-.level-Beginner{background:#e6f9f0;color:#1a7a4a;border:1px solid #b3e8cc}
-.level-Intermediate{background:#fef8e6;color:#92400e;border:1px solid #fcd34d}
-.level-Advanced{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5}
-.enroll-btn{width:100%;padding:.52rem;border-radius:8px;border:none;background:var(--grad);color:white;font-family:'Clash Display',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(99,102,241,.2);transition:.18s}
-.enroll-btn:hover{opacity:.88}
-.apps-list{display:flex;flex-direction:column;gap:.85rem}
-.app-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem;box-shadow:var(--shadow-xs);transition:.18s}
-.app-card:hover{border-color:var(--brand-light);box-shadow:var(--shadow-sm)}
-.app-role{font-family:'Clash Display',sans-serif;font-size:1rem;font-weight:600;color:var(--text-primary);letter-spacing:-0.01em}
-.app-company{font-size:.78rem;color:var(--text-muted);font-weight:600;margin-top:2px}
-.status-badge{padding:.2rem .65rem;border-radius:99px;font-size:.68rem;font-weight:800}
-.status-Pending{background:#fef3c7;color:#b45309}
-.status-Shortlisted{background:#e0e7ff;color:#3730a3}
-.status-Selected{background:#dcfce7;color:#166534}
-.status-Rejected{background:#fee2e2;color:#b91c1c}
-.app-meta{display:flex;gap:1.2rem;margin-top:.6rem;font-size:.75rem;color:var(--text-muted)}
+.course-meta-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem}
+.course-meta-item{font-size:0.67rem;font-weight:600;color:var(--text3)}
+.level-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:0.65rem;font-weight:800}
+.level-Beginner{background:var(--green2);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.level-Intermediate{background:var(--amber2);color:var(--amber);border:1px solid rgba(245,158,11,0.2)}
+.level-Advanced{background:var(--red2);color:var(--red);border:1px solid rgba(239,68,68,0.2)}
+.enroll-btn{width:100%;padding:0.52rem;border-radius:8px;border:none;background:var(--accent);color:white;font-family:'Cabinet Grotesk',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:0.15s}
+.enroll-btn:hover{background:#4f46e5}
+
+/* ── APPLICATIONS ── */
+.apps-list{display:flex;flex-direction:column;gap:0.8rem}
+.app-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.2rem;transition:0.18s}
+.app-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.app-role{font-family:'Cabinet Grotesk',sans-serif;font-size:0.98rem;font-weight:800;color:var(--text)}
+.app-company{font-size:0.78rem;color:var(--text3);font-weight:600;margin-top:2px}
+.status-chip{padding:3px 9px;border-radius:5px;font-size:0.65rem;font-weight:800;display:inline-block;text-transform:uppercase;letter-spacing:0.04em}
+.s-pending{background:var(--amber2);color:var(--amber)}
+.s-shortlisted{background:var(--accent3);color:var(--accent2)}
+.s-selected{background:var(--green2);color:var(--green)}
+.s-rejected{background:var(--red2);color:var(--red)}
+
+/* ── PROFILE PAGE ── */
 .pf-page{max-width:860px;margin:0 auto}
-.pf-cover-wrap{width:100%;height:170px;border-radius:var(--r);overflow:hidden;cursor:pointer;position:relative;margin-bottom:0}
-.pf-cover-wrap img,.pf-cover-default{width:100%;height:100%;object-fit:cover}
-.pf-cover-default{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#06b6d4 100%)}
-.pf-cover-ov{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:flex-end;justify-content:flex-end;padding:.7rem;transition:.2s}
-.pf-cover-wrap:hover .pf-cover-ov{background:rgba(0,0,0,.2)}
-.pf-cover-lbl{background:rgba(0,0,0,.6);color:white;font-size:.68rem;font-weight:700;padding:.28rem .65rem;border-radius:7px}
-.pf-hero{background:white;border:1.5px solid var(--border);border-radius:0 0 var(--r) var(--r);padding:1.35rem 1.75rem;margin-bottom:1.5rem;box-shadow:var(--shadow-xs)}
-.pf-av-wrap{position:relative;display:inline-block}
-.pf-av{width:86px;height:86px;border-radius:22px;overflow:hidden;cursor:pointer;background:var(--grad);border:4px solid white;box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;font-family:'Clash Display',sans-serif;font-size:2rem;font-weight:700;color:white;margin-top:-52px;position:relative}
-.pf-av img{width:100%;height:100%;object-fit:cover}
-.pf-av-cam{position:absolute;bottom:4px;right:4px;width:22px;height:22px;background:white;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.65rem;box-shadow:var(--shadow-xs);cursor:pointer}
-.pf-hero-row{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
-.pf-name{font-family:'Clash Display',sans-serif;font-size:1.4rem;font-weight:700;color:var(--text-primary);margin-top:.55rem;letter-spacing:-0.02em}
-.pf-qual-text{font-size:.82rem;font-weight:700;color:var(--brand);margin-top:.1rem}
-.pf-meta-row{display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;margin-top:.6rem;font-size:.76rem;color:var(--text-muted);font-weight:500}
-.pf-meta-row a{color:var(--brand);text-decoration:none;font-weight:600}
-.pf-meta-row a:hover{text-decoration:underline}
-.pf-about-text{font-size:.83rem;color:var(--text-secondary);line-height:1.7;margin-top:.65rem}
-.pf-skills-row{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.7rem}
-.pf-skill-chip{padding:.2rem .65rem;border-radius:99px;font-size:.72rem;font-weight:700;background:var(--brand-xlight);color:var(--brand)}
-.pf-completion-badge{text-align:center;padding:0 .5rem}
-.pf-completion-num{font-family:'Clash Display',sans-serif;font-size:1.6rem;font-weight:700;line-height:1}
-.pf-completion-lbl{font-size:.6rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
-.pf-hero-actions{display:flex;gap:.5rem}
-.pf-edit-btn{padding:.48rem 1.1rem;border-radius:9px;background:white;border:1.5px solid var(--border-strong);color:var(--brand);font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s}
-.pf-edit-btn:hover{background:var(--brand-xlight);border-color:var(--brand)}
-.pf-save-btn{padding:.48rem 1.2rem;border-radius:9px;background:var(--grad);color:white;border:none;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s;box-shadow:0 3px 10px rgba(99,102,241,.25)}
-.pf-save-btn:hover{opacity:.88;transform:translateY(-1px)}
-.pf-save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.pf-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.3rem;background:white;border:1px solid var(--border);border-radius:12px;padding:4px}
-.pf-tab{padding:.42rem 1rem;border-radius:9px;font-size:.77rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);font-family:inherit;transition:.18s;white-space:nowrap}
-.pf-tab:hover{color:var(--text-secondary);background:var(--surface2)}
-.pf-tab.active{background:var(--grad);color:white;box-shadow:0 2px 8px rgba(99,102,241,.3)}
-.pf-card{background:white;border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;margin-bottom:1rem;box-shadow:var(--shadow-xs)}
-.pf-card-title{font-family:'Clash Display',sans-serif;font-size:.95rem;font-weight:600;color:var(--text-primary);margin-bottom:1rem;letter-spacing:-0.01em}
-.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
-.pf-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.85rem}
-.pf-field{display:flex;flex-direction:column;gap:.28rem}
-.pf-label{font-size:.65rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em}
-.pf-input{padding:.62rem .9rem;border-radius:var(--r-sm);border:1.5px solid var(--border-strong);background:var(--surface2);font-family:inherit;font-size:.83rem;color:var(--text-primary);outline:none;transition:.18s;width:100%}
-.pf-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(99,102,241,.08);background:white}
-.pf-input::placeholder{color:var(--text-muted)}
+.pf-cover{
+  background:linear-gradient(135deg,#1e3a5f 0%,#0f2040 50%,#0a0c14 100%);
+  border-radius:var(--r-lg);padding:2rem;margin-bottom:4.5rem;
+  position:relative;overflow:hidden;border:1px solid var(--border);
+}
+.pf-cover::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(99,102,241,0.15) 0%,transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(139,92,246,0.1) 0%,transparent 50%)}
+.pf-av-wrap{position:absolute;bottom:-45px;left:2rem;width:100px;height:100px;border-radius:20px;border:3px solid var(--surface);overflow:hidden;background:var(--surface2);cursor:pointer;z-index:2}
+.pf-av-wrap img{width:100%;height:100%;object-fit:cover}
+.pf-av-initial{width:100%;height:100%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-family:'Cabinet Grotesk',sans-serif;font-size:2.2rem;font-weight:900;color:var(--accent2)}
+.pf-hero{background:var(--surface);border:1px solid var(--border);border-radius:0 0 var(--r-lg) var(--r-lg);padding:1.4rem 1.6rem;margin-bottom:1.4rem}
+.pf-name{font-family:'Cabinet Grotesk',sans-serif;font-size:1.4rem;font-weight:900;color:var(--text);margin-top:0.5rem;letter-spacing:-0.02em}
+.pf-qual{font-size:0.82rem;font-weight:700;color:var(--accent2);margin-top:0.1rem}
+.pf-meta-row{display:flex;flex-wrap:wrap;gap:0.5rem 1.2rem;margin-top:0.6rem;font-size:0.76rem;color:var(--text3)}
+.pf-meta-row a{color:var(--accent2);text-decoration:none;font-weight:600}
+.pf-skills-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:0.7rem}
+.pf-skill-chip{padding:3px 10px;border-radius:5px;font-size:0.72rem;font-weight:700;background:var(--accent3);color:var(--accent2);border:1px solid rgba(99,102,241,0.2)}
+.pf-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1.3rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px}
+.pf-tab{padding:0.42rem 1rem;border-radius:9px;font-size:0.77rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:inherit;transition:0.15s;white-space:nowrap}
+.pf-tab:hover{color:var(--text);background:var(--surface3)}
+.pf-tab.active{background:var(--accent);color:white;box-shadow:0 2px 8px rgba(99,102,241,0.3)}
+.pf-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;margin-bottom:1rem}
+.pf-card-title{font-family:'Cabinet Grotesk',sans-serif;font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:1rem}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem}
+.pf-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.85rem}
+.pf-field{display:flex;flex-direction:column;gap:0.28rem}
+.pf-label{font-size:0.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em}
+.pf-input{padding:0.62rem 0.9rem;border-radius:9px;border:1px solid var(--border2);background:var(--surface2);font-family:inherit;font-size:0.83rem;color:var(--text);outline:none;transition:0.15s;width:100%}
+.pf-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent3);background:var(--surface3)}
+.pf-input::placeholder{color:var(--text3)}
 select.pf-input{cursor:pointer}
 textarea.pf-input{resize:vertical;min-height:88px}
-.pf-acad-box{background:var(--surface2);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);padding:1rem;text-align:center}
-.pf-acad-lbl{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--brand);margin-bottom:.4rem}
-.pf-acad-val{font-size:.83rem;font-weight:700;color:var(--text-primary)}
-.pf-upload-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:.6rem}
-.pf-thumb{aspect-ratio:1;border-radius:9px;overflow:hidden;cursor:pointer;position:relative;background:var(--surface3);border:1px solid var(--border-strong)}
+.pf-acad-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center}
+.pf-acad-lbl{font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);margin-bottom:0.4rem}
+.pf-acad-val{font-size:0.83rem;font-weight:700;color:var(--text)}
+.pf-thumb{aspect-ratio:1;border-radius:9px;overflow:hidden;cursor:pointer;position:relative;background:var(--surface3);border:1px solid var(--border)}
 .pf-thumb img{width:100%;height:100%;object-fit:cover}
-.pf-thumb-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.95);border:none;color:var(--rose);font-size:.52rem;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:.15s}
+.pf-thumb-del{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:5px;background:rgba(0,0,0,0.8);border:none;color:var(--red);font-size:0.52rem;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:0.15s}
 .pf-thumb:hover .pf-thumb-del{opacity:1}
-.pf-add-thumb{aspect-ratio:1;border-radius:9px;border:1.5px dashed rgba(99,102,241,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;cursor:pointer;color:var(--brand);font-size:.66rem;font-weight:700;transition:.18s}
-.pf-add-thumb:hover{background:var(--brand-xlight);border-color:var(--brand)}
-.pf-resume-row{display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:var(--surface2);border:1.5px solid var(--border-strong);border-radius:var(--r-sm);margin-bottom:.55rem}
-.pf-resume-icon{font-size:1.4rem;flex-shrink:0}
-.pf-resume-name{font-size:.8rem;font-weight:700;color:var(--text-primary)}
-.pf-resume-type{font-size:.65rem;color:var(--text-muted)}
-.skill-add-row{display:flex;gap:.55rem;align-items:center;margin-top:.85rem}
-.skill-sugg{padding:.2rem .6rem;border-radius:99px;font-size:.7rem;font-weight:700;background:var(--brand-xlight);color:var(--brand);border:1px solid rgba(99,102,241,.2);cursor:pointer;transition:.15s}
-.skill-sugg:hover{background:var(--brand);color:white}
-.modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem}
-.modal-box{background:white;border-radius:20px;padding:2.25rem;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.25)}
-.modal-close{position:absolute;top:1.1rem;right:1.1rem;width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:.82rem;transition:.15s}
-.modal-close:hover{background:#fee2e2;color:var(--rose)}
-.modal-title{font-family:'Clash Display',sans-serif;font-size:1.3rem;font-weight:600;color:var(--text-primary);margin-bottom:.2rem;letter-spacing:-0.02em}
-.modal-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:1.5rem}
-.field-label{display:block;font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem;margin-top:.85rem}
-.field-input{width:100%;padding:.7rem .9rem;border:1.5px solid #e2e8f0;border-radius:var(--r-sm);font-family:inherit;font-size:.83rem;color:var(--text-primary);outline:none;transition:.18s;background:#fafbff}
-.field-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(99,102,241,.08);background:white}
+.pf-add-thumb{aspect-ratio:1;border-radius:9px;border:1.5px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.2rem;cursor:pointer;color:var(--accent2);font-size:0.66rem;font-weight:700;transition:0.18s}
+.pf-add-thumb:hover{background:var(--accent3);border-color:var(--accent)}
+.skill-sugg{padding:3px 10px;border-radius:5px;font-size:0.7rem;font-weight:700;background:var(--surface3);color:var(--text2);border:1px solid var(--border2);cursor:pointer;transition:0.15s;font-family:inherit}
+.skill-sugg:hover{background:var(--accent);color:white;border-color:var(--accent)}
+
+/* ── CHAT SECTION ── */
+.chat-layout{display:grid;grid-template-columns:280px 1fr;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;height:calc(100vh - 58px - 4rem)}
+.conv-list{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.conv-list-head{padding:1rem 1.2rem;font-weight:700;font-size:0.85rem;border-bottom:1px solid var(--border);flex-shrink:0;font-family:'Cabinet Grotesk',sans-serif}
+.conv-search{padding:0.6rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.conv-search input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:0.42rem 0.75rem;color:var(--text);font-family:inherit;font-size:0.78rem;outline:none;transition:0.15s}
+.conv-search input:focus{border-color:var(--accent)}
+.conv-search input::placeholder{color:var(--text3)}
+.conv-list-body{flex:1;overflow-y:auto}
+.conv-row{display:flex;align-items:center;gap:9px;padding:0.85rem 1.2rem;cursor:pointer;border-bottom:1px solid var(--border);transition:0.12s}
+.conv-row:hover{background:var(--surface2)}
+.conv-row.active{background:var(--accent3)}
+.conv-av{width:36px;height:36px;border-radius:10px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;color:var(--text2);flex-shrink:0;overflow:hidden}
+.conv-av img{width:100%;height:100%;object-fit:cover}
+.conv-name{font-size:0.8rem;font-weight:700;color:var(--text)}
+.conv-preview{font-size:0.68rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.conv-time{font-size:0.6rem;color:var(--text3);flex-shrink:0;margin-left:auto}
+.unread-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-left:auto}
+
+.chat-area{display:flex;flex-direction:column;overflow:hidden}
+.chat-head{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--surface)}
+.chat-head-name{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:0.9rem}
+.chat-head-role{font-size:0.68rem;color:var(--text3);margin-top:1px}
+.online-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.65rem;font-weight:700;color:var(--green)}
+.online-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block}
+.chat-body{flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.chat-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0.5rem;color:var(--text3);font-size:0.8rem;text-align:center}
+.bubble{max-width:65%;padding:0.55rem 0.9rem;border-radius:14px;font-size:0.8rem;line-height:1.5}
+.bubble.sent{background:var(--accent);color:white;align-self:flex-end;border-bottom-right-radius:3px}
+.bubble.recv{background:var(--surface2);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px;border:1px solid var(--border)}
+.bubble-time{font-size:0.58rem;opacity:0.55;margin-top:2px;text-align:right}
+.chat-foot{padding:0.8rem 1.2rem;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:var(--surface)}
+.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:0.6rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;transition:0.15s;resize:none}
+.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent3)}
+.chat-input::placeholder{color:var(--text3)}
+.chat-send-btn{width:38px;height:38px;border-radius:10px;background:var(--accent);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.15s;flex-shrink:0}
+.chat-send-btn:hover{background:#4f46e5}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:9000;padding:1rem}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.modal-close{position:absolute;top:1.1rem;right:1.1rem;width:30px;height:30px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:0.15s;font-size:0.8rem}
+.modal-close:hover{background:var(--red2);color:var(--red)}
+.modal-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:0.2rem;color:var(--text)}
+.modal-sub{font-size:0.78rem;color:var(--text3);margin-bottom:1.5rem}
+.field-label{display:block;font-size:0.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.35rem;margin-top:0.9rem}
+.field-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:0.65rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.82rem;outline:none;transition:0.15s}
+.field-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent3)}
+.field-input::placeholder{color:var(--text3)}
 textarea.field-input{resize:vertical;min-height:88px}
-.modal-btn-primary{width:100%;padding:.8rem;border-radius:99px;border:none;background:var(--grad);color:white;font-family:'Clash Display',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;margin-top:.85rem;box-shadow:0 5px 18px rgba(99,102,241,.28);transition:.18s}
-.modal-btn-primary:hover{opacity:.9;transform:translateY(-1px)}
-.modal-btn-secondary{width:100%;padding:.7rem;border-radius:99px;border:1.5px solid #e2e8f0;background:white;color:var(--text-muted);font-family:inherit;font-size:.83rem;font-weight:700;cursor:pointer;margin-top:.45rem;transition:.18s}
-.modal-btn-secondary:hover{border-color:var(--brand);color:var(--brand)}
-.dm-panel{position:fixed;bottom:0;right:2rem;width:350px;height:470px;background:white;border:1px solid var(--border);border-radius:18px 18px 0 0;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;z-index:500;overflow:hidden}
-.dm-head{padding:.9rem 1.2rem;background:var(--grad);display:flex;align-items:center;justify-content:space-between;color:white}
-.dm-recipient-name{font-family:'Clash Display',sans-serif;font-weight:600;font-size:.9rem}
-.dm-status-row{font-size:.68rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:.3rem;margin-top:1px}
-.online-dot{width:6px;height:6px;background:#34d399;border-radius:50%;display:inline-block}
-.dm-body{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.45rem;background:var(--bg)}
-.dm-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:.5rem;color:var(--text-muted);font-size:.8rem;text-align:center}
-.bubble{max-width:72%;padding:.52rem .82rem;border-radius:12px;font-size:.8rem;line-height:1.45}
-.bubble.sent{background:var(--grad);color:white;align-self:flex-end;border-bottom-right-radius:3px}
-.bubble.recv{background:white;color:var(--text-primary);align-self:flex-start;border-bottom-left-radius:3px;box-shadow:var(--shadow-xs)}
-.bubble-time{font-size:.58rem;opacity:.55;margin-top:2px;text-align:right}
-.dm-foot{padding:.65rem .9rem;border-top:1px solid var(--border);display:flex;gap:.45rem;background:white}
-.dm-input{flex:1;padding:.52rem .82rem;border-radius:99px;border:1.5px solid var(--border-strong);font-family:inherit;font-size:.8rem;color:var(--text-primary);outline:none;transition:.18s}
-.dm-input:focus{border-color:var(--brand)}
-.dm-send-btn{width:34px;height:34px;border-radius:50%;background:var(--grad);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
-.dm-close-btn{padding:.22rem .65rem;border-radius:7px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:.67rem;cursor:pointer;font-family:inherit;transition:.18s}
-.dm-close-btn:hover{background:rgba(220,38,38,.4)}
-.toast-stack{position:fixed;bottom:2rem;right:2rem;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:#0f172a;color:white;padding:.8rem 1.3rem;border-radius:12px;box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.55rem;pointer-events:auto}
-.toast-dot{width:7px;height:7px;background:var(--brand-light);border-radius:50%;flex-shrink:0}
-.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
-.empty-icon{font-size:2.5rem;margin-bottom:.7rem;opacity:.45}
-.empty-title{font-size:.9rem;font-weight:700;color:var(--text-secondary);margin-bottom:.35rem}
-.empty-text{font-size:.77rem;line-height:1.6}
-.spinner{width:30px;height:30px;border:3px solid rgba(99,102,241,.15);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite}
+.modal-btn-primary{width:100%;padding:0.8rem;border-radius:99px;border:none;background:var(--accent);color:white;font-family:'Cabinet Grotesk',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;margin-top:0.85rem;box-shadow:0 5px 18px rgba(99,102,241,0.28);transition:0.18s}
+.modal-btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.modal-btn-secondary{width:100%;padding:0.7rem;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:inherit;font-size:0.83rem;font-weight:700;cursor:pointer;margin-top:0.45rem;transition:0.15s}
+.modal-btn-secondary:hover{border-color:var(--accent);color:var(--accent2)}
+
+/* ── INDUSTRIES ── */
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem}
+.ind-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.3rem 1.1rem;cursor:pointer;transition:0.18s;text-align:center}
+.ind-card:hover{box-shadow:var(--shadow);border-color:rgba(99,102,241,0.3);transform:translateY(-3px)}
+.ind-logo{width:50px;height:50px;border-radius:13px;background:var(--accent3);color:var(--accent2);font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:0.95rem;display:flex;align-items:center;justify-content:center;margin:0 auto 0.85rem}
+.ind-name{font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:0.3rem}
+.ind-domain-tag{display:inline-block;font-size:0.67rem;font-weight:700;color:var(--accent2);background:var(--accent3);border-radius:99px;padding:2px 9px;margin-bottom:0.35rem;border:1px solid rgba(99,102,241,0.2)}
+.ind-loc{font-size:0.7rem;color:var(--text3)}
+.ind-tagline{font-size:0.7rem;color:var(--text3);margin-top:0.3rem;font-style:italic;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.msg-btn{margin-top:0.85rem;width:100%;padding:0.42rem;border-radius:8px;background:var(--surface3);border:1px solid var(--border2);font-size:0.72rem;font-weight:700;color:var(--text2);cursor:pointer;font-family:inherit;transition:0.15s}
+.msg-btn:hover{background:var(--accent);color:white;border-color:var(--accent)}
+
+/* ── TOAST ── */
+.toast-stack{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:0.75rem 1.2rem;border-radius:12px;box-shadow:var(--shadow);font-size:0.8rem;font-weight:600;display:flex;align-items:center;gap:8px;min-width:260px}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:3.5rem 2rem;color:var(--text3)}
+.empty-icon{font-size:2.2rem;margin-bottom:0.75rem;opacity:0.35}
+.empty-title{font-size:0.9rem;font-weight:700;color:var(--text2);margin-bottom:0.4rem}
+.empty-text{font-size:0.78rem;line-height:1.6}
+
+/* ── SPINNER ── */
+.spinner{width:30px;height:30px;border:3px solid rgba(99,102,241,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.pf-toast{position:fixed;bottom:2rem;right:2rem;padding:.82rem 1.4rem;border-radius:12px;font-size:.82rem;font-weight:700;box-shadow:var(--shadow-lg);z-index:3000;display:flex;align-items:center;gap:.5rem}
-.pf-toast-success{background:#0f172a;color:white}
-.pf-toast-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
 
-/* ── EXIT CONFIRM DIALOG ── */
-.exit-overlay{position:fixed;inset:0;background:rgba(15,23,42,.7);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem}
-.exit-box{background:white;border-radius:20px;padding:2rem;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,.3);text-align:center}
-.exit-icon{font-size:2.8rem;margin-bottom:.75rem}
-.exit-title{font-family:'Clash Display',sans-serif;font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:.4rem}
-.exit-sub{font-size:.82rem;color:#64748b;line-height:1.55;margin-bottom:1.5rem}
-.exit-btn-row{display:flex;gap:.65rem}
-.exit-btn-stay{flex:1;padding:.72rem;border-radius:10px;border:1.5px solid rgba(99,102,241,.25);background:var(--brand-xlight,#e0e7ff);color:#4f46e5;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:.18s}
-.exit-btn-stay:hover{background:#c7d2fe}
-.exit-btn-leave{flex:1;padding:.72rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:.18s;box-shadow:0 3px 12px rgba(99,102,241,.3)}
-.exit-btn-leave:hover{opacity:.88}
+/* ── EXIT CONFIRM ── */
+.exit-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem}
+.exit-box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,0.6);text-align:center}
+.exit-icon{font-size:2.5rem;margin-bottom:0.75rem}
+.exit-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:0.4rem}
+.exit-sub{font-size:0.82rem;color:var(--text3);line-height:1.55;margin-bottom:1.5rem}
+.exit-btn-row{display:flex;gap:0.65rem}
+.exit-btn-stay{flex:1;padding:0.72rem;border-radius:10px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s}
+.exit-btn-stay:hover{background:var(--surface4);color:var(--text)}
+.exit-btn-leave{flex:1;padding:0.72rem;border-radius:10px;border:none;background:var(--accent);color:white;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s;box-shadow:0 3px 12px rgba(99,102,241,0.3)}
+.exit-btn-leave:hover{opacity:0.88}
 
-@media(max-width:1100px){.s-search{max-width:200px}}
-@media(max-width:900px){.s-sidebar{display:none}.s-content{padding:1.5rem}.nav-tabs{display:none}}
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){
+  .sd-sidebar{width:64px}
+  .brand-tag,.nav-item span:not(.nav-icon),.nav-badge,.s-name,.s-role,.logout-btn{display:none}
+  .nav-item{justify-content:center}
+  .sidebar-brand{display:flex;justify-content:center;padding:1.2rem 0}
+}
 `;
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -417,15 +530,9 @@ export default function StudentDashboard() {
   const [pfEditing, setPfEditing]             = useState(false);
   const [pfSaving, setPfSaving]               = useState(false);
   const [pfForm, setPfForm]                   = useState({});
-  const [pfToast, setPfToast]                 = useState(null);
   const [skillInput, setSkillInput]           = useState('');
-  const [showDetails, setShowDetails]         = useState(false);
-  const [sidebarEditMode, setSidebarEditMode] = useState(false);
-  const [coverPreview, setCoverPreview]       = useState(null);
-
-  // ── EXIT CONFIRM STATE (FIX #2) ───────────────────────────────────────────
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const pendingNavRef = useRef(null); // stores the path to go to after confirm
+  const pendingNavRef                          = useRef(null);
 
   // ── Data state ────────────────────────────────────────────────────────────
   const [profile, setProfile]               = useState(null);
@@ -436,135 +543,168 @@ export default function StudentDashboard() {
   const [vacancies, setVacancies]           = useState([]);
   const [myApplications, setMyApplications] = useState([]);
 
-  // ── Modal / overlay state ─────────────────────────────────────────────────
+  // ── Chat state ────────────────────────────────────────────────────────────
+  const [conversations, setConversations]   = useState([]); // list of {id, name, logo, domain, lastMsg, time}
+  const [activeChat, setActiveChat]         = useState(null);
+  const [chatMessages, setChatMessages]     = useState({}); // {partnerId: [{text, mine, time}]}
+  const [chatInput, setChatInput]           = useState('');
+  const [convSearch, setConvSearch]         = useState('');
+
+  // ── Modal state ───────────────────────────────────────────────────────────
   const [applyModal, setApplyModal]   = useState(null);
   const [detailModal, setDetailModal] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
-  const [activeChat, setActiveChat]   = useState(null);
-  const [chatInput, setChatInput]     = useState('');
 
   // ── Loading flags ─────────────────────────────────────────────────────────
   const [feedLoading, setFeedLoading]   = useState(true);
   const [matchLoading, setMatchLoading] = useState(false);
-
-  // ── Search ────────────────────────────────────────────────────────────────
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // ── Notifications ─────────────────────────────────────────────────────────
-  const [toasts, setToasts] = useState([]);
+  const [toasts, setToasts]             = useState([]);
+  const [searchQuery, setSearchQuery]   = useState('');
 
   // ── Refs ──────────────────────────────────────────────────────────────────
-  const coverRef     = useRef();
   const avatarRef    = useRef();
   const certRef      = useRef();
   const resumeRef    = useRef();
   const postRef      = useRef();
   const chatEndRef   = useRef();
-  const chatInputRef = useRef();
   const matchFetched = useRef(false);
 
-  // ── Toast helper ──────────────────────────────────────────────────────────
-  const toast = useCallback((msg) => {
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  const toast = useCallback((msg, color = 'var(--accent2)') => {
     const id = Date.now();
-    setToasts(prev => [...prev, { id, msg }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
+    setToasts(p => [...p, { id, msg, color }]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500);
   }, []);
 
-  const showPfToast = useCallback((msg, type = 'success') => {
-    setPfToast({ msg, type });
-    setTimeout(() => setPfToast(null), 3000);
-  }, []);
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // FIX #1 — INSTANT PROFILE SEED: never block on null profile
-  // Build a guaranteed fallback from authUser so we never get stuck loading
-  // ════════════════════════════════════════════════════════════════════════════
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BOOT: seed profile immediately, then load all data
+  // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!authUser?.id) return;
 
-    // ── Immediately seed profile from whatever we have ──────────────────────
-    // Priority: authProfile > bare authUser stub > empty shell
     const seed = authProfile
       ? buildProfile(authProfile, { email: authUser.email, id: authUser.id })
       : buildProfile({ id: authUser.id, email: authUser.email, name: authUser.email?.split('@')[0] || 'Student' });
-
-    setProfile(seed); // ← profile is never null after this point
+    setProfile(seed);
 
     let cancelled = false;
 
     const boot = async () => {
       setFeedLoading(true);
       try {
-        // 1. Try to get full profile from API (silently upgrades the seed)
+        // Full profile from API
         try {
-          const res = await axios.get(`${BASE}/api/get-profile?user_id=${authUser.id}`, { timeout: 5000 });
-          if (!cancelled && res.data && res.data.id) {
-            setProfile(buildProfile(res.data, { email: authUser.email }));
-          }
-        } catch { /* keep seed — no infinite loading */ }
+          const res = await axios.get(`${API}/get-profile?user_id=${authUser.id}`, { timeout: 5000 });
+          if (!cancelled && res.data?.id) setProfile(buildProfile(res.data, { email: authUser.email }));
+        } catch (_) {}
 
-        // 2. All feed data in parallel
-        const [indR, courseR, vacR, appR, jobR] = await Promise.allSettled([
-          axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
+        // All feed data
+        const [indR, courseR, vacR, appR, jobR, msgR] = await Promise.allSettled([
+          axios.get(`${API}/industries`, { timeout: 8000 }),
+          axios.get(`${API}/courses`, { timeout: 8000 }),
+          // KEY FIX: fetch ALL vacancies - these are posted by industry dashboard
+          axios.get(`${API}/vacancies`, { timeout: 8000 }),
+          axios.get(`${API}/applications/student/${authUser.id}`, { timeout: 8000 }),
+          axios.get(`${API}/all-jobs`, { timeout: 8000 }),
+          axios.get(`${API}/messages/${authUser.id}`, { timeout: 8000 }),
         ]);
 
         if (cancelled) return;
 
-        const indData = indR.status === 'fulfilled' && Array.isArray(indR.value?.data) && indR.value.data.length
-          ? indR.value.data : MOCK_INDUSTRIES;
+        // Industries
+        const indData = (indR.status === 'fulfilled' && Array.isArray(indR.value?.data) && indR.value.data.length)
+          ? indR.value.data : [];
         setIndustries(indData);
 
-        const courseData = courseR.status === 'fulfilled' && Array.isArray(courseR.value?.data) && courseR.value.data.length
+        // Courses
+        const courseData = (courseR.status === 'fulfilled' && Array.isArray(courseR.value?.data) && courseR.value.data.length)
           ? courseR.value.data : MOCK_COURSES;
         setCourses(courseData);
 
+        // Vacancies (from industry dashboard — KEY FIX)
         if (vacR.status === 'fulfilled' && Array.isArray(vacR.value?.data)) {
           setVacancies(vacR.value.data.map(v => ({
-            id: v.id, ownerId: v.owner_id,
-            ownerName: v.owner_name || indData.find(i => i.id === v.owner_id)?.name || 'Company',
+            id: v.id,
+            ownerId: v.owner_id,
+            ownerName: v.owner_name || 'Company',
             ownerLogo: (v.owner_name || 'CO').substring(0, 2).toUpperCase(),
-            type: v.type || 'Job Vacancy', title: v.title,
-            desc: v.description || v.desc || '', skills: v.skills || '',
-            duration: v.duration || 'Full-Time', offerings: v.offerings || '',
-            date: v.created_at ? new Date(v.created_at).toLocaleDateString() : 'Recent',
+            type: v.type || 'Job Vacancy',
+            title: v.title || 'Opening',
+            desc: v.description || v.desc || '',
+            skills: v.skills || '',
+            duration: v.duration || '',
+            offerings: v.offerings || '',
+            location: v.location || '',
+            date: v.created_at ? timeAgo(v.created_at) : 'Recent',
             likes: v.likes || 0,
-          })));
-        } else { setVacancies(MOCK_VACANCIES); }
-
-        if (appR.status === 'fulfilled' && Array.isArray(appR.value?.data)) {
-          setMyApplications(appR.value.data.map(a => ({
-            id: a.id, postId: a.vacancy_id,
-            role: a.vacancies?.title || 'Role',
-            company: a.vacancies?.owner_name || 'Company',
-            appliedOn: new Date(a.created_at).toLocaleDateString(),
-            status: a.status || 'Pending', coverLetter: a.cover_letter,
           })));
         }
 
+        // My applications
+        if (appR.status === 'fulfilled' && Array.isArray(appR.value?.data)) {
+          setMyApplications(appR.value.data.map(a => ({
+            id: a.id,
+            postId: a.vacancy_id,
+            role: a.vacancies?.title || a.vacancy_title || 'Role',
+            company: a.vacancies?.owner_name || a.owner_name || 'Company',
+            appliedOn: a.created_at ? new Date(a.created_at).toLocaleDateString() : 'Recent',
+            status: a.status || 'Pending',
+            coverLetter: a.cover_letter,
+          })));
+        }
+
+        // All jobs board
         if (jobR.status === 'fulfilled') {
           let raw = jobR.value?.data || [];
           if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch { raw = []; } }
           if (!Array.isArray(raw)) raw = [];
-          const jobs = raw.map(j => ({
+          setAllJobs(raw.length ? raw.map(j => ({
             industry: j.industry || j.company || 'Company',
-            job: j.job || j.title || 'Job Opening',
+            job: j.job || j.title || 'Opening',
             desc: j.desc || j.description || '',
-            role: j.role || '', ug: j.ug || j.education || '', pg: j.pg || '',
-            url: j.url || j.link || '#', dept: j.dept || j.department || '', skills: j.skills || '',
-          }));
-          setAllJobs(jobs.length ? jobs : MOCK_JOBS);
+            role: j.role || '',
+            ug: j.ug || j.education || '',
+            pg: j.pg || '',
+            url: j.url || j.link || '#',
+            dept: j.dept || j.department || '',
+            skills: j.skills || '',
+          })) : MOCK_JOBS);
         } else { setAllJobs(MOCK_JOBS); }
+
+        // Messages → build conversation list
+        if (msgR.status === 'fulfilled' && Array.isArray(msgR.value?.data)) {
+          const msgs = {};
+          msgR.value.data.forEach(m => {
+            const pid = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+            if (!msgs[pid]) msgs[pid] = [];
+            msgs[pid].push({
+              mine: m.sender_id === authUser.id,
+              text: m.text,
+              time: m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            });
+          });
+          setChatMessages(msgs);
+
+          // Build conversations list from industries we've chatted with
+          const convList = Object.keys(msgs).map(pid => {
+            const ind = indData.find(i => String(i.id) === pid);
+            const lastMsg = msgs[pid].at(-1);
+            return {
+              id: pid,
+              name: ind?.name || 'Company',
+              logo: ind?.logo || (ind?.name || 'CO').substring(0, 2).toUpperCase(),
+              domain: ind?.domain || '',
+              lastMsg: lastMsg?.text || '',
+              time: lastMsg?.time || '',
+              mine: lastMsg?.mine,
+            };
+          });
+          setConversations(convList);
+        }
 
       } catch (err) {
         console.error('Boot error:', err);
-        // Feed data failed — use mocks, but profile is already set
-        setIndustries(MOCK_INDUSTRIES);
         setCourses(MOCK_COURSES);
-        setVacancies(MOCK_VACANCIES);
         setAllJobs(MOCK_JOBS);
       } finally {
         if (!cancelled) setFeedLoading(false);
@@ -575,91 +715,112 @@ export default function StudentDashboard() {
     return () => { cancelled = true; };
   }, [authUser?.id]); // eslint-disable-line
 
-  // ── AI skill match ────────────────────────────────────────────────────────
+  // AI skill match
   useEffect(() => {
     if (!profile?.skills?.length || matchFetched.current) return;
     matchFetched.current = true;
     const doMatch = async () => {
       setMatchLoading(true);
       try {
-        const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(', ') }, { timeout: 12000 });
+        const res = await axios.post(`${API}/analyze-skills`, { skills: profile.skills.join(', ') }, { timeout: 12000 });
         setMatchedJobs(Array.isArray(res.data) ? res.data : []);
-      } catch { setMatchedJobs([]); }
+      } catch (_) { setMatchedJobs([]); }
       setMatchLoading(false);
     };
     doMatch();
   }, [profile?.skills?.length]);
 
-  // ── Scroll chat ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [profile?.chats, activeChat]);
+  // Scroll chat
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages, activeChat]);
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // FIX #2a — BACK BUTTON GUARD via popstate
-  // Push a dummy history entry so the back button hits our handler first
-  // ════════════════════════════════════════════════════════════════════════════
+  // Back guard
   useEffect(() => {
-    // Push a dummy state so browser back fires popstate instead of leaving
     window.history.pushState({ dashboardGuard: true }, '');
-
-    const handlePopState = (e) => {
-      // Re-push so next back press is also caught
+    const handlePop = () => {
       window.history.pushState({ dashboardGuard: true }, '');
       setShowExitConfirm(true);
-      pendingNavRef.current = '/login'; // or '/' — where back would go
+      pendingNavRef.current = '/login';
     };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
   }, []);
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // FIX #2b — TAB CLOSE / REFRESH GUARD via beforeunload
-  // ════════════════════════════════════════════════════════════════════════════
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = ''; // Chrome requires returnValue to be set
-      return ''; // Some browsers show this message
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    const handle = e => { e.preventDefault(); e.returnValue = ''; return ''; };
+    window.addEventListener('beforeunload', handle);
+    return () => window.removeEventListener('beforeunload', handle);
   }, []);
-
-  // ── Exit confirm handlers ─────────────────────────────────────────────────
-  const handleExitStay = () => setShowExitConfirm(false);
-
-  const handleExitLeave = async () => {
-    setShowExitConfirm(false);
-    // Remove our guard before navigating so it doesn't re-trigger
-    window.removeEventListener('beforeunload', () => {});
-    try { await signOut(); } catch { /* ignore */ }
-    navigate(pendingNavRef.current || '/login');
-  };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const alreadyApplied = useCallback(
-    (postId) => myApplications.some(a => a.postId === postId),
-    [myApplications]
-  );
+  const alreadyApplied = useCallback(pid => myApplications.some(a => a.postId === pid), [myApplications]);
+  const safeProfile = profile || buildProfile({ id: authUser?.id, email: authUser?.email });
+  const completion = useMemo(() => calcCompletion(safeProfile), [safeProfile]);
 
-  const refreshMatch = async () => {
-    if (!profile?.skills?.length) return;
-    matchFetched.current = true;
-    setMatchLoading(true);
+  const filteredJobs = useMemo(() =>
+    allJobs.filter(j =>
+      !searchQuery ||
+      j.job?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      j.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      j.skills?.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [allJobs, searchQuery]);
+
+  const filteredSugg = useMemo(() =>
+    SKILL_SUGGESTIONS.filter(s =>
+      s.toLowerCase().includes(skillInput.toLowerCase()) && !(pfForm.skills || []).includes(s)
+    ).slice(0, 8), [skillInput, pfForm.skills]);
+
+  const filteredConvs = useMemo(() =>
+    conversations.filter(c => c.name.toLowerCase().includes(convSearch.toLowerCase())),
+    [conversations, convSearch]);
+
+  function timeAgo(dateStr) {
+    const d = new Date(dateStr), now = new Date();
+    const mins = Math.floor((now - d) / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  }
+
+  function lineColor(type) {
+    if (!type) return 'var(--accent)';
+    const t = type.toLowerCase();
+    if (t.includes('intern')) return 'var(--violet)';
+    if (t.includes('train')) return 'var(--green)';
+    if (t.includes('campus')) return 'var(--amber)';
+    return 'var(--accent)';
+  }
+
+  // ── Chat actions ──────────────────────────────────────────────────────────
+  const openChat = useCallback((industry) => {
+    setActiveChat(industry);
+    setActiveTab('chat');
+    // Add to convs if not present
+    setConversations(prev => {
+      if (prev.find(c => String(c.id) === String(industry.id))) return prev;
+      return [...prev, { id: String(industry.id), name: industry.name, logo: industry.logo, domain: industry.domain, lastMsg: '', time: '', mine: false }];
+    });
+  }, []);
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || !activeChat || !authUser?.id) return;
+    const text = chatInput.trim();
+    const pid = String(activeChat.id);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setChatMessages(prev => ({ ...prev, [pid]: [...(prev[pid] || []), { mine: true, text, time }] }));
+    setConversations(prev => prev.map(c => String(c.id) === pid ? { ...c, lastMsg: text, time, mine: true } : c));
+    setChatInput('');
     try {
-      const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(', ') }, { timeout: 12000 });
-      setMatchedJobs(Array.isArray(res.data) ? res.data : []);
-    } catch { setMatchedJobs([]); }
-    setMatchLoading(false);
+      await axios.post(`${API}/messages`, { sender_id: authUser.id, receiver_id: pid, text });
+    } catch (_) {}
   };
 
+  // ── Apply ──────────────────────────────────────────────────────────────────
   const handleApplySubmit = async (e) => {
     e.preventDefault();
     if (!applyModal || !authUser?.id) return;
     try {
-      const res = await axios.post(`${BASE}/api/applications`, {
+      const res = await axios.post(`${API}/applications`, {
         vacancy_id: applyModal.id, student_id: authUser.id, cover_letter: coverLetter,
       });
       setMyApplications(prev => [...prev, {
@@ -667,41 +828,24 @@ export default function StudentDashboard() {
         role: applyModal.title, company: applyModal.ownerName,
         appliedOn: new Date().toLocaleDateString(), status: 'Pending',
       }]);
-      toast(`✓ Applied to ${applyModal.title}!`);
+      toast(`✓ Applied to ${applyModal.title}!`, 'var(--green)');
       setCoverLetter(''); setApplyModal(null); setDetailModal(null);
-    } catch { toast('Failed to apply — you may have already applied.'); }
+    } catch (_) { toast('Failed to apply — check if already applied.', 'var(--red)'); }
   };
 
-  const sendMessage = async (toId, text) => {
-    if (!authUser?.id || !text.trim()) return;
-    try {
-      await axios.post(`${BASE}/api/messages`, { sender_id: authUser.id, receiver_id: toId, text });
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setProfile(prev => ({
-        ...prev,
-        chats: { ...prev.chats, [toId]: [...(prev.chats?.[toId] || []), { sender: prev.name, message: text, time }] },
-      }));
-    } catch { toast('Failed to send message.'); }
-  };
-
-  // Sign out = intentional, skip the guard
-  const handleLogout = async () => {
-    window.removeEventListener('beforeunload', () => {});
-    try { await signOut(); } catch { /* ignore */ }
-    navigate('/login');
-  };
-
-  // ── Profile save ──────────────────────────────────────────────────────────
+  // ── Profile edit ──────────────────────────────────────────────────────────
   const startEdit = () => {
     setPfForm({
-      name: profile?.name || '', phone: profile?.phone || '', address: profile?.address || '',
-      about: profile?.about || '', qualification: profile?.qualification || '',
-      tenth: profile?.tenth || '', twelfth: profile?.twelfth || '', graduation: profile?.graduation || '',
-      website: profile?.website || '', linkedin: profile?.linkedin || '', github: profile?.github || '',
-      experience: profile?.experience || '', projects: profile?.projects || '',
-      achievements: profile?.achievements || '', cgpa: profile?.cgpa || '',
-      skills: [...(profile?.skills || [])], certificates: [...(profile?.certificates || [])],
-      resumes: [...(profile?.resumes || [])], personalPosts: [...(profile?.personalPosts || [])],
+      name: safeProfile.name || '', phone: safeProfile.phone || '', address: safeProfile.address || '',
+      about: safeProfile.about || '', qualification: safeProfile.qualification || '',
+      tenth: safeProfile.tenth || '', twelfth: safeProfile.twelfth || '', graduation: safeProfile.graduation || '',
+      website: safeProfile.website || '', linkedin: safeProfile.linkedin || '', github: safeProfile.github || '',
+      experience: safeProfile.experience || '', projects: safeProfile.projects || '',
+      achievements: safeProfile.achievements || '', cgpa: safeProfile.cgpa || '',
+      skills: [...(safeProfile.skills || [])],
+      certificates: [...(safeProfile.certificates || [])],
+      resumes: [...(safeProfile.resumes || [])],
+      personalPosts: [...(safeProfile.personalPosts || [])],
     });
     setPfEditing(true); setPfTab('overview');
   };
@@ -709,16 +853,17 @@ export default function StudentDashboard() {
   const cancelEdit = () => { setPfEditing(false); setPfForm({}); };
 
   const saveProfile = async () => {
-    if (!profile?.id) return;
+    if (!safeProfile.id) return;
     setPfSaving(true);
     try {
-      await axios.put(`${BASE}/api/profile/${profile.id}`, pfForm);
+      await axios.put(`${API}/profile/${safeProfile.id}`, pfForm);
       setProfile(prev => ({ ...prev, ...pfForm }));
-      setPfEditing(false); setPfForm({}); showPfToast('✓ Profile saved');
-    } catch {
-      showPfToast('✗ Could not save — changes stored locally', 'error');
+      setPfEditing(false); setPfForm({});
+      toast('✓ Profile saved', 'var(--green)');
+    } catch (_) {
       setProfile(prev => ({ ...prev, ...pfForm }));
       setPfEditing(false);
+      toast('Changes saved locally', 'var(--amber)');
     }
     setPfSaving(false);
   };
@@ -730,14 +875,8 @@ export default function StudentDashboard() {
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0]; if (!file) return;
     const b64 = await toBase64(file);
-    try { await axios.put(`${BASE}/api/profile/${profile.id}`, { photo: b64 }); setProfile(p => ({ ...p, photo: b64 })); showPfToast('✓ Photo updated'); }
-    catch { showPfToast('✗ Upload failed', 'error'); }
-  };
-
-  const handleCoverUpload = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const b64 = await toBase64(file); setCoverPreview(b64);
-    try { await axios.put(`${BASE}/api/profile/${profile.id}`, { coverPhoto: b64 }); } catch { /* local only */ }
+    try { await axios.put(`${API}/profile/${safeProfile.id}`, { photo: b64 }); setProfile(p => ({ ...p, photo: b64 })); toast('✓ Photo updated', 'var(--green)'); }
+    catch (_) { toast('Upload failed', 'var(--red)'); }
   };
 
   const handleCertUpload = async (e) => {
@@ -758,206 +897,61 @@ export default function StudentDashboard() {
     pfSet('personalPosts', [...(pfForm.personalPosts || []), ...results]);
   };
 
-  const saveSidebarEdits = async () => {
-    if (!authUser?.id || !profile) return;
+  const handleLogout = async () => {
+    try { await signOut(); } catch (_) {}
+    navigate('/login');
+  };
+
+  const refreshMatch = async () => {
+    if (!safeProfile.skills?.length) return;
+    matchFetched.current = true; setMatchLoading(true);
     try {
-      await axios.put(`${BASE}/api/profile/${authUser.id}`, {
-        name: profile.name, qualification: profile.qualification,
-        phone: profile.phone, address: profile.address,
-        tenth: profile.tenth, twelfth: profile.twelfth,
-        graduation: profile.graduation, skills: profile.skills, about: profile.about,
-      });
-      toast('✓ Profile saved');
-    } catch { toast('Changes saved locally.'); }
-    setSidebarEditMode(false);
+      const res = await axios.post(`${API}/analyze-skills`, { skills: safeProfile.skills.join(', ') }, { timeout: 12000 });
+      setMatchedJobs(Array.isArray(res.data) ? res.data : []);
+    } catch (_) { setMatchedJobs([]); }
+    setMatchLoading(false);
   };
 
-  // ── Computed ──────────────────────────────────────────────────────────────
-  const completion = useMemo(() => calcCompletion(profile), [profile]);
-
-  const filteredJobs = useMemo(() =>
-    allJobs.filter(j =>
-      !searchQuery ||
-      j.job?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      j.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      j.skills?.toLowerCase().includes(searchQuery.toLowerCase())
-    ), [allJobs, searchQuery]);
-
-  const filteredSugg = useMemo(() =>
-    SKILL_SUGGESTIONS.filter(s =>
-      s.toLowerCase().includes(skillInput.toLowerCase()) && !(pfForm.skills || []).includes(s)
-    ).slice(0, 8), [skillInput, pfForm.skills]);
-
-  // ── TypeBadge ─────────────────────────────────────────────────────────────
-  const TypeBadge = ({ type }) => {
-    if (!type) return <span className="type-badge badge-job">Job</span>;
+  // ── TypeChip ──────────────────────────────────────────────────────────────
+  const TypeChip = ({ type }) => {
+    if (!type) return <span className="type-chip chip-vacancy">Vacancy</span>;
     const t = type.toLowerCase();
-    if (t.includes('intern'))  return <span className="type-badge badge-intern">Internship</span>;
-    if (t.includes('train'))   return <span className="type-badge badge-train">Training</span>;
-    if (t.includes('campus'))  return <span className="type-badge badge-campus">Campus Drive</span>;
-    return <span className="type-badge badge-job">{type}</span>;
+    if (t.includes('intern')) return <span className="type-chip chip-internship">Internship</span>;
+    if (t.includes('train')) return <span className="type-chip chip-training">Training</span>;
+    if (t.includes('campus')) return <span className="type-chip chip-campus">Campus</span>;
+    return <span className="type-chip chip-vacancy">{type}</span>;
   };
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // FIX #1 — REMOVED THE OLD null GUARD THAT CAUSED INFINITE LOADING
-  // Profile is always seeded above, so we'll never be stuck here.
-  // Show a slim skeleton only while authUser is not yet available.
-  // ════════════════════════════════════════════════════════════════════════════
+  // ── StatusChip ────────────────────────────────────────────────────────────
+  const StatusChip = ({ status }) => {
+    const map = { Pending: 's-pending', Shortlisted: 's-shortlisted', Selected: 's-selected', Rejected: 's-rejected' };
+    return <span className={`status-chip ${map[status] || 's-pending'}`}>{status || 'Pending'}</span>;
+  };
+
+  // ── Nav items ─────────────────────────────────────────────────────────────
+  const navItems = [
+    { id: 'feed',         icon: '⬛', label: 'Opportunity Feed', badge: vacancies.length || null, badgeColor: '' },
+    { id: 'jobs',         icon: '💼', label: 'Jobs Board' },
+    { id: 'matches',      icon: '🤖', label: 'AI Matches', badge: matchedJobs.length || null, badgeColor: '' },
+    { id: 'courses',      icon: '📚', label: 'Courses' },
+    { id: 'chat',         icon: '💬', label: 'Messages', badge: Object.keys(chatMessages).length || null, badgeColor: 'green' },
+    { id: 'applications', icon: '📋', label: 'Applications', badge: myApplications.length || null, badgeColor: 'amber' },
+    { id: 'profile',      icon: '👤', label: 'My Profile' },
+  ];
+
+  // ── Auth guard ────────────────────────────────────────────────────────────
   if (!authUser?.id) {
     return (
-      <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f8faff', flexDirection:'column', gap:'1.2rem', fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#07090f', flexDirection: 'column', gap: '1.2rem', fontFamily: "'Instrument Sans',sans-serif" }}>
         <style>{CSS}</style>
-        <div style={{ fontFamily:"'Clash Display',sans-serif", fontSize:'1.6rem', fontWeight:700, color:'#0f172a' }}>
-          Campus<span style={{ color:'#6366f1' }}>2</span>Career
-        </div>
+        <div style={{ fontFamily: "'Cabinet Grotesk',sans-serif", fontSize: '1.6rem', fontWeight: 900, background: 'linear-gradient(135deg,#818cf8,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Campus2Career</div>
         <div className="spinner" />
-        <div style={{ fontSize:'.82rem', color:'#94a3b8' }}>Authenticating…</div>
+        <div style={{ fontSize: '.82rem', color: '#4b5a6b' }}>Authenticating…</div>
       </div>
     );
   }
 
-  // If profile hasn't been set yet somehow (race), use a shell
-  const safeProfile = profile || buildProfile({ id: authUser.id, email: authUser.email });
-
-  // ── SIDEBAR PANEL ─────────────────────────────────────────────────────────
-  const SidebarPanel = () => (
-    <div style={{ height:'100%', overflowY:'auto' }}>
-      <div className="sb-header">
-        <div className="sb-av-wrap">
-          <div className="sb-av" onClick={() => avatarRef.current?.click()} style={{ cursor:'pointer' }}>
-            {safeProfile.photo ? <img src={safeProfile.photo} alt="" /> : (safeProfile.name || 'S')[0].toUpperCase()}
-          </div>
-          <input ref={avatarRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleAvatarUpload} />
-          <div style={{ flex:1, minWidth:0 }}>
-            <div className="sb-name">{safeProfile.name || 'Student'}</div>
-            <div className="sb-handle">@{safeProfile.username || 'student'}</div>
-          </div>
-          {sidebarEditMode
-            ? <button className="sb-save-btn" onClick={saveSidebarEdits}>✓ Save</button>
-            : <button className="sb-edit-btn" onClick={() => setSidebarEditMode(true)}>✎ Edit</button>}
-        </div>
-        <div className="sb-tags">
-          {safeProfile.qualification && <span className="sb-tag">🎓 {safeProfile.qualification}</span>}
-          {(safeProfile.skills || []).slice(0, 3).map((s, i) => <span key={i} className="sb-tag">⚡ {s}</span>)}
-        </div>
-      </div>
-
-      <div className="comp-wrap">
-        <div className="comp-head">
-          <span>Profile strength</span>
-          <span className="comp-num" style={{ color: completion >= 80 ? '#10b981' : completion >= 50 ? '#f59e0b' : '#f43f5e' }}>
-            {completion}%
-          </span>
-        </div>
-        <div className="comp-track"><div className="comp-fill" style={{ width:`${completion}%` }} /></div>
-      </div>
-
-      {sidebarEditMode && (
-        <>
-          <div className="sb-form-section">
-            <span className="sb-form-label">Personal Info</span>
-            <div className="sb-form-grid">
-              {[{k:'name',label:'Full Name'},{k:'phone',label:'Phone'},{k:'address',label:'City'},{k:'qualification',label:'Qualification'}].map(f => (
-                <input key={f.k} className="sb-input" placeholder={f.label}
-                  value={safeProfile[f.k] || ''}
-                  onChange={e => setProfile(p => ({ ...p, [f.k]: e.target.value }))} />
-              ))}
-            </div>
-          </div>
-          <div className="sb-form-section">
-            <span className="sb-form-label">Academic</span>
-            {[{k:'tenth',label:'10th Board / %'},{k:'twelfth',label:'12th Board / %'},{k:'graduation',label:'Graduation / College'}].map(f => (
-              <input key={f.k} className="sb-input" placeholder={f.label} style={{ marginBottom:'.35rem' }}
-                value={safeProfile[f.k] || ''}
-                onChange={e => setProfile(p => ({ ...p, [f.k]: e.target.value }))} />
-            ))}
-          </div>
-          <div className="sb-form-section">
-            <span className="sb-form-label">Resume</span>
-            <label className="sb-upload-btn">
-              📄 Upload Resume
-              <input type="file" accept=".pdf,image/*" style={{ display:'none' }}
-                onChange={e => {
-                  const file = e.target.files[0]; if (!file) return;
-                  setProfile(prev => ({ ...prev, resumes: [...prev.resumes, { url: URL.createObjectURL(file), name: file.name, type: file.type, size: (file.size/1024).toFixed(0)+' KB' }] }));
-                  toast('Resume added');
-                }} />
-            </label>
-            {(safeProfile.resumes || []).map((r, i) => (
-              <div key={i} className="resume-pill" style={{ marginTop:'.35rem' }}>
-                <span>{r.type === 'application/pdf' ? '📑' : '🖼️'}</span>
-                <span className="resume-pill-name">{r.name}</span>
-                <button className="resume-del-btn" onClick={() => setProfile(p => ({ ...p, resumes: p.resumes.filter((_,j)=>j!==i) }))}>✕</button>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      <button className="sb-details-btn" onClick={() => setShowDetails(d => !d)}>
-        <span style={{ fontSize:'.62rem' }}>{showDetails ? '▲' : '▼'}</span>
-        {showDetails ? 'Hide Details' : 'View Full Details'}
-      </button>
-      {showDetails && (
-        <div className="details-box">
-          {[['✉', safeProfile.email], ['📞', safeProfile.phone || 'Not provided'], ['📍', safeProfile.address || 'Not provided']].map(([icon, val], i) => (
-            <div key={i} className="detail-row">{icon} {val}</div>
-          ))}
-          {safeProfile.linkedin && <div className="detail-row">🔗 <a href={safeProfile.linkedin} target="_blank" rel="noreferrer" style={{ color:'var(--brand)', textDecoration:'none' }}>{safeProfile.linkedin}</a></div>}
-          {safeProfile.github && <div className="detail-row">🐙 <a href={safeProfile.github} target="_blank" rel="noreferrer" style={{ color:'var(--brand)', textDecoration:'none' }}>{safeProfile.github}</a></div>}
-          <div className="detail-row-label">Academic</div>
-          <div className="detail-row">10th — {safeProfile.tenth || '—'}</div>
-          <div className="detail-row">12th — {safeProfile.twelfth || '—'}</div>
-          <div className="detail-row">Graduation — {safeProfile.graduation || '—'}</div>
-          {safeProfile.cgpa && <div className="detail-row">CGPA — {safeProfile.cgpa}</div>}
-        </div>
-      )}
-
-      <div className="sb-media-sec">
-        <div className="sb-media-title">Resumes ({(safeProfile.resumes || []).length})</div>
-        {(safeProfile.resumes || []).length === 0
-          ? <div style={{ fontSize:'.74rem', color:'var(--text-muted)' }}>No resumes uploaded.</div>
-          : (safeProfile.resumes || []).map((r, i) => (
-            <div key={i} className="resume-pill">
-              <span>{r.type === 'application/pdf' ? '📑' : '🖼️'}</span>
-              <span className="resume-pill-name">{r.name}</span>
-              <button className="resume-del-btn" onClick={() => setProfile(p => ({ ...p, resumes: p.resumes.filter((_,j)=>j!==i) }))}>✕</button>
-            </div>
-          ))
-        }
-      </div>
-
-      <div className="sb-media-sec">
-        <div className="sb-media-title">Certificates ({(safeProfile.certificates || []).length})</div>
-        {(safeProfile.certificates || []).length === 0
-          ? <div style={{ fontSize:'.74rem', color:'var(--text-muted)' }}>No certificates.</div>
-          : <div className="media-grid">
-              {(safeProfile.certificates || []).map((c, i) => (
-                <div key={i} className="media-cell" onClick={() => window.open(c.url, '_blank')}>
-                  <img src={c.url} alt="" />
-                </div>
-              ))}
-            </div>
-        }
-      </div>
-
-      <div className="sb-media-sec">
-        <div className="sb-media-title">Activity Posts ({(safeProfile.personalPosts || []).length})</div>
-        {(safeProfile.personalPosts || []).length === 0
-          ? <div style={{ fontSize:'.74rem', color:'var(--text-muted)' }}>No posts yet.</div>
-          : <div className="media-grid">
-              {(safeProfile.personalPosts || []).map((p, i) => (
-                <div key={i} className="media-cell" onClick={() => window.open(p.url, '_blank')}>
-                  {p.type?.startsWith('video') ? <video src={p.url} /> : <img src={p.url} alt="" />}
-                </div>
-              ))}
-            </div>
-        }
-      </div>
-    </div>
-  );
-
-  // ── PROFILE PAGE (same as original, just uses safeProfile) ────────────────
+  // ── ProfilePage ───────────────────────────────────────────────────────────
   const ProfilePage = () => {
     const data = pfEditing ? pfForm : safeProfile;
     const skills = data?.skills || [];
@@ -967,77 +961,80 @@ export default function StudentDashboard() {
 
     return (
       <div className="pf-page">
-        <input ref={coverRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverUpload} />
-        <input ref={avatarRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleAvatarUpload} />
-        <input ref={certRef} type="file" accept="image/*,application/pdf" multiple style={{ display:'none' }} onChange={handleCertUpload} />
-        <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display:'none' }} onChange={handleResumeUpload} />
-        <input ref={postRef} type="file" accept="image/*,video/*" multiple style={{ display:'none' }} onChange={handlePostUpload} />
+        <input ref={avatarRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
+        <input ref={certRef} type="file" accept="image/*,application/pdf" multiple style={{ display: 'none' }} onChange={handleCertUpload} />
+        <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: 'none' }} onChange={handleResumeUpload} />
+        <input ref={postRef} type="file" accept="image/*,video/*" multiple style={{ display: 'none' }} onChange={handlePostUpload} />
 
-        <div className="pf-cover-wrap" onClick={() => coverRef.current?.click()}>
-          {(coverPreview || safeProfile.coverPhoto)
-            ? <img src={coverPreview || safeProfile.coverPhoto} alt="cover" />
-            : <div className="pf-cover-default" />}
-          <div className="pf-cover-ov"><span className="pf-cover-lbl">📸 Change Cover</span></div>
+        {/* Cover */}
+        <div className="pf-cover">
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Student Profile</div>
+            <div style={{ fontFamily: "'Cabinet Grotesk',sans-serif", fontSize: '1.8rem', fontWeight: 900, color: 'white' }}>{safeProfile.name || 'Your Name'}</div>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginTop: '0.4rem' }}>{safeProfile.qualification} · {safeProfile.graduation}</div>
+          </div>
+          <div className="pf-av-wrap" onClick={() => avatarRef.current?.click()}>
+            {safeProfile.photo ? <img src={safeProfile.photo} alt="" /> : <div className="pf-av-initial">{(safeProfile.name || 'S')[0].toUpperCase()}</div>}
+          </div>
         </div>
 
+        {/* Hero */}
         <div className="pf-hero">
-          <div className="pf-hero-row">
-            <div className="pf-av-wrap">
-              <div className="pf-av" onClick={() => avatarRef.current?.click()}>
-                {safeProfile.photo ? <img src={safeProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : (safeProfile.name || 'S')[0].toUpperCase()}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <div style={{ flex: 1 }}>
+              <div className="pf-name">{safeProfile.name || 'Your Name'}</div>
+              <div className="pf-qual">{safeProfile.qualification || 'Add your qualification'}</div>
+              <div className="pf-meta-row">
+                {safeProfile.email && <span>✉ {safeProfile.email}</span>}
+                {safeProfile.phone && <span>📞 {safeProfile.phone}</span>}
+                {safeProfile.address && <span>📍 {safeProfile.address}</span>}
+                {safeProfile.linkedin && <a href={safeProfile.linkedin} target="_blank" rel="noreferrer">🔗 LinkedIn</a>}
+                {safeProfile.github && <a href={safeProfile.github} target="_blank" rel="noreferrer">🐙 GitHub</a>}
               </div>
-              <div className="pf-av-cam" onClick={() => avatarRef.current?.click()}>📷</div>
             </div>
-            <div className="pf-completion-badge">
-              <div className="pf-completion-num" style={{ color: completion >= 80 ? '#10b981' : '#6366f1' }}>{completion}%</div>
-              <div className="pf-completion-lbl">Complete</div>
-            </div>
-            <div className="pf-hero-actions" style={{ marginLeft:'auto' }}>
-              {pfEditing
-                ? <><button className="pf-edit-btn" onClick={cancelEdit}>Cancel</button><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button></>
-                : <button className="pf-save-btn" onClick={startEdit}>✏️ Edit Profile</button>}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+              <div style={{ textAlign: 'center', background: 'var(--surface2)', borderRadius: '12px', padding: '0.75rem 1.2rem', border: '1px solid var(--border)' }}>
+                <div style={{ fontFamily: "'Cabinet Grotesk',sans-serif", fontSize: '1.6rem', fontWeight: 900, color: completion >= 80 ? 'var(--green)' : 'var(--accent2)', lineHeight: 1 }}>{completion}%</div>
+                <div style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>Complete</div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {pfEditing
+                  ? <><button className="btn btn-ghost btn-sm" onClick={cancelEdit}>Cancel</button><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button></>
+                  : <button className="btn btn-primary btn-sm" onClick={startEdit}>✏️ Edit Profile</button>}
+              </div>
             </div>
           </div>
-          <div className="pf-name">{safeProfile.name || 'Your Name'}</div>
-          <div className="pf-qual-text">{safeProfile.qualification || 'Add your qualification'}</div>
-          <div className="pf-meta-row">
-            {safeProfile.email && <span>✉ {safeProfile.email}</span>}
-            {safeProfile.phone && <span>📞 {safeProfile.phone}</span>}
-            {safeProfile.address && <span>📍 {safeProfile.address}</span>}
-            {safeProfile.linkedin && <a href={safeProfile.linkedin} target="_blank" rel="noreferrer">🔗 LinkedIn</a>}
-            {safeProfile.github && <a href={safeProfile.github} target="_blank" rel="noreferrer">🐙 GitHub</a>}
-          </div>
-          {safeProfile.about && <div className="pf-about-text">{safeProfile.about}</div>}
-          {(safeProfile.skills || []).length > 0 && (
-            <div className="pf-skills-row">
-              {(safeProfile.skills || []).slice(0, 8).map(s => <span key={s} className="pf-skill-chip">{s}</span>)}
-              {(safeProfile.skills || []).length > 8 && (
-                <span className="pf-skill-chip" style={{ cursor:'pointer' }} onClick={() => setPfTab('skills')}>+{safeProfile.skills.length - 8}</span>
-              )}
+          {safeProfile.about && <p style={{ color: 'var(--text2)', lineHeight: 1.7, fontSize: '0.83rem', marginTop: '0.75rem' }}>{safeProfile.about}</p>}
+          {safeProfile.skills?.length > 0 && (
+            <div className="pf-skills-row" style={{ marginTop: '0.75rem' }}>
+              {safeProfile.skills.slice(0, 8).map(s => <span key={s} className="pf-skill-chip">{s}</span>)}
+              {safeProfile.skills.length > 8 && <span className="pf-skill-chip" onClick={() => setPfTab('skills')} style={{ cursor: 'pointer' }}>+{safeProfile.skills.length - 8}</span>}
             </div>
           )}
         </div>
 
+        {/* Tabs */}
         <div className="pf-tabs">
-          {[{id:'overview',label:'👤 Overview'},{id:'skills',label:'⚡ Skills'},{id:'academic',label:'🎓 Academic'},{id:'experience',label:'💼 Experience'},{id:'media',label:'🖼️ Media'},{id:'resume',label:'📄 Resume'}].map(t => (
+          {[{id:'overview',label:'👤 Overview'},{id:'skills',label:'⚡ Skills'},{id:'academic',label:'🎓 Academic'},{id:'experience',label:'💼 Experience'},{id:'media',label:'🖼 Media'},{id:'resume',label:'📄 Resume'}].map(t => (
             <button key={t.id} className={`pf-tab ${pfTab === t.id ? 'active' : ''}`} onClick={() => setPfTab(t.id)}>{t.label}</button>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
+          {/* Overview */}
           {pfTab === 'overview' && (
             <motion.div key="ov" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">✍️ About Me</div>
                 {pfEditing
-                  ? <textarea className="pf-input" style={{ width:'100%' }} rows={4} placeholder="Write about yourself…" value={pfForm.about || ''} onChange={e => pfSet('about', e.target.value)} />
-                  : <p style={{ color:'var(--text-secondary)', lineHeight:1.7, fontSize:'.85rem' }}>{safeProfile.about || <em style={{ color:'var(--text-muted)' }}>No bio yet. Click Edit Profile to add one.</em>}</p>}
+                  ? <textarea className="pf-input" rows={4} placeholder="Write about yourself…" value={pfForm.about || ''} onChange={e => pfSet('about', e.target.value)} />
+                  : <p style={{ color:'var(--text2)', lineHeight:1.7, fontSize:'0.85rem' }}>{safeProfile.about || <em style={{ color:'var(--text3)' }}>No bio yet. Click Edit Profile to add one.</em>}</p>}
               </div>
               <div className="pf-card">
                 <div className="pf-card-title">📋 Personal Information</div>
                 {pfEditing
                   ? <div className="pf-grid">
-                      {[{k:'name',l:'Full Name',p:'Your full name'},{k:'phone',l:'Phone',p:'+91 XXXXXXXXXX'},{k:'address',l:'City',p:'Your city'},{k:'cgpa',l:'CGPA / %',p:'e.g. 8.5'},{k:'experience',l:'Experience',p:'e.g. 6-month intern'},{k:'website',l:'Portfolio',p:'https://...'},{k:'linkedin',l:'LinkedIn',p:'linkedin.com/in/...'},{k:'github',l:'GitHub',p:'github.com/username'}].map(f => (
+                      {[{k:'name',l:'Full Name',p:'Your full name'},{k:'phone',l:'Phone',p:'+91 XXXXXXXXXX'},{k:'address',l:'City',p:'Your city'},{k:'cgpa',l:'CGPA / %',p:'e.g. 8.5'},{k:'experience',l:'Experience',p:'e.g. 6-month intern'},{k:'website',l:'Portfolio',p:'https://'},{k:'linkedin',l:'LinkedIn',p:'linkedin.com/in/'},{k:'github',l:'GitHub',p:'github.com/username'}].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
                           <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pfSet(f.k, e.target.value)} />
@@ -1052,170 +1049,162 @@ export default function StudentDashboard() {
                       </div>
                       <div className="pf-field">
                         <label className="pf-label">Email (read-only)</label>
-                        <input className="pf-input" value={safeProfile.email || ''} readOnly style={{ opacity:.6, cursor:'not-allowed' }} />
+                        <input className="pf-input" value={safeProfile.email || ''} readOnly style={{ opacity:0.5, cursor:'not-allowed' }} />
+                      </div>
+                      <div style={{ gridColumn:'1/-1', display:'flex', justifyContent:'flex-end', marginTop:'0.5rem' }}>
+                        <button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button>
                       </div>
                     </div>
                   : <div className="pf-grid">
-                      {[['Full Name',safeProfile.name],['Email',safeProfile.email],['Phone',safeProfile.phone],['Location',safeProfile.address],['Qualification',safeProfile.qualification],['CGPA / %',safeProfile.cgpa],['Experience',safeProfile.experience],['Portfolio',safeProfile.website],['LinkedIn',safeProfile.linkedin],['GitHub',safeProfile.github]].map(([l,v]) => (
+                      {[['Full Name',safeProfile.name],['Email',safeProfile.email],['Phone',safeProfile.phone],['Location',safeProfile.address],['Qualification',safeProfile.qualification],['CGPA',safeProfile.cgpa],['Experience',safeProfile.experience],['Portfolio',safeProfile.website]].map(([l,v]) => (
                         <div key={l}>
-                          <div className="pf-label" style={{ marginBottom:'.2rem' }}>{l}</div>
-                          <div style={{ fontSize:'.85rem', fontWeight:600, color: v ? 'var(--text-primary)' : 'var(--text-muted)', fontStyle: v ? 'normal' : 'italic', wordBreak:'break-all' }}>{v || 'Not provided'}</div>
+                          <div className="pf-label" style={{ marginBottom:'0.2rem' }}>{l}</div>
+                          <div style={{ fontSize:'0.85rem', fontWeight:600, color: v ? 'var(--text)' : 'var(--text3)', fontStyle: v ? 'normal' : 'italic', wordBreak:'break-all' }}>{v || 'Not provided'}</div>
                         </div>
                       ))}
                     </div>}
-                {pfEditing && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.2rem' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button></div>}
               </div>
             </motion.div>
           )}
 
+          {/* Skills */}
           {pfTab === 'skills' && (
             <motion.div key="sk" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">⚡ Skills & Expertise</div>
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'.35rem' }}>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>
                   {skills.map(s => (
                     <span key={s} className="pf-skill-chip" style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
                       {s}
-                      {pfEditing && <button onClick={() => removeSkill(s)} style={{ background:'none', border:'none', color:'var(--rose)', cursor:'pointer', fontWeight:800, fontSize:'.6rem', lineHeight:1, padding:0 }}>✕</button>}
+                      {pfEditing && <button onClick={() => removeSkill(s)} style={{ background:'none', border:'none', color:'var(--red)', cursor:'pointer', fontWeight:800, fontSize:'0.6rem', lineHeight:1, padding:0 }}>✕</button>}
                     </span>
                   ))}
-                  {skills.length === 0 && <em style={{ color:'var(--text-muted)', fontSize:'.83rem' }}>No skills added yet.</em>}
+                  {skills.length === 0 && <em style={{ color:'var(--text3)', fontSize:'0.83rem' }}>No skills added yet.</em>}
                 </div>
                 {pfEditing && (
                   <>
                     <div style={{ height:1, background:'var(--border)', margin:'1rem 0' }} />
-                    <div className="pf-label" style={{ marginBottom:'.45rem' }}>Add Skill</div>
-                    <div className="skill-add-row">
+                    <div className="pf-label" style={{ marginBottom:'0.45rem' }}>Add Skill</div>
+                    <div style={{ display:'flex', gap:'0.55rem' }}>
                       <input className="pf-input" style={{ flex:1 }} placeholder="Type skill name…" value={skillInput} onChange={e => setSkillInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput); } }} />
-                      <button className="pf-save-btn" style={{ padding:'.62rem 1.2rem', whiteSpace:'nowrap' }} onClick={() => addSkill(skillInput)}>+ Add</button>
+                      <button className="btn btn-primary btn-sm" onClick={() => addSkill(skillInput)}>+ Add</button>
                     </div>
-                    {skillInput && filteredSugg.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:'.3rem', marginTop:'.5rem' }}>{filteredSugg.map(s => <span key={s} className="skill-sugg" onClick={() => addSkill(s)}>{s}</span>)}</div>}
+                    {skillInput && filteredSugg.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:'5px', marginTop:'0.5rem' }}>{filteredSugg.map(s => <button key={s} className="skill-sugg" onClick={() => addSkill(s)}>{s}</button>)}</div>}
                     {!skillInput && (
                       <>
-                        <div className="pf-label" style={{ marginTop:'.9rem', marginBottom:'.4rem' }}>Quick add</div>
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:'.3rem' }}>{SKILL_SUGGESTIONS.filter(s => !skills.includes(s)).slice(0, 20).map(s => <span key={s} className="skill-sugg" onClick={() => addSkill(s)}>{s}</span>)}</div>
+                        <div className="pf-label" style={{ marginTop:'0.9rem', marginBottom:'0.4rem' }}>Quick add</div>
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>{SKILL_SUGGESTIONS.filter(s => !skills.includes(s)).slice(0, 20).map(s => <button key={s} className="skill-sugg" onClick={() => addSkill(s)}>{s}</button>)}</div>
                       </>
                     )}
-                    <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.2rem' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save Skills'}</button></div>
+                    <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.2rem' }}><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save Skills'}</button></div>
                   </>
                 )}
-                {!pfEditing && <div style={{ marginTop:'.9rem' }}><button className="pf-edit-btn" onClick={startEdit}>✏️ Edit Skills</button></div>}
+                {!pfEditing && <div style={{ marginTop:'0.9rem' }}><button className="btn btn-ghost btn-sm" onClick={startEdit}>✏️ Edit Skills</button></div>}
               </div>
             </motion.div>
           )}
 
+          {/* Academic */}
           {pfTab === 'academic' && (
             <motion.div key="ac" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">🎓 Academic Background</div>
                 {pfEditing
-                  ? <div className="pf-grid-3">{[{k:'tenth',l:'10th',p:'Board / School / %'},{k:'twelfth',l:'12th',p:'Board / School / %'},{k:'graduation',l:'Graduation',p:'College / Degree / CGPA'}].map(f => (
+                  ? <><div className="pf-grid-3">{[{k:'tenth',l:'10th',p:'Board / School / %'},{k:'twelfth',l:'12th',p:'Board / School / %'},{k:'graduation',l:'Graduation',p:'College / Degree / CGPA'}].map(f => (
                       <div className="pf-field" key={f.k}><label className="pf-label">{f.l}</label><input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pfSet(f.k, e.target.value)} /></div>
-                    ))}</div>
+                    ))}</div><div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.2rem' }}><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div></>
                   : <div className="pf-grid-3">{[['10th Standard',safeProfile.tenth],['12th Standard',safeProfile.twelfth],['Graduation',safeProfile.graduation]].map(([l,v]) => (
-                      <div className="pf-acad-box" key={l}><div className="pf-acad-lbl">{l}</div><div className="pf-acad-val">{v || <em style={{ color:'var(--text-muted)', fontStyle:'italic', fontSize:'.8rem' }}>Not added</em>}</div></div>
+                      <div className="pf-acad-box" key={l}><div className="pf-acad-lbl">{l}</div><div className="pf-acad-val">{v || <em style={{ color:'var(--text3)', fontStyle:'italic', fontSize:'0.8rem' }}>Not added</em>}</div></div>
                     ))}</div>}
-                {pfEditing && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.2rem' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div>}
-                {!pfEditing && <div style={{ marginTop:'1rem' }}><button className="pf-edit-btn" onClick={startEdit}>✏️ Edit Academic</button></div>}
+                {!pfEditing && <div style={{ marginTop:'1rem' }}><button className="btn btn-ghost btn-sm" onClick={startEdit}>✏️ Edit Academic</button></div>}
               </div>
             </motion.div>
           )}
 
+          {/* Experience */}
           {pfTab === 'experience' && (
             <motion.div key="ex" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">💼 Experience & Projects</div>
                 {pfEditing
-                  ? <div style={{ display:'flex', flexDirection:'column', gap:'.85rem' }}>
+                  ? <div style={{ display:'flex', flexDirection:'column', gap:'0.85rem' }}>
                       {[{k:'experience',l:'Work / Internship Experience',p:'e.g. 6-month intern at TechCorp…',rows:4},{k:'projects',l:'Projects',p:'Describe your key projects…',rows:4},{k:'achievements',l:'Achievements / Awards',p:'Hackathon wins, certifications…',rows:3}].map(f => (
                         <div className="pf-field" key={f.k}><label className="pf-label">{f.l}</label><textarea className="pf-input" rows={f.rows} placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pfSet(f.k, e.target.value)} /></div>
                       ))}
-                      <div style={{ display:'flex', justifyContent:'flex-end' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div>
+                      <div style={{ display:'flex', justifyContent:'flex-end' }}><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div>
                     </div>
                   : <div style={{ display:'flex', flexDirection:'column', gap:'1.2rem' }}>
                       {[['Work / Internship Experience',safeProfile.experience],['Projects',safeProfile.projects],['Achievements / Awards',safeProfile.achievements]].map(([l,v]) => (
-                        <div key={l}><div className="pf-label" style={{ marginBottom:'.4rem' }}>{l}</div><p style={{ fontSize:'.85rem', color: v ? 'var(--text-secondary)' : 'var(--text-muted)', lineHeight:1.65, fontStyle: v ? 'normal' : 'italic' }}>{v || `No ${l.toLowerCase()} added yet.`}</p></div>
+                        <div key={l}><div className="pf-label" style={{ marginBottom:'0.4rem' }}>{l}</div><p style={{ fontSize:'0.85rem', color: v ? 'var(--text2)' : 'var(--text3)', lineHeight:1.65, fontStyle: v ? 'normal' : 'italic' }}>{v || `No ${l.toLowerCase()} added yet.`}</p></div>
                       ))}
-                      <button className="pf-edit-btn" onClick={startEdit}>✏️ Add Experience</button>
+                      <button className="btn btn-ghost btn-sm" style={{ width:'fit-content' }} onClick={startEdit}>✏️ Add Experience</button>
                     </div>}
               </div>
             </motion.div>
           )}
 
+          {/* Media */}
           {pfTab === 'media' && (
             <motion.div key="md" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
                   <div className="pf-card-title" style={{ marginBottom:0 }}>🏆 Certificates</div>
-                  {pfEditing && <button className="pf-edit-btn" onClick={() => certRef.current?.click()}>+ Upload</button>}
+                  {pfEditing && <button className="btn btn-ghost btn-sm" onClick={() => certRef.current?.click()}>+ Upload</button>}
                 </div>
-                <div className="pf-upload-grid">
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(95px,1fr))', gap:'0.6rem' }}>
                   {certs.map((c, i) => (
                     <div className="pf-thumb" key={i} onClick={() => window.open(c.url, '_blank')}>
-                      {c.type?.startsWith('image/') ? <img src={c.url} alt="" /> : <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--surface2)' }}><span style={{ fontSize:'1.6rem' }}>📑</span><span style={{ fontSize:'.58rem', fontWeight:700, color:'var(--text-muted)', marginTop:2 }}>PDF</span></div>}
+                      {c.type?.startsWith('image/') ? <img src={c.url} alt="" /> : <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--surface2)' }}><span style={{ fontSize:'1.5rem' }}>📑</span><span style={{ fontSize:'0.58rem', fontWeight:700, color:'var(--text3)', marginTop:2 }}>PDF</span></div>}
                       {pfEditing && <button className="pf-thumb-del" onClick={e => { e.stopPropagation(); pfSet('certificates', pfForm.certificates.filter((_,j)=>j!==i)); }}>✕</button>}
                     </div>
                   ))}
-                  {pfEditing && <div className="pf-add-thumb" onClick={() => certRef.current?.click()}><span style={{ fontSize:'1.3rem' }}>+</span><span>Add</span></div>}
-                  {!pfEditing && certs.length === 0 && <em style={{ color:'var(--text-muted)', fontSize:'.8rem' }}>No certificates yet.</em>}
+                  {pfEditing && <div className="pf-add-thumb" onClick={() => certRef.current?.click()}><span style={{ fontSize:'1.2rem' }}>+</span><span>Add</span></div>}
+                  {!pfEditing && certs.length === 0 && <em style={{ color:'var(--text3)', fontSize:'0.8rem' }}>No certificates yet.</em>}
                 </div>
               </div>
               <div className="pf-card">
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
                   <div className="pf-card-title" style={{ marginBottom:0 }}>📸 Activity Posts</div>
-                  {pfEditing && <button className="pf-edit-btn" onClick={() => postRef.current?.click()}>+ Upload</button>}
+                  {pfEditing && <button className="btn btn-ghost btn-sm" onClick={() => postRef.current?.click()}>+ Upload</button>}
                 </div>
-                <div className="pf-upload-grid">
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(95px,1fr))', gap:'0.6rem' }}>
                   {posts.map((p, i) => (
                     <div className="pf-thumb" key={i} onClick={() => window.open(p.url, '_blank')}>
-                      {p.type?.startsWith('image/') ? <img src={p.url} alt="" /> : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--surface2)' }}><span style={{ fontSize:'1.6rem' }}>🎬</span></div>}
+                      {p.type?.startsWith('image/') ? <img src={p.url} alt="" /> : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--surface2)' }}><span style={{ fontSize:'1.5rem' }}>🎬</span></div>}
                       {pfEditing && <button className="pf-thumb-del" onClick={e => { e.stopPropagation(); pfSet('personalPosts', pfForm.personalPosts.filter((_,j)=>j!==i)); }}>✕</button>}
                     </div>
                   ))}
-                  {pfEditing && <div className="pf-add-thumb" onClick={() => postRef.current?.click()}><span style={{ fontSize:'1.3rem' }}>+</span><span>Add</span></div>}
-                  {!pfEditing && posts.length === 0 && <em style={{ color:'var(--text-muted)', fontSize:'.8rem' }}>No posts yet.</em>}
+                  {pfEditing && <div className="pf-add-thumb" onClick={() => postRef.current?.click()}><span style={{ fontSize:'1.2rem' }}>+</span><span>Add</span></div>}
+                  {!pfEditing && posts.length === 0 && <em style={{ color:'var(--text3)', fontSize:'0.8rem' }}>No posts yet.</em>}
                 </div>
-                {pfEditing && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.1rem' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save Media'}</button></div>}
+                {pfEditing && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.1rem' }}><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save Media'}</button></div>}
               </div>
             </motion.div>
           )}
 
+          {/* Resume */}
           {pfTab === 'resume' && (
             <motion.div key="rv" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
               <div className="pf-card">
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1.2rem' }}>
                   <div className="pf-card-title" style={{ marginBottom:0 }}>📄 My Resumes</div>
-                  {pfEditing && <button className="pf-edit-btn" onClick={() => resumeRef.current?.click()}>+ Upload</button>}
+                  {pfEditing && <button className="btn btn-ghost btn-sm" onClick={() => resumeRef.current?.click()}>+ Upload</button>}
                 </div>
                 {resumes.length === 0
-                  ? <div style={{ textAlign:'center', padding:'2rem 1rem', color:'var(--text-muted)' }}>
-                      <div style={{ fontSize:'2rem', marginBottom:'.5rem' }}>📄</div>
-                      <div style={{ fontWeight:700, color:'var(--text-secondary)', marginBottom:'.3rem' }}>No resumes yet</div>
-                      <div style={{ fontSize:'.75rem', marginBottom:'1rem' }}>Upload a resume to attach to your applications.</div>
-                      {pfEditing ? <button className="pf-save-btn" onClick={() => resumeRef.current?.click()}>+ Upload Resume</button> : <button className="pf-edit-btn" onClick={startEdit}>Go to Edit Mode</button>}
-                    </div>
+                  ? <div className="empty-state"><div className="empty-icon">📄</div><div className="empty-title">No resumes yet</div><div className="empty-text">Upload a resume to attach to applications.</div>{pfEditing ? <button className="btn btn-primary" style={{ marginTop:'1rem' }} onClick={() => resumeRef.current?.click()}>+ Upload Resume</button> : <button className="btn btn-ghost btn-sm" style={{ marginTop:'1rem' }} onClick={startEdit}>Go to Edit Mode</button>}</div>
                   : resumes.map((r, i) => (
-                    <div className="pf-resume-row" key={i}>
-                      <div className="pf-resume-icon">{r.type === 'application/pdf' ? '📑' : '🖼️'}</div>
-                      <div style={{ flex:1 }}><div className="pf-resume-name">{r.name || `Resume ${i+1}`}</div><div className="pf-resume-type">{r.type}</div></div>
-                      <div style={{ display:'flex', gap:'.4rem' }}>
-                        <a href={r.url} target="_blank" rel="noreferrer"><button style={{ padding:'.35rem .8rem', background:'var(--brand-xlight)', border:'none', borderRadius:7, fontSize:'.7rem', fontWeight:700, color:'var(--brand)', cursor:'pointer' }}>View</button></a>
-                        {pfEditing && <button style={{ padding:'.35rem .75rem', background:'rgba(244,63,94,.07)', border:'1px solid rgba(244,63,94,.2)', borderRadius:7, fontSize:'.7rem', fontWeight:700, color:'var(--rose)', cursor:'pointer' }} onClick={() => pfSet('resumes', pfForm.resumes.filter((_,j)=>j!==i))}>Remove</button>}
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.75rem', padding:'0.9rem 1rem', background:'var(--surface2)', borderRadius:'10px', border:'1px solid var(--border)', marginBottom:'0.55rem' }}>
+                      <div style={{ fontSize:'1.4rem', flexShrink:0 }}>{r.type === 'application/pdf' ? '📑' : '🖼️'}</div>
+                      <div style={{ flex:1 }}><div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--text)' }}>{r.name}</div><div style={{ fontSize:'0.65rem', color:'var(--text3)' }}>{r.type}</div></div>
+                      <div style={{ display:'flex', gap:'0.4rem' }}>
+                        <a href={r.url} target="_blank" rel="noreferrer"><button className="btn btn-ghost btn-xs">View</button></a>
+                        {pfEditing && <button className="btn btn-danger btn-xs" onClick={() => pfSet('resumes', pfForm.resumes.filter((_,j)=>j!==i))}>Remove</button>}
                       </div>
                     </div>
                   ))
                 }
-                {pfEditing && resumes.length > 0 && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.1rem' }}><button className="pf-save-btn" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div>}
-                {!pfEditing && resumes.length > 0 && <div style={{ marginTop:'.9rem' }}><button className="pf-edit-btn" onClick={startEdit}>✏️ Manage Resumes</button></div>}
+                {pfEditing && resumes.length > 0 && <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'1.1rem' }}><button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={pfSaving}>{pfSaving?'Saving…':'💾 Save'}</button></div>}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {pfToast && (
-            <motion.div className={`pf-toast ${pfToast.type === 'error' ? 'pf-toast-error' : 'pf-toast-success'}`} initial={{ opacity:0, y:14, scale:.95 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0 }}>
-              {pfToast.msg}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1228,314 +1217,449 @@ export default function StudentDashboard() {
     <>
       <style>{CSS}</style>
 
-      {/* ════════════════════════════════════════════════════════════════════
-          FIX #2 — EXIT CONFIRM DIALOG
-          Shows when back button / browser back is pressed
-      ════════════════════════════════════════════════════════════════════ */}
+      {/* Exit confirm */}
       <AnimatePresence>
         {showExitConfirm && (
           <motion.div className="exit-overlay" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
-            <motion.div className="exit-box" initial={{ scale:.92, y:20 }} animate={{ scale:1, y:0 }} exit={{ scale:.92, y:20 }}>
+            <motion.div className="exit-box" initial={{ scale:.92,y:20 }} animate={{ scale:1,y:0 }} exit={{ scale:.92,y:20 }}>
               <div className="exit-icon">🚪</div>
               <div className="exit-title">Leave Campus2Career?</div>
-              <div className="exit-sub">You'll be signed out and returned to the login page. Any unsaved changes will be lost.</div>
+              <div className="exit-sub">You'll be signed out and returned to login. Any unsaved changes will be lost.</div>
               <div className="exit-btn-row">
-                <button className="exit-btn-stay" onClick={handleExitStay}>Stay Here</button>
-                <button className="exit-btn-leave" onClick={handleExitLeave}>Yes, Leave</button>
+                <button className="exit-btn-stay" onClick={() => setShowExitConfirm(false)}>Stay Here</button>
+                <button className="exit-btn-leave" onClick={async () => { setShowExitConfirm(false); try { await signOut(); } catch(_){} navigate(pendingNavRef.current || '/login'); }}>Yes, Leave</button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* NAV */}
-      <nav className="s-nav">
-        <div className="brand-wrap">
-          <div className="brand-icon">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div className="sd-root">
+        {/* SIDEBAR */}
+        <aside className="sd-sidebar">
+          <div className="sidebar-brand">
+            <div className="brand-logo">Campus2Career</div>
+            <div className="brand-tag">Student Portal</div>
           </div>
-          <div>
-            <div className="brand">Campus<span>2</span>Career</div>
-            <div className="brand-sub">Student Portal</div>
+          <nav className="sidebar-nav">
+            <div className="nav-group-label">Main</div>
+            {navItems.slice(0, 4).map(n => (
+              <div key={n.id} className={`nav-item ${activeTab === n.id ? 'active' : ''}`} onClick={() => setActiveTab(n.id)}>
+                <span className="nav-icon">{n.icon}</span>
+                <span>{n.label}</span>
+                {n.badge ? <span className={`nav-badge ${n.badgeColor || ''}`}>{n.badge}</span> : null}
+              </div>
+            ))}
+            <div className="nav-group-label" style={{ marginTop:'0.5rem' }}>Personal</div>
+            {navItems.slice(4).map(n => (
+              <div key={n.id} className={`nav-item ${activeTab === n.id ? 'active' : ''}`} onClick={() => setActiveTab(n.id)}>
+                <span className="nav-icon">{n.icon}</span>
+                <span>{n.label}</span>
+                {n.badge ? <span className={`nav-badge ${n.badgeColor || ''}`}>{n.badge}</span> : null}
+              </div>
+            ))}
+          </nav>
+          <div className="sidebar-footer">
+            <div className="sidebar-user" onClick={() => setActiveTab('profile')}>
+              <div className="s-avatar">
+                {safeProfile.photo ? <img src={safeProfile.photo} alt="" /> : (safeProfile.name || 'S')[0].toUpperCase()}
+              </div>
+              <div>
+                <div className="s-name">{safeProfile.name || 'Student'}</div>
+                <div className="s-role">{safeProfile.qualification || 'Student'}</div>
+              </div>
+            </div>
+            <button className="logout-btn" onClick={handleLogout}>← Sign Out</button>
           </div>
-        </div>
+        </aside>
 
-        <div className="s-search">
-          <span className="s-search-ico">🔍</span>
-          <input placeholder="Search jobs, skills, companies…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-        </div>
-
-        <div className="nav-tabs">
-          {[{id:'feed',label:'🏠 Feed'},{id:'jobs',label:'💼 Jobs'},{id:'courses',label:'📚 Courses'},{id:'applications',label:'📋 Applications'},{id:'profile',label:'👤 Profile'}].map(t => (
-            <button key={t.id} className={`nav-tab ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</button>
-          ))}
-        </div>
-
-        <div className="nav-actions">
-          <div className="nav-btn" title="Notifications">🔔<span className="badge" /></div>
-          <div className="nav-av" title={safeProfile.name}>
-            {safeProfile.photo ? <img src={safeProfile.photo} alt="" /> : (safeProfile.name || 'S')[0].toUpperCase()}
+        {/* MAIN */}
+        <div className="sd-main">
+          {/* Topbar */}
+          <div className="topbar">
+            <div className="topbar-title">{navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}</div>
+            <div className="search-box">
+              <span style={{ color:'var(--text3)', fontSize:'0.8rem' }}>🔍</span>
+              <input placeholder="Search jobs, skills, companies…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            </div>
+            <div className="topbar-actions">
+              <div className="icon-btn" title="Notifications"><span>🔔</span><span className="notif-dot" /></div>
+              <div className="icon-btn" onClick={() => setActiveTab('profile')} title="Profile" style={{ overflow:'hidden', padding:0 }}>
+                {safeProfile.photo ? <img src={safeProfile.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <span style={{ fontWeight:800, fontSize:'0.85rem' }}>{(safeProfile.name || 'S')[0].toUpperCase()}</span>}
+              </div>
+            </div>
           </div>
-          <button className="signout-btn" onClick={handleLogout}>Sign Out</button>
-        </div>
-      </nav>
 
-      <div className="s-layout">
-        <aside className="s-sidebar"><SidebarPanel /></aside>
+          {/* Content */}
+          <div className="content-area">
+            <AnimatePresence mode="wait">
 
-        <main className="s-content">
-          <AnimatePresence mode="wait">
+              {/* ══ FEED ══════════════════════════════════════════════════════ */}
+              {activeTab === 'feed' && (
+                <motion.div className="page" key="feed" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
 
-            {/* ══ FEED ══════════════════════════════════════════════════════ */}
-            {activeTab === 'feed' && (
-              <motion.div key="feed" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
-                <div className="page-sec">
-                  <div className="sec-head">
-                    <div><div className="sec-title">Partner Industries</div><div className="sec-sub">{industries.length} registered companies</div></div>
-                  </div>
-                  <div className="ind-grid">
-                    {industries.map((ind, i) => (
-                      <motion.div key={ind.id || i} className="ind-card" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.06 }}>
-                        <div className="ind-logo">{ind.logo || (ind.name || 'CO').substring(0,2).toUpperCase()}</div>
-                        <div className="ind-name">{ind.name}</div>
-                        <div className="ind-domain-tag">{ind.domain}</div>
-                        <div className="ind-loc">📍 {ind.location}</div>
-                        {ind.tagline && <div className="ind-tagline">"{ind.tagline}"</div>}
-                        <button className="msg-btn" onClick={() => setActiveChat(ind)}>💬 Message</button>
+                  {/* Stats */}
+                  <div className="stats-grid">
+                    {[
+                      { label:'Open Opportunities', value:vacancies.length, icon:'💼', color:'var(--accent2)', glow:'rgba(99,102,241,0.08)' },
+                      { label:'Partner Companies', value:industries.length, icon:'🏢', color:'var(--cyan)', glow:'rgba(6,182,212,0.06)' },
+                      { label:'My Applications', value:myApplications.length, icon:'📋', color:'var(--amber)', glow:'rgba(245,158,11,0.06)' },
+                      { label:'Profile Complete', value:`${completion}%`, icon:'👤', color: completion >= 80 ? 'var(--green)' : 'var(--violet)', glow:'rgba(139,92,246,0.06)' },
+                    ].map((s,i) => (
+                      <motion.div key={i} className="stat-card" style={{ '--glow':s.glow }} initial={{ opacity:0,y:15 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}>
+                        <div className="stat-icon">{s.icon}</div>
+                        <div className="stat-label">{s.label}</div>
+                        <div className="stat-value" style={{ color:s.color }}>{s.value}</div>
+                        <span className="stat-badge" style={{ background:s.glow, color:s.color }}>Live</span>
                       </motion.div>
                     ))}
                   </div>
-                </div>
 
-                <div className="page-sec">
-                  <div className="sec-head">
-                    <div><div className="sec-title">Opportunity Feed</div><div className="sec-sub">{vacancies.length} openings available</div></div>
+                  {/* Partner Industries */}
+                  <div className="page-sec" style={{ marginBottom:'2rem' }}>
+                    <div className="section-hd">
+                      <div><div className="section-title">Partner Industries</div><div className="section-sub">{industries.length} registered companies</div></div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setActiveTab('chat')}>All Conversations →</button>
+                    </div>
+                    {industries.length === 0
+                      ? <div style={{ color:'var(--text3)', fontSize:'0.8rem', padding:'1rem' }}>No industries registered yet.</div>
+                      : <div className="ind-grid">
+                          {industries.map((ind, i) => (
+                            <motion.div key={ind.id || i} className="ind-card" initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }}>
+                              <div className="ind-logo">{ind.logo || (ind.name || 'CO').substring(0,2).toUpperCase()}</div>
+                              <div className="ind-name">{ind.name}</div>
+                              <div className="ind-domain-tag">{ind.domain}</div>
+                              <div className="ind-loc">📍 {ind.location}</div>
+                              {ind.tagline && <div className="ind-tagline">"{ind.tagline}"</div>}
+                              <button className="msg-btn" onClick={() => openChat(ind)}>💬 Message</button>
+                            </motion.div>
+                          ))}
+                        </div>
+                    }
+                  </div>
+
+                  {/* Opportunity Feed — REAL jobs from industry dashboard via Supabase */}
+                  <div className="section-hd">
+                    <div><div className="section-title">Opportunity Feed</div><div className="section-sub">{vacancies.length} openings · posted by registered companies</div></div>
                   </div>
                   {feedLoading
                     ? <div style={{ textAlign:'center', padding:'3rem' }}><div className="spinner" style={{ margin:'0 auto' }} /></div>
-                    : <div className="feed-grid">
-                        {vacancies.map((v, i) => (
-                          <motion.div key={v.id || i} className="vac-card" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.05 }}>
-                            <div className="vac-body">
-                              <div className="vac-top">
-                                <div className="vac-logo-wrap">
-                                  <div className="vac-logo">{v.ownerLogo}</div>
-                                  <div><div className="vac-company">{v.ownerName}</div><div className="vac-date">{v.date}</div></div>
+                    : vacancies.length === 0
+                      ? <div className="card"><div className="empty-state"><div className="empty-icon">📭</div><div className="empty-title">No opportunities yet</div><div className="empty-text">Companies haven't posted any openings yet. Check back soon.</div></div></div>
+                      : <div className="feed-grid">
+                          {vacancies.map((v, i) => (
+                            <motion.div key={v.id || i} className="vac-card" style={{ '--line':lineColor(v.type) }} initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.04 }}>
+                              <div className="vac-body">
+                                <div className="vac-top">
+                                  <div className="vac-logo-wrap">
+                                    <div className="vac-logo">{v.ownerLogo}</div>
+                                    <div><div className="vac-company">{v.ownerName}</div><div className="vac-date">{v.date}</div></div>
+                                  </div>
+                                  <TypeChip type={v.type} />
                                 </div>
-                                <TypeBadge type={v.type} />
+                                <div className="vac-title">{v.title}</div>
+                                <div className="vac-desc">{v.desc}</div>
+                                <div className="skill-pills">{(v.skills||'').split(',').filter(Boolean).slice(0,5).map((sk,j) => <span key={j} className="s-pill">{sk.trim()}</span>)}</div>
                               </div>
-                              <div className="vac-title">{v.title}</div>
-                              <div className="vac-desc">{v.desc}</div>
-                              <div className="skill-pills">{(v.skills || '').split(',').filter(Boolean).slice(0,5).map((sk, j) => <span key={j} className="s-pill">{sk.trim()}</span>)}</div>
-                            </div>
-                            <div className="vac-foot">
-                              <div className="vac-meta">
-                                {v.duration && <span className="vac-meta-item">⏱ {v.duration}</span>}
-                                {v.offerings && <span className="vac-meta-item">💰 {v.offerings.slice(0,28)}{v.offerings.length>28?'…':''}</span>}
+                              <div className="vac-foot">
+                                <div className="vac-meta">
+                                  {v.duration && <span className="vac-meta-item">⏱ {v.duration}</span>}
+                                  {v.offerings && <span className="vac-meta-item">💰 {v.offerings.slice(0,30)}{v.offerings.length>30?'…':''}</span>}
+                                  {v.location && <span className="vac-meta-item">📍 {v.location}</span>}
+                                </div>
+                                <div className="vac-actions">
+                                  <button className="btn btn-ghost btn-xs" onClick={() => setDetailModal(v)}>Details</button>
+                                  {alreadyApplied(v.id) ? <span className="applied-badge">✓ Applied</span> : <button className="apply-btn" onClick={() => setApplyModal(v)}>Apply Now</button>}
+                                </div>
                               </div>
-                              <div className="vac-actions">
-                                <button className="detail-btn" onClick={() => setDetailModal(v)}>Details</button>
-                                {alreadyApplied(v.id) ? <span className="applied-badge">✓ Applied</span> : <button className="apply-btn" onClick={() => setApplyModal(v)}>Apply Now</button>}
-                              </div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
+                            </motion.div>
+                          ))}
+                        </div>
                   }
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
-            {/* ══ JOBS ══════════════════════════════════════════════════════ */}
-            {activeTab === 'jobs' && (
-              <motion.div key="jobs" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
-                <div className="page-sec">
-                  <div className="sec-head">
-                    <div><div className="sec-title">🤖 AI Skill Matches</div><div className="sec-sub">Based on your skill profile</div></div>
-                    <button className="sec-action-btn" onClick={refreshMatch} disabled={matchLoading}>{matchLoading ? '…' : '↺ Refresh'}</button>
+              {/* ══ JOBS BOARD ════════════════════════════════════════════════ */}
+              {activeTab === 'jobs' && (
+                <motion.div className="page" key="jobs" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
+                  <div className="section-hd">
+                    <div><div className="section-title">Jobs Board</div><div className="section-sub">{filteredJobs.length} of {allJobs.length} listings</div></div>
+                  </div>
+                  <div className="jobs-grid">
+                    {filteredJobs.map((j, i) => (
+                      <motion.div key={i} className="job-card" style={{ '--line':'var(--accent)' }} initial={{ opacity:0,scale:.97 }} animate={{ opacity:1,scale:1 }} transition={{ delay:i*0.04 }}>
+                        <div className="job-company">{j.industry}</div>
+                        <div className="job-title">{j.job}</div>
+                        <div className="job-desc">{j.desc}</div>
+                        <div className="job-tags">
+                          {j.dept && <span className="j-tag" style={{ color:'var(--cyan)', borderColor:'rgba(6,182,212,0.2)', background:'var(--cyan2)' }}>{j.dept}</span>}
+                          {j.role && <span className="j-tag" style={{ color:'var(--violet)', borderColor:'rgba(139,92,246,0.2)', background:'var(--violet2)' }}>{j.role}</span>}
+                          {j.ug && <span className="j-tag" style={{ color:'var(--green)', borderColor:'rgba(16,185,129,0.2)', background:'var(--green2)' }}>{j.ug}</span>}
+                        </div>
+                        <div className="skill-pills" style={{ marginBottom:'0.65rem' }}>{(j.skills||'').split(',').filter(Boolean).slice(0,4).map((sk,k) => <span key={k} className="s-pill" style={{ fontSize:'0.64rem' }}>{sk.trim()}</span>)}</div>
+                        <div className="job-foot">
+                          <span style={{ fontSize:'0.68rem', color:'var(--text3)' }}>{j.pg && `PG: ${j.pg}`}</span>
+                          <a href={j.url} target="_blank" rel="noreferrer"><button className="btn btn-primary btn-xs">Apply →</button></a>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ══ AI MATCHES ════════════════════════════════════════════════ */}
+              {activeTab === 'matches' && (
+                <motion.div className="page" key="matches" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
+                  <div className="section-hd">
+                    <div><div className="section-title">🤖 AI Skill Matches</div><div className="section-sub">Based on your skill profile</div></div>
+                    <button className="btn btn-ghost btn-sm" onClick={refreshMatch} disabled={matchLoading}>{matchLoading ? '…' : '↺ Refresh'}</button>
                   </div>
                   {matchLoading
                     ? <div style={{ textAlign:'center', padding:'2rem' }}><div className="spinner" style={{ margin:'0 auto' }} /></div>
                     : !safeProfile.skills?.length
-                      ? <div className="empty-state"><div className="empty-icon">⚡</div><div className="empty-title">No skills added yet</div><div className="empty-text">Add skills to unlock AI-powered job matches.</div><button className="pf-save-btn" style={{ marginTop:'1rem' }} onClick={() => { setActiveTab('profile'); setTimeout(() => setPfTab('skills'), 100); }}>Add Skills →</button></div>
+                      ? <div className="card"><div className="empty-state"><div className="empty-icon">⚡</div><div className="empty-title">No skills added yet</div><div className="empty-text">Add skills to unlock AI-powered job matches.</div><button className="btn btn-primary" style={{ marginTop:'1rem' }} onClick={() => { setActiveTab('profile'); setTimeout(() => setPfTab('skills'), 100); }}>Add Skills →</button></div></div>
                       : matchedJobs.length === 0
-                        ? <div className="empty-state"><div className="empty-icon">🔍</div><div className="empty-title">No matches yet</div><div className="empty-text">Click Refresh to run AI skill analysis.</div></div>
+                        ? <div className="card"><div className="empty-state"><div className="empty-icon">🔍</div><div className="empty-title">No matches yet</div><div className="empty-text">Click Refresh to run AI skill analysis.</div></div></div>
                         : <div className="match-grid">
                             {matchedJobs.map((m, i) => (
-                              <motion.div key={i} className="match-card" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.07 }}>
+                              <motion.div key={i} className="match-card" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.07 }}>
                                 <div className="match-pct">{m.match_confidence ?? m.accuracy ?? 0}%</div>
                                 <div className="match-lbl">Match Confidence</div>
                                 <div className="match-bar-track"><div className="match-bar-fill" style={{ width:`${m.match_confidence ?? m.accuracy ?? 0}%` }} /></div>
                                 <div className="match-job">{m.job || m.matched_job}</div>
                                 {m.industry && <div className="match-industry">📍 {m.industry}</div>}
-                                {m.missing_skills?.length > 0 && <div style={{ marginBottom:'.65rem' }}><div className="missing-label">Skills to Learn</div><div>{m.missing_skills.map((s,j) => <span key={j} className="miss-chip">{s}</span>)}</div></div>}
-                                {m.courses?.length > 0 && <div><div className="courses-rec-label">Recommended Courses</div>{m.courses.map((c,j) => <a key={j} href={c.link||c.url||'#'} target="_blank" rel="noreferrer" className="course-rec-item"><span style={{ fontSize:'.9rem' }}>📚</span><span className="course-rec-name">{c.title}</span><span style={{ fontSize:'.65rem', color:'var(--brand)', fontWeight:700 }}>→</span></a>)}</div>}
-                                {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="apply-btn" style={{ width:'100%', marginTop:'.7rem' }}>View Job →</button></a>}
+                                {m.missing_skills?.length > 0 && <div style={{ marginBottom:'0.65rem' }}><div style={{ fontSize:'0.63rem', fontWeight:800, textTransform:'uppercase', color:'var(--red)', letterSpacing:'0.06em', marginBottom:'0.35rem' }}>Skills to Learn</div><div>{m.missing_skills.map((s,j) => <span key={j} className="miss-chip">{s}</span>)}</div></div>}
+                                {m.courses?.length > 0 && <div><div style={{ fontSize:'0.63rem', fontWeight:800, textTransform:'uppercase', color:'var(--green)', letterSpacing:'0.06em', margin:'0.7rem 0 0.35rem' }}>Recommended Courses</div>{m.courses.map((c,j) => <a key={j} href={c.link||c.url||'#'} target="_blank" rel="noreferrer" className="course-rec-item"><span style={{ fontSize:'0.9rem' }}>📚</span><span className="course-rec-name">{c.title}</span><span style={{ fontSize:'0.65rem', color:'var(--accent2)', fontWeight:700 }}>→</span></a>)}</div>}
+                                {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="btn btn-primary" style={{ width:'100%', marginTop:'0.7rem' }}>View Job →</button></a>}
                               </motion.div>
                             ))}
                           </div>
                   }
-                </div>
-                <div className="page-sec">
-                  <div className="sec-head"><div><div className="sec-title">All Job Listings</div><div className="sec-sub">{filteredJobs.length} of {allJobs.length} openings</div></div></div>
-                  <div className="jobs-grid">
-                    {filteredJobs.map((j, i) => (
-                      <motion.div key={i} className="job-card" initial={{ opacity:0, scale:.97 }} animate={{ opacity:1, scale:1 }} transition={{ delay: i*0.04 }}>
-                        <div className="job-company">{j.industry}</div>
-                        <div className="job-title">{j.job}</div>
-                        <div className="job-desc">{j.desc}</div>
-                        <div className="job-tags">
-                          {j.dept && <span className="j-tag" style={{ background:'#e0f2fe', color:'#0369a1', borderColor:'#bae6fd' }}>{j.dept}</span>}
-                          {j.role && <span className="j-tag" style={{ background:'#ede9fe', color:'#5b21b6', borderColor:'#ddd6fe' }}>{j.role}</span>}
-                          {j.ug && <span className="j-tag" style={{ background:'#dcfce7', color:'#166534', borderColor:'#bbf7d0' }}>{j.ug}</span>}
-                        </div>
-                        <div className="skill-pills" style={{ marginBottom:'.65rem' }}>{(j.skills||'').split(',').filter(Boolean).slice(0,4).map((sk,k) => <span key={k} className="s-pill" style={{ fontSize:'.64rem' }}>{sk.trim()}</span>)}</div>
-                        <div className="job-foot">
-                          <span className="job-pg">{j.pg && `PG: ${j.pg}`}</span>
-                          <a href={j.url} target="_blank" rel="noreferrer" className="job-apply-link">Apply →</a>
+                </motion.div>
+              )}
+
+              {/* ══ COURSES ═══════════════════════════════════════════════════ */}
+              {activeTab === 'courses' && (
+                <motion.div className="page" key="courses" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
+                  <div className="section-hd" style={{ marginBottom:'1.3rem' }}>
+                    <div><div className="section-title">Recommended Courses</div><div className="section-sub">{courses.length} courses available</div></div>
+                  </div>
+                  <div className="courses-grid">
+                    {courses.map((c, i) => (
+                      <motion.div key={c.id || i} className="course-card" initial={{ opacity:0,y:12 }} animate={{ opacity:1,y:0 }} transition={{ delay:i*0.06 }} onClick={() => window.open(c.link||c.url||'#', '_blank')}>
+                        <div className="course-top"><div className="course-provider">{c.provider}</div><div className="course-name">{c.title}</div></div>
+                        <div className="course-body">
+                          <div className="course-meta-row">
+                            {c.duration && <span className="course-meta-item">⏱ {c.duration}</span>}
+                            {c.rating && <span className="course-meta-item">⭐ {c.rating}</span>}
+                          </div>
+                          {c.level && <div style={{ marginBottom:'0.7rem' }}><span className={`level-badge level-${c.level}`}>{c.level}</span></div>}
+                          {(c.skills||[]).length > 0 && <div className="skill-pills" style={{ marginBottom:'0.7rem' }}>{c.skills.slice(0,3).map((sk,j) => <span key={j} className="s-pill">{sk}</span>)}</div>}
+                          <button className="enroll-btn">Enroll Now →</button>
                         </div>
                       </motion.div>
                     ))}
                   </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
-            {/* ══ COURSES ═══════════════════════════════════════════════════ */}
-            {activeTab === 'courses' && (
-              <motion.div key="courses" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
-                <div className="sec-head" style={{ marginBottom:'1.3rem' }}><div><div className="sec-title">Recommended Courses</div><div className="sec-sub">{courses.length} courses available</div></div></div>
-                <div className="courses-grid">
-                  {courses.map((c, i) => (
-                    <motion.div key={c.id || i} className="course-card" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.06 }} onClick={() => window.open(c.link||c.url||'#', '_blank')}>
-                      <div className="course-top"><div className="course-provider">{c.provider}</div><div className="course-name">{c.title}</div></div>
-                      <div className="course-body">
-                        <div className="course-meta-row">
-                          {c.duration && <span className="course-meta-item">⏱ {c.duration}</span>}
-                          {c.rating && <span className="course-meta-item">⭐ {c.rating}</span>}
-                        </div>
-                        {c.level && <div style={{ marginBottom:'.7rem' }}><span className={`level-badge level-${c.level}`}>{c.level}</span></div>}
-                        {(c.skills||[]).length > 0 && <div className="skill-pills" style={{ marginBottom:'.7rem' }}>{c.skills.slice(0,3).map((sk,j) => <span key={j} className="s-pill">{sk}</span>)}</div>}
-                        <button className="enroll-btn">Enroll Now →</button>
+              {/* ══ CHAT ══════════════════════════════════════════════════════ */}
+              {activeTab === 'chat' && (
+                <motion.div className="page" key="chat" style={{ padding:0 }} initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}>
+                  <div className="chat-layout" style={{ margin:'1.5rem' }}>
+                    {/* Conversation list */}
+                    <div className="conv-list">
+                      <div className="conv-list-head">💬 Conversations</div>
+                      <div className="conv-search">
+                        <input placeholder="Search companies…" value={convSearch} onChange={e => setConvSearch(e.target.value)} />
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+                      <div className="conv-list-body">
+                        {/* Industries you haven't messaged yet */}
+                        {filteredConvs.length === 0 && industries.length === 0 && (
+                          <div style={{ padding:'2rem 1.2rem', textAlign:'center', color:'var(--text3)', fontSize:'0.78rem' }}>No conversations yet. Go to Feed to message companies.</div>
+                        )}
 
-            {/* ══ APPLICATIONS ══════════════════════════════════════════════ */}
-            {activeTab === 'applications' && (
-              <motion.div key="apps" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
-                <div className="sec-head" style={{ marginBottom:'1.3rem' }}><div><div className="sec-title">My Applications</div><div className="sec-sub">{myApplications.length} submitted</div></div></div>
-                {myApplications.length === 0
-                  ? <div className="empty-state"><div className="empty-icon">📋</div><div className="empty-title">No applications yet</div><div className="empty-text">Browse the feed and apply to internships and vacancies.</div><button className="pf-save-btn" style={{ marginTop:'1rem' }} onClick={() => setActiveTab('feed')}>Browse Openings →</button></div>
-                  : <div className="apps-list">
-                      {myApplications.map((a, i) => (
-                        <motion.div key={a.id || i} className="app-card" initial={{ opacity:0, x:-10 }} animate={{ opacity:1, x:0 }} transition={{ delay: i*0.05 }}>
-                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                            <div><div className="app-role">{a.role}</div><div className="app-company">🏢 {a.company}</div></div>
-                            <span className={`status-badge status-${a.status}`}>{a.status}</span>
+                        {/* Active conversations */}
+                        {filteredConvs.map(c => (
+                          <div key={c.id} className={`conv-row ${activeChat?.id == c.id ? 'active' : ''}`} onClick={() => {
+                            const ind = industries.find(i => String(i.id) === String(c.id));
+                            setActiveChat(ind || c);
+                          }}>
+                            <div className="conv-av">{c.logo}</div>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <div className="conv-name">{c.name}</div>
+                              <div className="conv-preview">{c.lastMsg || 'Start a conversation…'}</div>
+                            </div>
+                            {c.time && <div className="conv-time">{c.time}</div>}
                           </div>
-                          <div className="app-meta">
-                            <span>📅 Applied: {a.appliedOn}</span>
-                            {a.coverLetter && <span>📝 Cover letter attached</span>}
-                          </div>
-                        </motion.div>
-                      ))}
+                        ))}
+
+                        {/* Divider: Browse companies to message */}
+                        {industries.length > 0 && (
+                          <>
+                            <div style={{ padding:'0.5rem 1.2rem', fontSize:'0.58rem', fontWeight:700, color:'var(--text3)', textTransform:'uppercase', letterSpacing:'0.1em', borderBottom:'1px solid var(--border)' }}>All Companies</div>
+                            {industries.filter(ind => !conversations.find(c => String(c.id) === String(ind.id)) && ind.name.toLowerCase().includes(convSearch.toLowerCase())).map(ind => (
+                              <div key={ind.id} className={`conv-row ${activeChat?.id == ind.id ? 'active' : ''}`} onClick={() => openChat(ind)}>
+                                <div className="conv-av">{ind.logo || (ind.name||'CO').substring(0,2).toUpperCase()}</div>
+                                <div style={{ flex:1, minWidth:0 }}>
+                                  <div className="conv-name">{ind.name}</div>
+                                  <div className="conv-preview" style={{ color:'var(--accent2)' }}>Start conversation</div>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
                     </div>
-                }
-              </motion.div>
-            )}
 
-            {/* ══ PROFILE ═══════════════════════════════════════════════════ */}
-            {activeTab === 'profile' && (
-              <motion.div key="profile" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}>
-                <ProfilePage />
-              </motion.div>
-            )}
+                    {/* Chat area */}
+                    <div className="chat-area">
+                      {!activeChat
+                        ? <div className="chat-empty" style={{ margin:'auto' }}>
+                            <span style={{ fontSize:'2rem', opacity:0.3 }}>💬</span>
+                            <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, color:'var(--text2)' }}>Select a company to message</span>
+                            <span>Choose from the list or browse companies in the Feed</span>
+                          </div>
+                        : <>
+                            <div className="chat-head">
+                              <div className="conv-av" style={{ width:38, height:38, borderRadius:10 }}>{activeChat.logo || (activeChat.name||'CO').substring(0,2).toUpperCase()}</div>
+                              <div style={{ flex:1 }}>
+                                <div className="chat-head-name">{activeChat.name}</div>
+                                <div className="chat-head-role">{activeChat.domain || 'Company'}</div>
+                              </div>
+                              <span className="online-badge"><span className="online-dot" /> Active</span>
+                            </div>
+                            <div className="chat-body">
+                              {(chatMessages[String(activeChat.id)] || []).length === 0
+                                ? <div className="chat-empty">
+                                    <span style={{ fontSize:'2rem', opacity:0.3 }}>👋</span>
+                                    <span style={{ fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, color:'var(--text2)' }}>Start the conversation</span>
+                                    <span>Introduce yourself and ask about opportunities</span>
+                                  </div>
+                                : (chatMessages[String(activeChat.id)] || []).map((msg, i) => (
+                                  <div key={i} className={`bubble ${msg.mine ? 'sent' : 'recv'}`}>
+                                    {msg.text}
+                                    <div className="bubble-time">{msg.time}</div>
+                                  </div>
+                                ))
+                              }
+                              <div ref={chatEndRef} />
+                            </div>
+                            <div className="chat-foot">
+                              <input
+                                className="chat-input"
+                                placeholder={`Message ${activeChat.name}…`}
+                                value={chatInput}
+                                onChange={e => setChatInput(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                              />
+                              <button className="chat-send-btn" onClick={sendMessage}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                              </button>
+                            </div>
+                          </>
+                      }
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
-          </AnimatePresence>
-        </main>
+              {/* ══ APPLICATIONS ══════════════════════════════════════════════ */}
+              {activeTab === 'applications' && (
+                <motion.div className="page" key="apps" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
+                  <div className="section-hd" style={{ marginBottom:'1.3rem' }}>
+                    <div><div className="section-title">My Applications</div><div className="section-sub">{myApplications.length} submitted</div></div>
+                  </div>
+                  {myApplications.length === 0
+                    ? <div className="card"><div className="empty-state"><div className="empty-icon">📋</div><div className="empty-title">No applications yet</div><div className="empty-text">Browse the feed and apply to internships and vacancies.</div><button className="btn btn-primary" style={{ marginTop:'1rem' }} onClick={() => setActiveTab('feed')}>Browse Openings →</button></div></div>
+                    : <div className="apps-list">
+                        {myApplications.map((a, i) => (
+                          <motion.div key={a.id || i} className="app-card" initial={{ opacity:0,x:-10 }} animate={{ opacity:1,x:0 }} transition={{ delay:i*0.05 }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                              <div>
+                                <div className="app-role">{a.role}</div>
+                                <div className="app-company">🏢 {a.company}</div>
+                              </div>
+                              <StatusChip status={a.status} />
+                            </div>
+                            <div style={{ display:'flex', gap:'1.2rem', marginTop:'0.6rem', fontSize:'0.75rem', color:'var(--text3)' }}>
+                              <span>📅 Applied: {a.appliedOn}</span>
+                              {a.coverLetter && <span>📝 Cover letter attached</span>}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                  }
+                </motion.div>
+              )}
+
+              {/* ══ PROFILE ═══════════════════════════════════════════════════ */}
+              {activeTab === 'profile' && (
+                <motion.div className="page" key="profile" initial={{ opacity:0,y:10 }} animate={{ opacity:1,y:0 }} exit={{ opacity:0 }}>
+                  <ProfilePage />
+                </motion.div>
+              )}
+
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
-      {/* ── DM PANEL ── */}
-      <AnimatePresence>
-        {activeChat && (
-          <motion.div className="dm-panel" initial={{ y:20, opacity:0 }} animate={{ y:0, opacity:1 }} exit={{ y:20, opacity:0 }} transition={{ type:'spring', stiffness:280, damping:28 }}>
-            <div className="dm-head">
-              <div><div className="dm-recipient-name">{activeChat.name || 'Company'}</div><div className="dm-status-row"><span className="online-dot" /> Active now</div></div>
-              <button className="dm-close-btn" onClick={() => setActiveChat(null)}>✕</button>
-            </div>
-            <div className="dm-body">
-              {!(safeProfile.chats?.[activeChat.id] || []).length
-                ? <div className="dm-empty-state"><span style={{ fontSize:'1.8rem' }}>💬</span><span>No messages yet. Say hello!</span></div>
-                : (safeProfile.chats?.[activeChat.id] || []).map((msg, i) => (
-                  <div key={i} className={`bubble ${msg.sender === safeProfile.name ? 'sent' : 'recv'}`}>
-                    <div>{msg.message}</div><div className="bubble-time">{msg.time}</div>
-                  </div>
-                ))}
-              <div ref={chatEndRef} />
-            </div>
-            <div className="dm-foot">
-              <input ref={chatInputRef} className="dm-input" placeholder="Type a message…" value={chatInput} onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && chatInput.trim()) { sendMessage(activeChat.id, chatInput.trim()); setChatInput(''); } }} />
-              <button className="dm-send-btn" onClick={() => { if (!chatInput.trim()) return; sendMessage(activeChat.id, chatInput.trim()); setChatInput(''); }}>➤</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── DETAIL MODAL ── */}
+      {/* ══ DETAIL MODAL ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {detailModal && (
-          <motion.div className="modal-ov" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={e => { if (e.target === e.currentTarget) setDetailModal(null); }}>
-            <motion.div className="modal-box" initial={{ scale:.94, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:.94, opacity:0 }}>
+          <motion.div className="modal-ov" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={e => e.target === e.currentTarget && setDetailModal(null)}>
+            <motion.div className="modal-box" initial={{ scale:.95 }} animate={{ scale:1 }} exit={{ scale:.95 }}>
               <button className="modal-close" onClick={() => setDetailModal(null)}>✕</button>
-              <div style={{ display:'flex', alignItems:'center', gap:'.85rem', marginBottom:'1.35rem' }}>
-                <div style={{ width:48, height:48, borderRadius:13, background:'var(--brand-xlight)', color:'var(--brand)', fontFamily:"'Clash Display',sans-serif", fontWeight:700, fontSize:'.9rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{detailModal.ownerLogo}</div>
-                <div><div className="modal-title" style={{ fontSize:'1.2rem' }}>{detailModal.title}</div><div style={{ color:'var(--brand)', fontWeight:700, fontSize:'.8rem' }}>{detailModal.ownerName} · {detailModal.type}</div></div>
+              <div style={{ display:'flex', alignItems:'center', gap:'0.85rem', marginBottom:'1.35rem' }}>
+                <div style={{ width:48, height:48, borderRadius:12, background:'var(--accent3)', color:'var(--accent2)', fontFamily:"'Cabinet Grotesk',sans-serif", fontWeight:700, fontSize:'0.9rem', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{detailModal.ownerLogo}</div>
+                <div><div className="modal-title" style={{ fontSize:'1.15rem' }}>{detailModal.title}</div><div style={{ color:'var(--accent2)', fontWeight:700, fontSize:'0.8rem' }}>{detailModal.ownerName} · <TypeChip type={detailModal.type} /></div></div>
               </div>
-              <p style={{ fontSize:'.85rem', color:'var(--text-secondary)', lineHeight:1.65, marginBottom:'1rem' }}>{detailModal.desc}</p>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.7rem', marginBottom:'1.2rem', fontSize:'.83rem' }}>
-                {detailModal.duration && <div><strong>Duration:</strong> {detailModal.duration}</div>}
-                {detailModal.skills && <div><strong>Skills:</strong> {detailModal.skills}</div>}
-                {detailModal.offerings && <div style={{ gridColumn:'1 / -1' }}><strong>Offerings:</strong> {detailModal.offerings}</div>}
+              <p style={{ fontSize:'0.85rem', color:'var(--text2)', lineHeight:1.65, marginBottom:'1rem' }}>{detailModal.desc}</p>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.7rem', marginBottom:'1.2rem', fontSize:'0.83rem' }}>
+                {detailModal.duration && <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:10, padding:'0.75rem' }}><div style={{ fontSize:'0.6rem', fontWeight:700, color:'var(--text3)', textTransform:'uppercase', marginBottom:3 }}>Duration</div><div style={{ fontWeight:600 }}>{detailModal.duration}</div></div>}
+                {detailModal.location && <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:10, padding:'0.75rem' }}><div style={{ fontSize:'0.6rem', fontWeight:700, color:'var(--text3)', textTransform:'uppercase', marginBottom:3 }}>Location</div><div style={{ fontWeight:600 }}>{detailModal.location}</div></div>}
+                {detailModal.offerings && <div style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:10, padding:'0.75rem', gridColumn:'1/-1' }}><div style={{ fontSize:'0.6rem', fontWeight:700, color:'var(--text3)', textTransform:'uppercase', marginBottom:3 }}>Offerings</div><div style={{ fontWeight:600 }}>{detailModal.offerings}</div></div>}
               </div>
+              {detailModal.skills && <div className="skill-pills" style={{ marginBottom:'1.2rem' }}>{detailModal.skills.split(',').filter(Boolean).map((sk,i) => <span key={i} className="s-pill">{sk.trim()}</span>)}</div>}
               {alreadyApplied(detailModal.id)
-                ? <div style={{ textAlign:'center', padding:'.8rem', background:'#dcfce7', borderRadius:11, color:'#166634', fontWeight:700 }}>✓ Already Applied</div>
+                ? <div style={{ textAlign:'center', padding:'0.8rem', background:'var(--green2)', borderRadius:10, color:'var(--green)', fontWeight:700, border:'1px solid rgba(16,185,129,0.2)' }}>✓ Already Applied</div>
                 : <button className="modal-btn-primary" onClick={() => { setApplyModal(detailModal); setDetailModal(null); }}>Apply for this Role</button>}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── APPLY MODAL ── */}
+      {/* ══ APPLY MODAL ═══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {applyModal && (
-          <motion.div className="modal-ov" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={e => { if (e.target === e.currentTarget) setApplyModal(null); }}>
-            <motion.div className="modal-box" initial={{ y:30, opacity:0 }} animate={{ y:0, opacity:1 }} exit={{ y:30, opacity:0 }}>
+          <motion.div className="modal-ov" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} onClick={e => e.target === e.currentTarget && setApplyModal(null)}>
+            <motion.div className="modal-box" initial={{ y:30,opacity:0 }} animate={{ y:0,opacity:1 }} exit={{ y:30,opacity:0 }}>
               <button className="modal-close" onClick={() => setApplyModal(null)}>✕</button>
               <div className="modal-title">Apply Now</div>
-              <div className="modal-sub">Applying to <strong>{applyModal?.ownerName}</strong> for <strong>{applyModal?.title}</strong></div>
+              <div className="modal-sub">Applying to <strong style={{ color:'var(--text)' }}>{applyModal.ownerName}</strong> for <strong style={{ color:'var(--accent2)' }}>{applyModal.title}</strong></div>
               <form onSubmit={handleApplySubmit}>
                 <label className="field-label">Your Name</label>
-                <input className="field-input" value={safeProfile?.name || ''} readOnly style={{ opacity:.7, cursor:'not-allowed' }} />
+                <input className="field-input" value={safeProfile.name || ''} readOnly style={{ opacity:0.6, cursor:'not-allowed' }} />
                 <label className="field-label">Email</label>
-                <input className="field-input" value={safeProfile?.email || ''} readOnly style={{ opacity:.7, cursor:'not-allowed' }} />
-                <label className="field-label">Resume</label>
-                {(safeProfile?.resumes || []).length > 0
-                  ? <div style={{ marginBottom:'1rem' }}>{(safeProfile.resumes || []).map((r,i) => (
-                      <div key={i} style={{ display:'flex', alignItems:'center', gap:'.5rem', background:'var(--brand-xlight)', borderRadius:9, padding:'.5rem .8rem', marginBottom:'.35rem' }}>
-                        <span>{r.type === 'application/pdf' ? '📑' : '🖼️'}</span>
-                        <span style={{ fontSize:'.8rem', fontWeight:600, flex:1 }}>{r.name}</span>
-                        <span style={{ fontSize:'.65rem', background:'#dcfce7', color:'#166634', padding:'.1rem .5rem', borderRadius:99, fontWeight:700 }}>Attached</span>
+                <input className="field-input" value={safeProfile.email || ''} readOnly style={{ opacity:0.6, cursor:'not-allowed' }} />
+                {(safeProfile.resumes || []).length > 0 && (
+                  <>
+                    <label className="field-label">Resume (Auto-attached)</label>
+                    {safeProfile.resumes.slice(0,1).map((r,i) => (
+                      <div key={i} style={{ display:'flex', alignItems:'center', gap:'0.5rem', background:'var(--green2)', borderRadius:9, padding:'0.5rem 0.8rem', marginBottom:'0.35rem', border:'1px solid rgba(16,185,129,0.2)' }}>
+                        <span>📑</span>
+                        <span style={{ fontSize:'0.8rem', fontWeight:600, flex:1, color:'var(--text)' }}>{r.name}</span>
+                        <span style={{ fontSize:'0.65rem', fontWeight:700, color:'var(--green)' }}>✓ Attached</span>
                       </div>
-                    ))}</div>
-                  : <div style={{ marginBottom:'1rem', padding:'.65rem .9rem', background:'#fffbeb', border:'1px solid #fcd34d', borderRadius:9, fontSize:'.78rem', color:'#92400e', fontWeight:600 }}>⚠️ No resume on file. Go to <strong>Profile → Resume</strong> to upload one.</div>
-                }
+                    ))}
+                  </>
+                )}
+                {(safeProfile.resumes || []).length === 0 && (
+                  <div style={{ marginBottom:'0.75rem', padding:'0.65rem 0.9rem', background:'var(--amber2)', border:'1px solid rgba(245,158,11,0.2)', borderRadius:9, fontSize:'0.78rem', color:'var(--amber)', fontWeight:600 }}>⚠️ No resume on file. Go to Profile → Resume to upload one.</div>
+                )}
                 <label className="field-label">Cover Letter</label>
-                <textarea required className="field-input" rows={4} placeholder="Explain why you're a great fit…" value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
+                <textarea required className="field-input" rows={4} placeholder="Explain why you're a great fit for this role…" value={coverLetter} onChange={e => setCoverLetter(e.target.value)} />
                 <button type="submit" className="modal-btn-primary">🚀 Submit Application</button>
                 <button type="button" className="modal-btn-secondary" onClick={() => setApplyModal(null)}>Cancel</button>
               </form>
@@ -1544,12 +1668,13 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── TOASTS ── */}
+      {/* TOASTS */}
       <div className="toast-stack">
         <AnimatePresence>
           {toasts.map(t => (
-            <motion.div key={t.id} className="toast" initial={{ opacity:0, x:50, scale:.92 }} animate={{ opacity:1, x:0, scale:1 }} exit={{ opacity:0, scale:.9 }}>
-              <div className="toast-dot" />{t.msg}
+            <motion.div key={t.id} className="toast" initial={{ opacity:0,x:50,scale:.92 }} animate={{ opacity:1,x:0,scale:1 }} exit={{ opacity:0,scale:.9 }}>
+              <div className="toast-dot" style={{ background:t.color }} />
+              {t.msg}
             </motion.div>
           ))}
         </AnimatePresence>
