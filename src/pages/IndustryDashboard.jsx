@@ -61,10 +61,8 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.25); border-radius: 99px; }
 
-/* ── LAYOUT ──────────────────────── */
 .id-root { display: flex; height: 100vh; overflow: hidden; }
 
-/* ── SIDEBAR ─────────────────────── */
 .id-sidebar {
   width: 240px; flex-shrink: 0;
   background: var(--surface);
@@ -72,101 +70,47 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
   display: flex; flex-direction: column;
   height: 100vh; overflow: hidden;
 }
-.sidebar-brand {
-  padding: 1.4rem 1.4rem 1rem;
-  border-bottom: 1px solid var(--border);
-}
-.brand-logo {
-  font-family: 'Cabinet Grotesk', sans-serif;
-  font-size: 1.2rem; font-weight: 900;
-  letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--accent2), var(--violet));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+.sidebar-brand { padding: 1.4rem 1.4rem 1rem; border-bottom: 1px solid var(--border); }
+.brand-logo { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--accent2), var(--violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .brand-tag { font-size: 0.6rem; font-weight: 600; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
 
 .sidebar-nav { flex: 1; padding: 0.75rem 0.6rem; overflow-y: auto; }
 .nav-group-label { font-size: 0.55rem; font-weight: 700; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; padding: 0.6rem 0.8rem 0.3rem; }
-.nav-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 0.62rem 0.85rem; border-radius: 10px;
-  font-size: 0.82rem; font-weight: 500; color: var(--text2);
-  cursor: pointer; margin-bottom: 2px;
-  transition: all 0.15s ease; position: relative;
-  text-decoration: none;
-}
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 0.62rem 0.85rem; border-radius: 10px; font-size: 0.82rem; font-weight: 500; color: var(--text2); cursor: pointer; margin-bottom: 2px; transition: all 0.15s ease; position: relative; text-decoration: none; }
 .nav-item:hover { background: var(--surface3); color: var(--text); }
 .nav-item.active { background: var(--accent3); color: var(--accent2); font-weight: 600; }
-.nav-item.active::before {
-  content: ''; position: absolute; left: 0; top: 22%; bottom: 22%;
-  width: 2.5px; background: var(--accent); border-radius: 0 2px 2px 0;
-}
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 22%; bottom: 22%; width: 2.5px; background: var(--accent); border-radius: 0 2px 2px 0; }
 .nav-icon { width: 18px; text-align: center; font-size: 0.85rem; flex-shrink: 0; }
-.nav-badge {
-  margin-left: auto; background: var(--accent);
-  color: white; font-size: 0.58rem; font-weight: 800;
-  min-width: 17px; height: 17px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; padding: 0 4px;
-}
+.nav-badge { margin-left: auto; background: var(--accent); color: white; font-size: 0.58rem; font-weight: 800; min-width: 17px; height: 17px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
 .nav-badge.green { background: var(--green); }
 .nav-badge.amber { background: var(--amber); }
 
 .sidebar-footer { padding: 0.8rem 0.6rem; border-top: 1px solid var(--border); }
-.sidebar-user {
-  display: flex; align-items: center; gap: 9px;
-  padding: 0.7rem 0.85rem; background: var(--surface3);
-  border-radius: 10px; cursor: pointer; transition: 0.15s;
-}
+.sidebar-user { display: flex; align-items: center; gap: 9px; padding: 0.7rem 0.85rem; background: var(--surface3); border-radius: 10px; cursor: pointer; transition: 0.15s; }
 .sidebar-user:hover { background: var(--surface4); }
-.s-avatar {
-  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--accent3); font-size: 0.75rem; font-weight: 800; color: var(--accent2); overflow: hidden;
-}
+.s-avatar { width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--accent3); font-size: 0.75rem; font-weight: 800; color: var(--accent2); overflow: hidden; }
 .s-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .s-name { font-size: 0.78rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
 .s-role { font-size: 0.6rem; color: var(--text3); margin-top: 1px; }
-.logout-btn {
-  margin-top: 6px; width: 100%; padding: 0.48rem;
-  border-radius: 9px; background: var(--red2);
-  color: var(--red); border: 1px solid rgba(239,68,68,0.15);
-  font-size: 0.74rem; font-weight: 700; cursor: pointer;
-  transition: 0.15s; font-family: inherit;
-}
+.logout-btn { margin-top: 6px; width: 100%; padding: 0.48rem; border-radius: 9px; background: var(--red2); color: var(--red); border: 1px solid rgba(239,68,68,0.15); font-size: 0.74rem; font-weight: 700; cursor: pointer; transition: 0.15s; font-family: inherit; }
 .logout-btn:hover { background: var(--red); color: white; }
 
-/* ── MAIN ────────────────────────── */
 .id-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-.topbar {
-  height: 58px; background: rgba(7,9,15,0.85); backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border); padding: 0 2rem;
-  display: flex; align-items: center; gap: 1rem; flex-shrink: 0; z-index: 50;
-}
+.topbar { height: 58px; background: rgba(7,9,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; z-index: 50; }
 .topbar-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1rem; font-weight: 700; flex: 1; }
-.search-box {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 0.45rem 0.9rem; width: 260px;
-  transition: 0.15s;
-}
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.45rem 0.9rem; width: 260px; transition: 0.15s; }
 .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent3); }
 .search-box input { background: none; border: none; outline: none; font-family: inherit; font-size: 0.82rem; color: var(--text); flex: 1; }
 .search-box input::placeholder { color: var(--text3); }
 .topbar-actions { display: flex; align-items: center; gap: 8px; }
-.icon-btn {
-  width: 36px; height: 36px; border-radius: 9px;
-  background: var(--surface2); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: 0.15s; color: var(--text2); font-size: 0.9rem; position: relative;
-}
+.icon-btn { width: 36px; height: 36px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; color: var(--text2); font-size: 0.9rem; position: relative; }
 .icon-btn:hover { background: var(--surface3); color: var(--text); }
 .notif-dot { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; border: 1.5px solid var(--surface); }
 
 .content-area { flex: 1; overflow-y: auto; }
 .page { padding: 2rem; }
 
-/* ── BUTTONS ─────────────────────── */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.55rem 1.1rem; border-radius: 9px; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
 .btn-primary { background: var(--accent); color: white; }
 .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: var(--shadow-accent); }
@@ -181,18 +125,13 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: 8px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-/* ── CARDS ───────────────────────── */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); }
 .card-p { padding: 1.5rem; }
 .card-hover { transition: all 0.18s; }
 .card-hover:hover { border-color: var(--border2); transform: translateY(-1px); box-shadow: var(--shadow); }
 
-/* ── STATS GRID ──────────────────── */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.8rem; }
-.stat-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-  padding: 1.4rem; position: relative; overflow: hidden; transition: 0.18s;
-}
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.4rem; position: relative; overflow: hidden; transition: 0.18s; }
 .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
 .stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: var(--glow, rgba(59,130,246,0.06)); filter: blur(15px); }
 .stat-label { font-size: 0.65rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.65rem; }
@@ -200,17 +139,12 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .stat-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
 .stat-icon { position: absolute; top: 1.1rem; right: 1.1rem; font-size: 1.3rem; opacity: 0.3; }
 
-/* ── SECTION HEADERS ─────────────── */
 .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
 .section-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1rem; font-weight: 800; }
 .section-sub { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
 
-/* ── JOB CARDS ───────────────────── */
 .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
-.job-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-  padding: 1.4rem; transition: 0.18s; position: relative; overflow: hidden;
-}
+.job-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.4rem; transition: 0.18s; position: relative; overflow: hidden; }
 .job-card:hover { border-color: rgba(59,130,246,0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 .job-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--line, transparent); border-radius: var(--r-lg) var(--r-lg) 0 0; }
 .type-chip { font-size: 0.62rem; font-weight: 800; padding: 3px 9px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -226,19 +160,11 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .job-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 0.9rem; border-top: 1px solid var(--border); }
 .applicants-ct { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text3); }
 
-/* ── TALENT GRID ─────────────────── */
 .talent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-.talent-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-  padding: 1.3rem; cursor: pointer; transition: 0.18s;
-}
+.talent-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.3rem; cursor: pointer; transition: 0.18s; }
 .talent-card:hover { border-color: rgba(59,130,246,0.25); transform: translateY(-2px); box-shadow: var(--shadow); }
 .talent-top { display: flex; align-items: center; gap: 10px; margin-bottom: 0.85rem; }
-.talent-av {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: var(--accent3); display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; font-weight: 800; color: var(--accent2); overflow: hidden;
-}
+.talent-av { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; background: var(--accent3); display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; color: var(--accent2); overflow: hidden; }
 .talent-av img { width: 100%; height: 100%; object-fit: cover; }
 .talent-name { font-weight: 700; font-size: 0.88rem; }
 .talent-qual { font-size: 0.7rem; color: var(--text3); margin-top: 2px; }
@@ -248,7 +174,6 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .rank-chip { font-size: 0.6rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; background: var(--amber2); color: var(--amber); }
 .match-pct { font-size: 0.68rem; font-weight: 800; color: var(--accent2); }
 
-/* ── TABLE ───────────────────────── */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th { font-size: 0.62rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 1.1rem 0.8rem; text-align: left; border-bottom: 1px solid var(--border); }
 .data-table td { padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; vertical-align: middle; }
@@ -262,7 +187,6 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .s-selected { background: var(--green2); color: var(--green); }
 .s-rejected { background: var(--red2); color: var(--red); }
 
-/* ── MESSAGES ────────────────────── */
 .msg-layout { display: grid; grid-template-columns: 280px 1fr; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; height: calc(100vh - 58px - 4rem); }
 .conv-list { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
 .conv-list-head { padding: 1rem 1.2rem; font-weight: 700; font-size: 0.85rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -286,7 +210,6 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .chat-input { flex: 1; background: var(--surface2); border: 1px solid var(--border2); border-radius: 9px; padding: 0.6rem 0.9rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; transition: 0.15s; resize: none; }
 .chat-input:focus { border-color: var(--accent); }
 
-/* ── MODAL ───────────────────────── */
 .modal-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 9000; padding: 1rem; }
 .modal-box { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 2rem; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
 .modal-box.lg { max-width: 700px; }
@@ -295,14 +218,9 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .modal-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 0.2rem; }
 .modal-sub { font-size: 0.78rem; color: var(--text3); margin-bottom: 1.6rem; }
 
-/* ── FORM ────────────────────────── */
 .form-group { margin-bottom: 1rem; }
 .form-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.4rem; }
-.form-input, .form-select, .form-textarea {
-  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 0.65rem 0.9rem; color: var(--text);
-  font-family: inherit; font-size: 0.82rem; outline: none; transition: 0.15s;
-}
+.form-input, .form-select, .form-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.65rem 0.9rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; transition: 0.15s; }
 .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent3); }
 .form-input::placeholder, .form-textarea::placeholder { color: var(--text3); }
 .form-select option { background: var(--surface2); }
@@ -311,65 +229,40 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .form-row { display: flex; gap: 1rem; }
 .form-input:read-only { opacity: 0.5; cursor: not-allowed; }
 
-/* ── DRAWER ──────────────────────── */
 .drawer-ov { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 8000; }
-.drawer {
-  position: fixed; right: 0; top: 0; bottom: 0; width: 440px;
-  background: var(--surface); border-left: 1px solid var(--border2);
-  z-index: 8001; overflow-y: auto; padding: 1.5rem;
-}
+.drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 440px; background: var(--surface); border-left: 1px solid var(--border2); z-index: 8001; overflow-y: auto; padding: 1.5rem; }
 .drawer-hero { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.3rem; margin-bottom: 1.3rem; }
 .drawer-av { width: 60px; height: 60px; border-radius: 15px; background: var(--accent3); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; color: var(--accent2); overflow: hidden; }
 .drawer-av img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ── ANALYTICS ───────────────────── */
 .analytics-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 1.2rem; margin-bottom: 1.5rem; }
 .bar-chart-wrap { display: flex; align-items: flex-end; gap: 6px; height: 90px; }
 .bar { flex: 1; border-radius: 5px 5px 0 0; transition: 0.3s; cursor: pointer; }
 .bar:hover { opacity: 0.8; }
 .bar-label { font-size: 0.58rem; color: var(--text3); text-align: center; margin-top: 5px; }
 
-/* ── PROFILE ─────────────────────── */
-.profile-cover {
-  background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 50%, #0a0c14 100%);
-  border-radius: var(--r-lg); padding: 2rem; margin-bottom: 4.5rem;
-  position: relative; overflow: hidden;
-}
+.profile-cover { background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 50%, #0a0c14 100%); border-radius: var(--r-lg); padding: 2rem; margin-bottom: 4.5rem; position: relative; overflow: hidden; }
 .profile-cover::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.15) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.1) 0%, transparent 50%); }
-.profile-av-wrap {
-  position: absolute; bottom: -45px; left: 2rem;
-  width: 100px; height: 100px; border-radius: 20px;
-  border: 3px solid var(--surface); overflow: hidden;
-  background: var(--surface2); cursor: pointer;
-}
+.profile-av-wrap { position: absolute; bottom: -45px; left: 2rem; width: 100px; height: 100px; border-radius: 20px; border: 3px solid var(--surface); overflow: hidden; background: var(--surface2); cursor: pointer; }
 .profile-av-wrap:hover::after { content: '📷'; position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
-/* ── POST TYPE TABS ──────────────── */
 .post-types { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
 .post-type-btn { padding: 0.42rem 0.85rem; border-radius: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border2); color: var(--text2); background: transparent; transition: 0.15s; font-family: inherit; }
 .post-type-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* ── TOAST ───────────────────────── */
 .toast-stack { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
 .toast { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 0.75rem 1.2rem; border-radius: 12px; box-shadow: var(--shadow); font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 260px; }
 .toast-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-/* ── EMPTY STATE ─────────────────── */
 .empty-state { text-align: center; padding: 3.5rem 2rem; color: var(--text3); }
 .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.4; }
 .empty-title { font-size: 0.9rem; font-weight: 700; color: var(--text2); margin-bottom: 0.4rem; }
 .empty-text { font-size: 0.78rem; line-height: 1.6; }
 
-/* ── QUICK ACTIONS ───────────────── */
-.qa-item {
-  display: flex; align-items: center; gap: 0.9rem;
-  padding: 1rem 1.2rem; background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); cursor: pointer; transition: 0.15s;
-}
+.qa-item { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 1.2rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); cursor: pointer; transition: 0.15s; }
 .qa-item:hover { border-color: var(--border2); background: var(--surface2); }
 .qa-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
 
-/* ── MISC ────────────────────────── */
 .divider { height: 1px; background: var(--border); margin: 1rem 0; }
 .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 0.68rem; font-weight: 700; }
 .shimmer { background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
@@ -379,22 +272,20 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .pill-opt { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border2); color: var(--text2); background: transparent; transition: 0.12s; font-family: inherit; }
 .pill-opt.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* ── APPLY MODAL STATUS ──────────── */
 .apply-status-banner { padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
 .apply-status-banner.success { background: var(--green2); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
 .apply-status-banner.warning { background: var(--amber2); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
 
-/* ── EXIT CONFIRM ── */
-.exit-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem}
-.exit-box{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:2rem;width:100%;max-width:380px;box-shadow:0 32px 80px rgba(0,0,0,0.6);text-align:center}
-.exit-icon{font-size:2.5rem;margin-bottom:0.75rem}
-.exit-title{font-family:'Cabinet Grotesk',sans-serif;font-size:1.2rem;font-weight:900;color:var(--text);margin-bottom:0.4rem}
-.exit-sub{font-size:0.82rem;color:var(--text3);line-height:1.55;margin-bottom:1.5rem}
-.exit-btn-row{display:flex;gap:0.65rem}
-.exit-btn-stay{flex:1;padding:0.72rem;border-radius:10px;border:1px solid var(--border2);background:var(--surface3);color:var(--text2);font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s}
-.exit-btn-stay:hover{background:var(--surface4);color:var(--text)}
-.exit-btn-leave{flex:1;padding:0.72rem;border-radius:10px;border:none;background:var(--accent);color:white;font-family:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:0.15s;box-shadow:0 3px 12px rgba(59,130,246,0.3)}
-.exit-btn-leave:hover{opacity:0.88}
+.exit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 1rem; }
+.exit-box { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px; padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 32px 80px rgba(0,0,0,0.6); text-align: center; }
+.exit-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.exit-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1.2rem; font-weight: 900; color: var(--text); margin-bottom: 0.4rem; }
+.exit-sub { font-size: 0.82rem; color: var(--text3); line-height: 1.55; margin-bottom: 1.5rem; }
+.exit-btn-row { display: flex; gap: 0.65rem; }
+.exit-btn-stay { flex: 1; padding: 0.72rem; border-radius: 10px; border: 1px solid var(--border2); background: var(--surface3); color: var(--text2); font-family: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.15s; }
+.exit-btn-stay:hover { background: var(--surface4); color: var(--text); }
+.exit-btn-leave { flex: 1; padding: 0.72rem; border-radius: 10px; border: none; background: var(--accent); color: white; font-family: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.15s; box-shadow: 0 3px 12px rgba(59,130,246,0.3); }
+.exit-btn-leave:hover { opacity: 0.88; }
 
 @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 900px) {
@@ -453,7 +344,6 @@ export default function IndustryDashboard() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [newAchievement, setNewAchievement] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  // ── CHANGE 2: showExitConfirm state ────────────────────────────────────────
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Data
@@ -483,7 +373,6 @@ export default function IndustryDashboard() {
   const [viewingJobDetail, setViewingJobDetail] = useState(null);
   const [applyingStudent, setApplyingStudent] = useState(null);
 
-  // ── CHANGE 1: Refs ─────────────────────────────────────────────────────────
   const chatEndRef = useRef();
   const fileInputRef = useRef();
   const pendingNavRef = useRef(null);
@@ -518,7 +407,6 @@ export default function IndustryDashboard() {
           authUser?.id ? axios.get(`${API}/messages/${authUser.id}`, { timeout: 8000 }) : Promise.resolve({ data: [] }),
         ]);
 
-        // Jobs / Vacancies
         if (vacsRes.status === "fulfilled" && Array.isArray(vacsRes.value?.data)) {
           const uid = authUser?.id;
           const formattedJobs = await Promise.all(
@@ -559,7 +447,6 @@ export default function IndustryDashboard() {
           setJobs(formattedJobs);
         }
 
-        // Students
         if (studentsRes.status === "fulfilled" && Array.isArray(studentsRes.value?.data) && studentsRes.value.data.length > 0) {
           setStudents(studentsRes.value.data.map(s => ({
             ...s,
@@ -583,7 +470,6 @@ export default function IndustryDashboard() {
           setStudents(MOCK_STUDENTS);
         }
 
-        // Messages
         if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
           const msgs = {};
           msgsRes.value.data.forEach(m => {
@@ -606,10 +492,8 @@ export default function IndustryDashboard() {
     init();
   }, [authUser?.id]);
 
-  // Scroll to latest chat message
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, activeChat]);
 
-  // ── CHANGE 3a: Back button (popstate) guard ─────────────────────────────────
   useEffect(() => {
     window.history.pushState({ dashboardGuard: true }, '');
     const handlePop = () => {
@@ -621,7 +505,6 @@ export default function IndustryDashboard() {
     return () => window.removeEventListener('popstate', handlePop);
   }, []);
 
-  // ── CHANGE 3b: beforeunload guard ──────────────────────────────────────────
   useEffect(() => {
     const handle = e => { e.preventDefault(); e.returnValue = ''; return ''; };
     window.addEventListener('beforeunload', handle);
@@ -647,23 +530,60 @@ export default function IndustryDashboard() {
   );
 
   // ── Actions ──────────────────────────────────────────────────────────────────
+
+  /*
+   * FIX: createJob now:
+   * 1. Validates owner_id BEFORE calling the API (prevents null FK insert)
+   * 2. Surfaces the real server error in the toast instead of silently
+   *    creating a local-only job that disappears on refresh.
+   */
   const createJob = async () => {
-    if (!newJob.title.trim() || !newJob.desc.trim()) { toast("❌ Title and description are required", "var(--red)"); return; }
-    const payload = { ...newJob, owner_id: authUser?.id || companyProfile.id, owner_name: companyProfile.name };
+    if (!newJob.title.trim() || !newJob.desc.trim()) {
+      toast("❌ Title and description are required", "var(--red)");
+      return;
+    }
+
+    // Guard: user must be authenticated before posting
+    const ownerId = authUser?.id || companyProfile.id;
+    if (!ownerId) {
+      toast("❌ You must be logged in to post a job. Please refresh and try again.", "var(--red)");
+      return;
+    }
+
+    const payload = {
+      ...newJob,
+      owner_id: ownerId,
+      owner_name: companyProfile.name,
+    };
+
     try {
       const res = await axios.post(`${API}/vacancies`, payload);
       const saved = res.data;
       setJobs(prev => [{
-        id: saved.id, ownerId: saved.owner_id, ownerName: saved.owner_name,
-        type: saved.type, title: saved.title, desc: saved.description,
-        skills: saved.skills, duration: saved.duration, offerings: saved.offerings,
-        location: saved.location, date: "Just now", likes: 0, applications: [],
+        id: saved.id,
+        ownerId: saved.owner_id,
+        ownerName: saved.owner_name,
+        type: saved.type,
+        title: saved.title,
+        desc: saved.description,
+        skills: saved.skills,
+        duration: saved.duration,
+        offerings: saved.offerings,
+        location: saved.location,
+        date: "Just now",
+        likes: 0,
+        applications: [],
       }, ...prev]);
-      toast("✅ Job posted successfully");
-    } catch (_) {
-      setJobs(prev => [{ id: `local-${Date.now()}`, ownerId: companyProfile.id, ownerName: companyProfile.name, ...newJob, date: "Just now", applications: [] }, ...prev]);
-      toast("✅ Job posted (local)", "var(--green)");
+      toast("✅ Job posted successfully", "var(--green)");
+    } catch (err) {
+      // Surface the real backend error so it's visible
+      const serverMsg = err.response?.data?.error || err.message || "Server error";
+      console.error("Job post failed:", serverMsg);
+      toast(`❌ Failed to post job: ${serverMsg}`, "var(--red)");
+      // Do NOT create a local fallback job — it gives false confidence
+      return;
     }
+
     setNewJob({ title: "", desc: "", type: "Job Vacancy", skills: "", duration: "", offerings: "", location: "" });
     setIsPostModalOpen(false);
   };
@@ -704,12 +624,22 @@ export default function IndustryDashboard() {
     if (authUser?.id) {
       try {
         await axios.put(`${API}/profile/${authUser.id}`, {
-          company_name: updated.name, email: updated.email, phone: updated.phone,
-          website: updated.website, about: updated.about, location: updated.location,
-          domain: updated.industry, founded: updated.founded, tagline: updated.tagline,
+          company_name: updated.name,
+          email: updated.email,
+          phone: updated.phone,
+          website: updated.website,
+          about: updated.about,
+          location: updated.location,
+          domain: updated.industry,
+          founded: updated.founded,
+          tagline: updated.tagline,
         });
         toast("✅ Profile saved");
-      } catch (_) { toast("Profile updated locally"); }
+      } catch (err) {
+        const serverMsg = err.response?.data?.error || err.message;
+        console.error("Profile save failed:", serverMsg);
+        toast("Profile updated locally (sync failed)", "var(--amber)");
+      }
     }
   };
 
@@ -734,43 +664,21 @@ export default function IndustryDashboard() {
     <div className="id-root">
       <style>{CSS}</style>
 
-      {/* ── CHANGE 5: EXIT CONFIRM OVERLAY ─────────────────────────────────── */}
+      {/* EXIT CONFIRM OVERLAY */}
       <AnimatePresence>
         {showExitConfirm && (
-          <motion.div
-            className="exit-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="exit-box"
-              initial={{ scale: 0.92, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.92, y: 20 }}
-            >
+          <motion.div className="exit-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div className="exit-box" initial={{ scale: 0.92, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 20 }}>
               <div className="exit-icon">🚪</div>
               <div className="exit-title">Leave CareerBridge?</div>
-              <div className="exit-sub">
-                You'll be signed out and returned to login. Any unsaved changes will be lost.
-              </div>
+              <div className="exit-sub">You'll be signed out and returned to login. Any unsaved changes will be lost.</div>
               <div className="exit-btn-row">
-                <button
-                  className="exit-btn-stay"
-                  onClick={() => setShowExitConfirm(false)}
-                >
-                  Stay Here
-                </button>
-                <button
-                  className="exit-btn-leave"
-                  onClick={async () => {
-                    setShowExitConfirm(false);
-                    try { await signOut(); } catch (_) {}
-                    navigate(pendingNavRef.current || '/login');
-                  }}
-                >
-                  Yes, Leave
-                </button>
+                <button className="exit-btn-stay" onClick={() => setShowExitConfirm(false)}>Stay Here</button>
+                <button className="exit-btn-leave" onClick={async () => {
+                  setShowExitConfirm(false);
+                  try { await signOut(); } catch (_) {}
+                  navigate(pendingNavRef.current || '/login');
+                }}>Yes, Leave</button>
               </div>
             </motion.div>
           </motion.div>
@@ -836,7 +744,6 @@ export default function IndustryDashboard() {
             {/* ══ DASHBOARD ═══════════════════════════════════════════════════ */}
             {tab === "dashboard" && (
               <motion.div className="page" key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                {/* KPIs */}
                 <div className="stats-grid">
                   {[
                     { label: "Active Jobs", value: myJobs.length, badge: "+2 this week", up: true, icon: "💼", color: "var(--accent2)", glow: "rgba(59,130,246,0.1)" },
@@ -854,21 +761,13 @@ export default function IndustryDashboard() {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "1.2rem" }}>
-                  {/* Recent Jobs */}
                   <div>
                     <div className="section-hd">
                       <div><div className="section-title">Recent Postings</div><div className="section-sub">{myJobs.length} active listings</div></div>
                       <button className="btn btn-ghost btn-sm" onClick={() => setTab("jobs")}>View All →</button>
                     </div>
                     {myJobs.length === 0
-                      ? <div className="card card-p">
-                          <div className="empty-state">
-                            <div className="empty-icon">📭</div>
-                            <div className="empty-title">No jobs posted yet</div>
-                            <div className="empty-text">Post your first job to start receiving applications.</div>
-                            <button className="btn btn-primary" style={{ marginTop: "1rem" }} onClick={() => setIsPostModalOpen(true)}>Post First Job</button>
-                          </div>
-                        </div>
+                      ? <div className="card card-p"><div className="empty-state"><div className="empty-icon">📭</div><div className="empty-title">No jobs posted yet</div><div className="empty-text">Post your first job to start receiving applications.</div><button className="btn btn-primary" style={{ marginTop: "1rem" }} onClick={() => setIsPostModalOpen(true)}>Post First Job</button></div></div>
                       : myJobs.slice(0, 3).map((j, i) => (
                         <motion.div key={j.id} className="card card-hover" style={{ marginBottom: "0.8rem", padding: "1.2rem", cursor: "pointer", "--line": lineColorForType(j.type) }} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }} onClick={() => { setViewingJobDetail(j); setTab("jobs"); }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -891,7 +790,6 @@ export default function IndustryDashboard() {
                     }
                   </div>
 
-                  {/* Quick actions + top applicants */}
                   <div>
                     <div className="section-hd"><div className="section-title">Quick Actions</div></div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "1.4rem" }}>
@@ -911,7 +809,6 @@ export default function IndustryDashboard() {
                       ))}
                     </div>
 
-                    {/* Recent applicants */}
                     {allApplications.length > 0 && (
                       <>
                         <div className="section-hd" style={{ marginBottom: "0.7rem" }}><div className="section-title" style={{ fontSize: "0.88rem" }}>Recent Applicants</div></div>
@@ -930,7 +827,6 @@ export default function IndustryDashboard() {
                   </div>
                 </div>
 
-                {/* Top Talent */}
                 <div style={{ marginTop: "1.8rem" }}>
                   <div className="section-hd">
                     <div><div className="section-title">Top Talent Matches</div><div className="section-sub">Recommended for your domain</div></div>
@@ -993,7 +889,7 @@ export default function IndustryDashboard() {
                           </div>
                           <div className="job-foot">
                             <div className="applicants-ct">👥 <strong>{j.applications?.length || 0}</strong> applicant{j.applications?.length !== 1 ? "s" : ""}</div>
-                            <button className="btn btn-ghost btn-sm" onClick={() => { setViewingJobDetail(j); }}>View Applicants →</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => setViewingJobDetail(j)}>View Applicants →</button>
                           </div>
                         </motion.div>
                       ))}
@@ -1009,7 +905,6 @@ export default function IndustryDashboard() {
                         <TypeChip type={viewingJobDetail.type} />
                         <div className="modal-title" style={{ marginTop: "0.6rem" }}>{viewingJobDetail.title}</div>
                         <div className="modal-sub">{viewingJobDetail.ownerName} · {viewingJobDetail.date}</div>
-
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem", marginBottom: "1.2rem" }}>
                           {[["📍 Location", viewingJobDetail.location], ["⏱ Duration", viewingJobDetail.duration], ["💰 Offerings", viewingJobDetail.offerings]].map(([l, v]) => v && (
                             <div key={l} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.75rem" }}>
@@ -1018,13 +913,10 @@ export default function IndustryDashboard() {
                             </div>
                           ))}
                         </div>
-
                         <div style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.7, marginBottom: "1.2rem" }}>{viewingJobDetail.desc}</div>
                         <div className="skills-row" style={{ marginBottom: "1.5rem" }}>
                           {(viewingJobDetail.skills || "").split(",").filter(Boolean).map((sk, k) => <span key={k} className="skill-chip">{sk.trim()}</span>)}
                         </div>
-
-                        {/* Applicants for this job */}
                         <div style={{ fontFamily: "'Cabinet Grotesk'", fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.8rem" }}>
                           Applicants ({viewingJobDetail.applications?.length || 0})
                         </div>
@@ -1114,9 +1006,7 @@ export default function IndustryDashboard() {
                                     {student && <button className="btn btn-ghost btn-xs" onClick={() => setSelectedStudent(student)}>Profile</button>}
                                     {student && <button className="btn btn-ghost btn-xs" onClick={() => { setActiveChat(student); setTab("messages"); }}>💬</button>}
                                     {a.coverLetter && (
-                                      <button className="btn btn-ghost btn-xs" onClick={() => {
-                                        setApplyingStudent({ name: a.name, coverLetter: a.coverLetter });
-                                      }} title="View cover letter">📄</button>
+                                      <button className="btn btn-ghost btn-xs" onClick={() => setApplyingStudent({ name: a.name, coverLetter: a.coverLetter })} title="View cover letter">📄</button>
                                     )}
                                   </div>
                                 </td>
@@ -1128,7 +1018,6 @@ export default function IndustryDashboard() {
                     </div>
                 }
 
-                {/* Cover letter modal */}
                 <AnimatePresence>
                   {applyingStudent && (
                     <motion.div className="modal-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={e => e.target === e.currentTarget && setApplyingStudent(null)}>
@@ -1184,7 +1073,6 @@ export default function IndustryDashboard() {
             {tab === "messages" && (
               <motion.div className="page" key="messages" style={{ padding: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <div className="msg-layout" style={{ margin: "1.5rem" }}>
-                  {/* Conversation list */}
                   <div className="conv-list">
                     <div className="conv-list-head">💬 Conversations</div>
                     <div className="conv-list-body">
@@ -1203,8 +1091,6 @@ export default function IndustryDashboard() {
                       }
                     </div>
                   </div>
-
-                  {/* Chat */}
                   <div className="chat-area">
                     {!activeChat
                       ? <div className="empty-state" style={{ margin: "auto" }}><div className="empty-icon">💬</div><div className="empty-title">Select a conversation</div><div className="empty-text">Choose a student from the left panel to start chatting.</div></div>
@@ -1248,9 +1134,7 @@ export default function IndustryDashboard() {
                 <div className="section-hd" style={{ marginBottom: "1.5rem" }}>
                   <div><div className="section-title">Analytics Overview</div><div className="section-sub">Performance metrics for your hiring activity</div></div>
                 </div>
-
                 <div className="analytics-grid">
-                  {/* Bar Chart */}
                   <div className="card card-p">
                     <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>Application Activity</div>
                     <div style={{ fontSize: "0.72rem", color: "var(--text3)", marginBottom: "0.75rem" }}>Last 7 days</div>
@@ -1266,8 +1150,6 @@ export default function IndustryDashboard() {
                       })}
                     </div>
                   </div>
-
-                  {/* Status breakdown */}
                   <div className="card card-p">
                     <div style={{ fontWeight: 700, marginBottom: "1rem" }}>Application Pipeline</div>
                     {[
@@ -1288,8 +1170,6 @@ export default function IndustryDashboard() {
                     ))}
                   </div>
                 </div>
-
-                {/* Metric cards */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
                   {[
                     { icon: "👁", title: "Total Views", value: myJobs.length * 138, sub: "Estimated across all posts", color: "var(--accent2)" },
@@ -1304,8 +1184,6 @@ export default function IndustryDashboard() {
                     </motion.div>
                   ))}
                 </div>
-
-                {/* Per-job stats */}
                 {myJobs.length > 0 && (
                   <>
                     <div className="section-hd" style={{ marginBottom: "0.8rem" }}><div className="section-title">Performance by Job</div></div>
@@ -1313,16 +1191,11 @@ export default function IndustryDashboard() {
                       <table className="data-table">
                         <thead>
                           <tr>
-                            <th>Job Title</th>
-                            <th>Type</th>
-                            <th>Applicants</th>
-                            <th>Shortlisted</th>
-                            <th>Conversion</th>
-                            <th>Posted</th>
+                            <th>Job Title</th><th>Type</th><th>Applicants</th><th>Shortlisted</th><th>Conversion</th><th>Posted</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {myJobs.map((j, i) => {
+                          {myJobs.map((j) => {
                             const appCount = j.applications?.length || 0;
                             const slCount = j.applications?.filter(a => a.status === "Shortlisted" || a.status === "Selected").length || 0;
                             const conv = appCount > 0 ? Math.round((slCount / appCount) * 100) : 0;
@@ -1357,7 +1230,6 @@ export default function IndustryDashboard() {
               <motion.div className="page" key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {!isEditingProfile ? (
                   <>
-                    {/* Cover */}
                     <div className="profile-cover" style={{ marginBottom: "4.5rem" }}>
                       <div style={{ position: "relative", zIndex: 1 }}>
                         <div style={{ fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Company Profile</div>
@@ -1382,7 +1254,6 @@ export default function IndustryDashboard() {
                           </div>
                           <p style={{ fontSize: "0.84rem", color: "var(--text2)", lineHeight: 1.7 }}>{companyProfile.about || "No description added yet."}</p>
                         </div>
-
                         <div className="card card-p">
                           <div style={{ fontFamily: "'Cabinet Grotesk'", fontWeight: 800, fontSize: "0.95rem", marginBottom: "1rem" }}>Contact & Info</div>
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -1405,7 +1276,6 @@ export default function IndustryDashboard() {
                           </div>
                         </div>
                       </div>
-
                       <div>
                         <div className="card card-p" style={{ marginBottom: "1.2rem" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.9rem" }}>
@@ -1424,7 +1294,6 @@ export default function IndustryDashboard() {
                             <button className="btn btn-primary btn-sm" onClick={() => { if (newAchievement.trim()) { setCompanyProfile(p => ({ ...p, achievements: [...(p.achievements || []), newAchievement.trim()] })); setNewAchievement(""); } }}>+</button>
                           </div>
                         </div>
-
                         <div className="card card-p">
                           <div style={{ fontFamily: "'Cabinet Grotesk'", fontWeight: 800, fontSize: "0.9rem", marginBottom: "0.9rem" }}>Hiring Stats</div>
                           {[
@@ -1443,7 +1312,6 @@ export default function IndustryDashboard() {
                     </div>
                   </>
                 ) : (
-                  // Edit Profile Form
                   <div className="card card-p" style={{ maxWidth: 700 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                       <div><div className="modal-title">Edit Company Profile</div><div className="modal-sub" style={{ marginBottom: 0 }}>Update your company information</div></div>
@@ -1483,13 +1351,11 @@ export default function IndustryDashboard() {
               <button className="modal-close" onClick={() => setIsPostModalOpen(false)}>✕</button>
               <div className="modal-title">Post a New Opening</div>
               <div className="modal-sub">Attract the right candidates for your team</div>
-
               <div className="post-types">
                 {["Job Vacancy", "Internship", "Training Program", "Campus Drive"].map(t => (
                   <button key={t} className={`post-type-btn ${newJob.type === t ? "active" : ""}`} onClick={() => setNewJob({ ...newJob, type: t })}>{t}</button>
                 ))}
               </div>
-
               <div className="form-grid2">
                 <div className="form-group" style={{ gridColumn: "span 2" }}>
                   <label className="form-label">Job Title *</label>
@@ -1520,7 +1386,6 @@ export default function IndustryDashboard() {
                   <textarea className="form-textarea" rows={4} placeholder="Describe the role, responsibilities, requirements, and what you're looking for in an ideal candidate…" value={newJob.desc} onChange={e => setNewJob({ ...newJob, desc: e.target.value })} />
                 </div>
               </div>
-
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: "0.5rem" }}>
                 <button className="btn btn-ghost" onClick={() => setIsPostModalOpen(false)}>Cancel</button>
                 <button className="btn btn-primary" onClick={createJob} disabled={!newJob.title || !newJob.desc}>🚀 Publish Posting</button>
@@ -1540,7 +1405,6 @@ export default function IndustryDashboard() {
                 <div style={{ fontFamily: "'Cabinet Grotesk'", fontWeight: 800, fontSize: "1rem" }}>Candidate Profile</div>
                 <button className="modal-close" style={{ position: "static" }} onClick={() => setSelectedStudent(null)}>✕</button>
               </div>
-
               <div className="drawer-hero">
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.9rem" }}>
                   <div className="drawer-av"><Avatar name={selectedStudent.name} photo={selectedStudent.photo} size={60} radius={15} /></div>
@@ -1557,16 +1421,12 @@ export default function IndustryDashboard() {
                   <div style={{ height: "100%", width: `${selectedStudent.match}%`, background: "linear-gradient(90deg, var(--accent), var(--violet))", borderRadius: 99 }} />
                 </div>
               </div>
-
-              {/* About */}
               {selectedStudent.about && (
                 <div style={{ marginBottom: "1.1rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 5 }}>About</div>
                   <p style={{ fontSize: "0.82rem", color: "var(--text2)", lineHeight: 1.6 }}>{selectedStudent.about}</p>
                 </div>
               )}
-
-              {/* Contact info */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.7rem", marginBottom: "1.1rem" }}>
                 {[
                   ["Email", selectedStudent.email],
@@ -1580,8 +1440,6 @@ export default function IndustryDashboard() {
                   </div>
                 ))}
               </div>
-
-              {/* Skills */}
               <div style={{ marginBottom: "1.1rem" }}>
                 <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Skills</div>
                 <div className="skills-row">
@@ -1590,8 +1448,6 @@ export default function IndustryDashboard() {
                   ))}
                 </div>
               </div>
-
-              {/* Certificates */}
               {selectedStudent.certificates?.length > 0 && (
                 <div style={{ marginBottom: "1.1rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Certificates</div>
@@ -1602,8 +1458,6 @@ export default function IndustryDashboard() {
                   ))}
                 </div>
               )}
-
-              {/* Resumes */}
               {selectedStudent.resumes?.length > 0 && (
                 <div style={{ marginBottom: "1.1rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Resumes</div>
@@ -1620,8 +1474,6 @@ export default function IndustryDashboard() {
                   ))}
                 </div>
               )}
-
-              {/* Shortlist for a job */}
               {myJobs.length > 0 && (
                 <div style={{ marginBottom: "1.1rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Quick Shortlist for Job</div>
@@ -1642,7 +1494,6 @@ export default function IndustryDashboard() {
                   </select>
                 </div>
               )}
-
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={() => { setActiveChat(selectedStudent); setTab("messages"); setSelectedStudent(null); }}>💬 Message</button>
                 <button className="btn btn-ghost" style={{ flex: 1, justifyContent: "center" }} onClick={() => setSelectedStudent(null)}>Close</button>
