@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from 'axios';
 import { useAuth } from '../AuthContext';
 
-import API_BASE_URL from '../apiConfig'; // Adjust path as needed
+import API_BASE_URL from '../apiConfig';
 
 const BASE = API_BASE_URL;
 
-// ─── SKILL SUGGESTIONS ────────────────────────────────────────────────────────
 const SKILL_SUGGESTIONS = [
   "Python","JavaScript","React","Node.js","Django","Flask","Java","C++","TypeScript",
   "SQL","MongoDB","PostgreSQL","AWS","Docker","Kubernetes","Git","Machine Learning",
@@ -17,7 +16,6 @@ const SKILL_SUGGESTIONS = [
   "Android","Flutter","Swift","Kotlin","PHP","Laravel","Vue.js","Angular",
 ];
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
 const mockIndustries = [
   { id: 1, name: "TechNova Solutions", logo: "TN", domain: "Cloud Computing", location: "Bangalore", tagline: "Cloud Native Excellence" },
   { id: 2, name: "Quantum AI", logo: "QA", domain: "Artificial Intelligence", location: "Hyderabad", tagline: "Pioneering AI" },
@@ -57,7 +55,6 @@ function calcCompletion(p) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-// ─── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
@@ -80,7 +77,6 @@ const CSS = `
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.2);border-radius:99px}
 
-/* ── NAV ── */
 .s-nav{height:60px;background:var(--surface);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.8rem;position:sticky;top:0;z-index:200;box-shadow:var(--shadow-sm)}
 .brand{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:900;letter-spacing:-0.04em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .brand-sub{font-size:0.6rem;font-weight:700;color:var(--subtle);letter-spacing:0.14em;text-transform:uppercase;margin-top:1px}
@@ -99,13 +95,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-w
 .notif-btn:hover{background:rgba(79,70,229,.08)}
 .notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid white}
 
-/* ── LAYOUT ── */
 .s-layout{display:flex;min-height:calc(100vh - 60px)}
 .s-sidebar{width:330px;min-width:330px;background:var(--surface);backdrop-filter:blur(24px);border-right:1px solid var(--border);height:calc(100vh - 60px);position:sticky;top:60px;overflow-y:auto;flex-shrink:0}
 .s-sidebar.right{border-right:none;border-left:1px solid var(--border)}
 .s-content{flex:1;padding:1.8rem 2rem;min-width:0;overflow-y:auto}
 
-/* ── SIDEBAR HEADER ── */
 .sb-top{padding:1.5rem;background:var(--grad);position:relative;overflow:hidden}
 .sb-top::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;background:rgba(255,255,255,.08);border-radius:50%}
 .sb-top::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:rgba(255,255,255,.05);border-radius:50%}
@@ -115,13 +109,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-w
 .sb-handle{font-size:.68rem;color:rgba(255,255,255,.6);margin-top:2px;position:relative;z-index:1}
 .sb-badge{display:inline-flex;align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:.2rem .65rem;font-size:.68rem;color:rgba(255,255,255,.9);font-weight:600;position:relative;z-index:1}
 
-/* ── COMPLETION BAR ── */
 .comp-bar-wrap{padding:1rem 1.4rem;border-bottom:1px solid var(--border)}
 .comp-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;justify-content:space-between;margin-bottom:.4rem}
 .comp-track{height:5px;background:rgba(79,70,229,.1);border-radius:99px;overflow:hidden}
 .comp-fill{height:100%;border-radius:99px;background:var(--grad);transition:width .8s ease}
 
-/* ── FORM SECTIONS ── */
 .fs{padding:.9rem 1.4rem;border-bottom:1px solid var(--border)}
 .fs-title{font-size:.63rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.6rem;opacity:.8}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
@@ -137,7 +129,6 @@ select.fi{cursor:pointer}
 .sb-edit-btn:hover{background:rgba(255,255,255,.25)}
 .sb-save-btn{padding:.28rem .75rem;border-radius:8px;border:none;background:#10b981;color:white;font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s;flex-shrink:0;font-family:'DM Sans',sans-serif}
 
-/* ── SIDEBAR DETAILS ── */
 .details-box{margin-top:.7rem;background:rgba(255,255,255,.7);border:1px solid var(--border2);border-radius:var(--r-sm);overflow:hidden}
 .details-row{display:flex;align-items:center;gap:.55rem;padding:.5rem .9rem;border-bottom:1px solid rgba(255,255,255,.6);font-size:.78rem;color:var(--slate);font-weight:500}
 .details-row:last-child{border-bottom:none}
@@ -155,7 +146,6 @@ select.fi{cursor:pointer}
 .know-btn{display:flex;align-items:center;gap:.4rem;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;color:var(--indigo);cursor:pointer;transition:.2s}
 .know-btn:hover{opacity:.65}
 
-/* ── SECTION ── */
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.1rem}
 .sec-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--navy)}
 .sec-sub{font-size:.75rem;color:var(--muted);margin-left:.4rem;font-weight:500}
@@ -163,7 +153,6 @@ select.fi{cursor:pointer}
 .sec-link:hover{opacity:.65}
 .page-sec{margin-bottom:2.5rem}
 
-/* ── INDUSTRY CARDS ── */
 .ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
 .ind-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.3rem;cursor:pointer;transition:.22s;text-align:center;box-shadow:var(--shadow-sm)}
 .ind-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-3px)}
@@ -173,7 +162,6 @@ select.fi{cursor:pointer}
 .ind-loc{font-size:.72rem;color:var(--muted);font-weight:500}
 .ind-tagline{font-size:.72rem;color:var(--subtle);margin-top:.35rem;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
-/* ── VACANCY FEED ── */
 .feed-grid{display:flex;flex-direction:column;gap:1.1rem}
 .vac-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);transition:.22s}
 .vac-card:hover{box-shadow:var(--shadow);border-color:var(--border2)}
@@ -197,7 +185,6 @@ select.fi{cursor:pointer}
 .apply-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .applied-tag{padding:.5rem 1.2rem;border-radius:99px;background:#dcfce7;color:#166534;font-size:.78rem;font-weight:700}
 
-/* ── JOB CARDS ── */
 .jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
 .job-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s}
 .job-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-2px)}
@@ -211,7 +198,6 @@ select.fi{cursor:pointer}
 .job-apply-link{padding:.4rem 1rem;border-radius:99px;border:none;background:var(--grad);color:white;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:.2s}
 .job-apply-link:hover{opacity:.85}
 
-/* ── AI MATCH CARDS ── */
 .match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
 .match-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.3rem;box-shadow:var(--shadow-sm);transition:.22s}
 .match-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-2px)}
@@ -223,7 +209,6 @@ select.fi{cursor:pointer}
 .course-rec{display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;background:rgba(79,70,229,.04);border:1px solid rgba(79,70,229,.12);border-radius:var(--r-sm);margin-top:.45rem}
 .course-rec-title{font-size:.78rem;font-weight:700;color:var(--slate);flex:1;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 
-/* ── COURSES ── */
 .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
 .course-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s}
 .course-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
@@ -241,7 +226,6 @@ select.fi{cursor:pointer}
 .course-enroll{width:100%;padding:.55rem;border-radius:99px;border:none;background:var(--grad);color:white;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.2);transition:.2s}
 .course-enroll:hover{opacity:.88}
 
-/* ── APPLICATIONS ── */
 .app-list{display:flex;flex-direction:column;gap:.9rem}
 .app-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem;box-shadow:var(--shadow-sm)}
 .app-role{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--navy)}
@@ -252,7 +236,6 @@ select.fi{cursor:pointer}
 .sp-Selected{background:#dcfce7;color:#166534}
 .sp-Rejected{background:#fee2e2;color:#b91c1c}
 
-/* ── PROFILE PAGE ── */
 .pf-cover{width:100%;height:180px;border-radius:var(--r);overflow:hidden;cursor:pointer;position:relative;margin-bottom:0}
 .pf-cover img{width:100%;height:100%;object-fit:cover}
 .pf-cover-ov{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:flex-end;justify-content:flex-end;padding:.75rem;transition:.2s}
@@ -306,9 +289,7 @@ textarea.pf-input{resize:vertical;min-height:90px}
 .pf-toast{position:fixed;bottom:2rem;right:2rem;padding:.85rem 1.5rem;border-radius:var(--r-sm);font-size:.84rem;font-weight:700;box-shadow:var(--shadow-lg);z-index:3000;display:flex;align-items:center;gap:.5rem}
 .pf-toast-success{background:#0f172a;color:white}
 .pf-toast-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
-.progress-ring{width:60px;height:60px}
 
-/* ── MODALS ── */
 .modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem}
 .modal-box{background:white;border-radius:24px;padding:2.5rem;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.3)}
 .modal-close{position:absolute;top:1.2rem;right:1.2rem;width:32px;height:32px;background:#f1f5f9;border:none;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:.85rem;transition:.15s}
@@ -324,7 +305,6 @@ textarea.field-input{resize:vertical;min-height:90px}
 .btn-secondary{width:100%;padding:.72rem;border-radius:99px;border:1.5px solid #e2e8f0;background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:.5rem;transition:.2s}
 .btn-secondary:hover{border-color:var(--indigo);color:var(--indigo)}
 
-/* ── MESSAGES ── */
 .dm-panel{position:fixed;bottom:0;right:0;width:360px;height:480px;background:white;border:1px solid var(--border);border-radius:22px 22px 0 0;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;z-index:500;overflow:hidden}
 .dm-head{padding:1rem 1.2rem;background:var(--grad);display:flex;align-items:center;justify-content:space-between;color:white}
 .dm-recipient{font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem}
@@ -343,27 +323,22 @@ textarea.field-input{resize:vertical;min-height:90px}
 .close-x{padding:.25rem .7rem;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif}
 .close-x:hover{background:rgba(220,38,38,.4)}
 
-/* ── TOAST ── */
 .notif-toast{background:#0f172a;color:white;padding:.85rem 1.4rem;border-radius:14px;box-shadow:var(--shadow-lg);font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:.6rem}
 .notif-dot2{width:7px;height:7px;background:var(--indigo-light);border-radius:50%;flex-shrink:0}
 
-/* ── SPINNER ── */
 .spinner{width:32px;height:32px;border:3px solid rgba(79,70,229,.15);border-top-color:var(--indigo);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── EMPTY ── */
 .empty-block{text-align:center;padding:3rem 1rem;color:var(--subtle)}
 .empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.5}
 .empty-title{font-size:.9rem;font-weight:700;color:var(--muted);margin-bottom:.3rem}
 .empty-text{font-size:.78rem;line-height:1.6}
 `;
 
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user: authUser, profile: authProfile, signOut } = useAuth();
 
-  // UI state
   const [activeTab, setActiveTab] = useState("feed");
   const [editMode, setEditMode] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -375,7 +350,6 @@ export default function StudentDashboard() {
   const [applyForm, setApplyForm] = useState({ coverLetter: "" });
   const [postDetailModal, setPostDetailModal] = useState(null);
 
-  // Data state
   const [profile, setProfile] = useState(null);
   const [industries, setIndustries] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -384,11 +358,9 @@ export default function StudentDashboard() {
   const [vacancies, setVacancies] = useState([]);
   const [myApplications, setMyApplications] = useState([]);
 
-  // Loading
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
 
-  // Profile page state
   const [pfTab, setPfTab] = useState("overview");
   const [pfEditing, setPfEditing] = useState(false);
   const [pfForm, setPfForm] = useState({});
@@ -397,7 +369,6 @@ export default function StudentDashboard() {
   const [skillInput, setSkillInput] = useState("");
   const [coverPreview, setCoverPreview] = useState(null);
 
-  // Sidebar edit — buffered form to prevent scroll-jump on every keystroke
   const [sidebarForm, setSidebarForm] = useState({});
 
   const coverRef  = useRef();
@@ -408,14 +379,12 @@ export default function StudentDashboard() {
   const chatEndRef = useRef();
   const chatInputRef = useRef();
 
-  // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const boot = async () => {
       setIsFeedLoading(true);
-      // ✅ Seed profile from AuthContext immediately so name/email shows at once
       if (authProfile) {
         setProfile(prev => {
-          if (prev) return prev; // already loaded from backend
+          if (prev) return prev;
           return {
             id: authUser?.id || "",
             name: authProfile.name || authProfile.full_name || authUser?.email?.split("@")[0] || "Student",
@@ -444,7 +413,6 @@ export default function StudentDashboard() {
       }
 
       try {
-        // 1. Full profile from backend
         try {
           const uid = authUser?.id;
           const url = uid ? `${BASE}/api/get-profile?user_id=${uid}` : `${BASE}/api/get-profile`;
@@ -476,7 +444,6 @@ export default function StudentDashboard() {
           });
         } catch { /* keep authProfile seed */ }
 
-        // 2. Parallel data fetches
         const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
           axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
           axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
@@ -485,19 +452,16 @@ export default function StudentDashboard() {
           axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
         ]);
 
-        // Industries
         setIndustries(
           indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
             ? indRes.value.data : mockIndustries
         );
 
-        // Courses
         setCourses(
           coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
             ? coursesRes.value.data : mockCourses
         );
 
-        // Vacancies
         if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
           const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) ? indRes.value.data : mockIndustries;
           setVacancies(vacRes.value.data.map(v => ({
@@ -518,7 +482,6 @@ export default function StudentDashboard() {
           setVacancies(mockVacancies);
         }
 
-        // Applications
         if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
           setMyApplications(appsRes.value.data.map(a => ({
             id: a.id, postId: a.vacancy_id,
@@ -530,7 +493,6 @@ export default function StudentDashboard() {
           })));
         }
 
-        // Jobs — normalize field names
         if (jobsRes.status === "fulfilled") {
           let raw = jobsRes.value?.data || [];
           if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
@@ -560,7 +522,6 @@ export default function StudentDashboard() {
     boot();
   }, [authUser?.id]);
 
-  // AI skill match
   useEffect(() => {
     if (!profile?.skills?.length) return;
     const doMatch = async () => {
@@ -576,7 +537,6 @@ export default function StudentDashboard() {
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [profile?.chats, activeChat]);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   const pushNotify = useCallback((msg) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, msg }]);
@@ -624,44 +584,97 @@ export default function StudentDashboard() {
     setProfile(prev => { const arr = [...prev.resumes]; arr.splice(idx, 1); return { ...prev, resumes: arr }; });
   };
 
-  // ── Profile edit helpers ───────────────────────────────────────────────────
   const pffc = (k, v) => setPfForm(p => ({ ...p, [k]: v }));
-  const startPfEdit = () => {
+
+  // ── FIX: startPfEdit fetches fresh data from backend before seeding the form
+  // This prevents deleted skills (or any deleted field) from ghosting back
+  // from a stale local profile state on subsequent edit sessions.
+  const startPfEdit = async () => {
+    let freshProfile = profile;
+    try {
+      const res = await axios.get(`${BASE}/api/profile/${profile.id}`, { timeout: 5000 });
+      const d = res.data;
+      freshProfile = {
+        ...profile,
+        skills: Array.isArray(d.skills) ? d.skills : [],
+        certificates: d.certificates || [],
+        resumes: d.resumes || [],
+        personalPosts: d.personalPosts || d.personal_posts || [],
+        tenth: d.tenth || "",
+        twelfth: d.twelfth || "",
+        graduation: d.graduation || "",
+        about: d.about || "",
+        experience: d.experience || "",
+        projects: d.projects || "",
+        achievements: d.achievements || "",
+        website: d.website || "",
+        linkedin: d.linkedin || "",
+        github: d.github || "",
+        cgpa: d.cgpa || "",
+        phone: d.phone || "",
+        address: d.address || d.location || "",
+        qualification: d.qualification || "",
+        name: d.name || d.full_name || profile.name || "",
+      };
+      // Sync local profile state with fresh DB data so future opens are also fresh
+      setProfile(prev => ({ ...prev, ...freshProfile }));
+    } catch {
+      // If fetch fails, fall back to local profile (better than blocking edit)
+    }
+
     setPfForm({
-      name: profile.name || "", phone: profile.phone || "", address: profile.address || "",
-      about: profile.about || "", qualification: profile.qualification || "",
-      tenth: profile.tenth || "", twelfth: profile.twelfth || "", graduation: profile.graduation || "",
-      website: profile.website || "", linkedin: profile.linkedin || "", github: profile.github || "",
-      experience: profile.experience || "", cgpa: profile.cgpa || "",
-      skills: [...(profile.skills || [])],
-      certificates: [...(profile.certificates || [])],
-      resumes: [...(profile.resumes || [])],
-      personalPosts: [...(profile.personalPosts || [])],
+      name: freshProfile.name || "",
+      phone: freshProfile.phone || "",
+      address: freshProfile.address || "",
+      about: freshProfile.about || "",
+      qualification: freshProfile.qualification || "",
+      tenth: freshProfile.tenth || "",
+      twelfth: freshProfile.twelfth || "",
+      graduation: freshProfile.graduation || "",
+      website: freshProfile.website || "",
+      linkedin: freshProfile.linkedin || "",
+      github: freshProfile.github || "",
+      experience: freshProfile.experience || "",
+      projects: freshProfile.projects || "",
+      achievements: freshProfile.achievements || "",
+      cgpa: freshProfile.cgpa || "",
+      // ── FIX: always spread a fresh copy so mutations don't alias the profile array
+      skills: [...(freshProfile.skills || [])],
+      certificates: [...(freshProfile.certificates || [])],
+      resumes: [...(freshProfile.resumes || [])],
+      personalPosts: [...(freshProfile.personalPosts || [])],
     });
     setPfEditing(true);
     setPfTab("overview");
   };
 
+  // ── FIX: After saving, sync BOTH profile state AND pfForm so that if the user
+  // immediately clicks Edit again (before a re-fetch), startPfEdit seeds from
+  // the already-updated local state rather than the old snapshot.
   const savePfForm = async () => {
     if (!profile?.id) return;
     setPfSaving(true);
     try {
-      // Ensure skills is always a plain array of strings (never undefined/null)
       const payload = {
         ...pfForm,
         skills: Array.isArray(pfForm.skills) ? pfForm.skills : [],
       };
       await axios.put(`${BASE}/api/profile/${profile.id}`, payload);
+      // Update profile state with the saved payload
       setProfile(prev => ({ ...prev, ...payload }));
+      // Also keep pfForm in sync — prevents stale re-seed if user re-edits quickly
+      setPfForm(prev => ({ ...prev, ...payload }));
       setPfEditing(false);
       showPfToast("✓ Profile updated");
-    } catch { showPfToast("✗ Could not save", "error"); }
+    } catch {
+      showPfToast("✗ Could not save", "error");
+    }
     setPfSaving(false);
   };
 
   const addSkill = (s) => {
     const sk = s.trim();
-    if (!sk || pfForm.skills?.includes(sk)) return;
+    if (!sk || (pfForm.skills || []).includes(sk)) return;
     pffc("skills", [...(pfForm.skills || []), sk]);
     setSkillInput("");
   };
@@ -699,7 +712,6 @@ export default function StudentDashboard() {
     pffc("personalPosts", [...(pfForm.personalPosts || []), ...results]);
   };
 
-  // ── Avatar helper ──────────────────────────────────────────────────────────
   const Av = ({ name, photo, size = 48, r = 13 }) =>
     photo
       ? <img src={photo} style={{ width: size, height: size, borderRadius: r, objectFit: "cover", flexShrink: 0 }} alt="" />
@@ -707,7 +719,6 @@ export default function StudentDashboard() {
           {(name || "U")[0].toUpperCase()}
         </div>;
 
-  // ── Sidebar panel ─────────────────────────────────────────────────────────
   const renderPanel = (user, editable = false) => (
     <div style={{ overflowY: "auto", height: "100%" }}>
       <div className="sb-top">
@@ -768,7 +779,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Completion bar (own profile only) */}
       {editable && (() => {
         const comp = calcCompletion(profile);
         return (
@@ -849,7 +859,6 @@ export default function StudentDashboard() {
         </>
       )}
 
-      {/* Know More / Details */}
       <div style={{ padding: ".9rem 1.4rem", borderBottom: "1px solid var(--border)" }}>
         <button className="know-btn" onClick={() => setShowDetails(d => !d)}>
           <span style={{ fontSize: ".62rem" }}>{showDetails ? "▲" : "▼"}</span>
@@ -908,7 +917,6 @@ export default function StudentDashboard() {
     </div>
   );
 
-  // ── Profile Page ───────────────────────────────────────────────────────────
   const renderProfilePage = () => {
     const data = pfEditing ? pfForm : profile;
     const skills = data?.skills || [];
@@ -930,14 +938,12 @@ export default function StudentDashboard() {
 
     return (
       <div style={{ maxWidth: 880, margin: "0 auto" }}>
-        {/* Hidden file inputs */}
         <input ref={coverRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleCoverUpload} />
         <input ref={avatarRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarUpload} />
         <input ref={certRef} type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload} />
         <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: "none" }} onChange={handleResumeUpload} />
         <input ref={postRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handlePostUpload} />
 
-        {/* Cover */}
         <div className="pf-cover" onClick={() => coverRef.current?.click()}>
           {(coverPreview || profile.coverPhoto)
             ? <img src={coverPreview || profile.coverPhoto} alt="cover" />
@@ -947,7 +953,6 @@ export default function StudentDashboard() {
           <div className="pf-cover-ov"><span className="pf-cover-lbl">📸 Change Cover</span></div>
         </div>
 
-        {/* Hero */}
         <div className="pf-hero">
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: ".8rem" }}>
             <div style={{ position: "relative" }}>
@@ -957,7 +962,6 @@ export default function StudentDashboard() {
               <div className="pf-av-cam" onClick={() => avatarRef.current?.click()}>📷</div>
             </div>
 
-            {/* Completion ring */}
             <div style={{ textAlign: "center", marginLeft: ".5rem" }}>
               <div style={{ font: `800 1.6rem/1 'Syne',sans-serif`, color: completion >= 80 ? "var(--emerald)" : "var(--indigo)" }}>{completion}%</div>
               <div style={{ fontSize: ".65rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em" }}>Complete</div>
@@ -989,13 +993,11 @@ export default function StudentDashboard() {
           )}
         </div>
 
-        {/* Tabs */}
         <div className="pf-tabs">
           {pfTabs.map(t => <button key={t.id} className={`pf-tab ${pfTab === t.id ? "active" : ""}`} onClick={() => setPfTab(t.id)}>{t.icon} {t.label}</button>)}
         </div>
 
         <AnimatePresence mode="wait">
-          {/* OVERVIEW */}
           {pfTab === "overview" && (
             <motion.div key="ov" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1064,7 +1066,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* SKILLS */}
           {pfTab === "skills" && (
             <motion.div key="sk" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1073,7 +1074,12 @@ export default function StudentDashboard() {
                   {skills.map(s => (
                     <span key={s} className="pf-skill-chip">
                       {s}
-                      {pfEditing && <button onClick={() => pffc("skills", pfForm.skills.filter(x => x !== s))} style={{ background: "none", border: "none", color: "var(--rose)", cursor: "pointer", marginLeft: ".3rem", fontWeight: 800, fontSize: ".65rem" }}>✕</button>}
+                      {pfEditing && (
+                        <button
+                          onClick={() => pffc("skills", (pfForm.skills || []).filter(x => x !== s))}
+                          style={{ background: "none", border: "none", color: "var(--rose)", cursor: "pointer", marginLeft: ".3rem", fontWeight: 800, fontSize: ".65rem" }}
+                        >✕</button>
+                      )}
                     </span>
                   ))}
                   {skills.length === 0 && <em style={{ color: "var(--subtle)", fontSize: ".85rem" }}>No skills added yet.</em>}
@@ -1096,7 +1102,7 @@ export default function StudentDashboard() {
                       <>
                         <div className="pf-label" style={{ marginTop: "1rem", marginBottom: ".4rem" }}>Popular Skills (click to add)</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: ".35rem" }}>
-                          {SKILL_SUGGESTIONS.filter(s => !skills.includes(s)).slice(0, 20).map(s => <span key={s} className="pf-sugg" onClick={() => addSkill(s)}>{s}</span>)}
+                          {SKILL_SUGGESTIONS.filter(s => !(pfForm.skills || []).includes(s)).slice(0, 20).map(s => <span key={s} className="pf-sugg" onClick={() => addSkill(s)}>{s}</span>)}
                         </div>
                       </>
                     )}
@@ -1110,7 +1116,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* ACADEMIC */}
           {pfTab === "academic" && (
             <motion.div key="ac" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1145,7 +1150,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* EXPERIENCE */}
           {pfTab === "experience" && (
             <motion.div key="ex" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1154,7 +1158,7 @@ export default function StudentDashboard() {
                   ? <div style={{ display: "flex", flexDirection: "column", gap: ".9rem" }}>
                       <div className="pf-field">
                         <label className="pf-label">Work / Internship Experience</label>
-                        <textarea className="pf-input" rows={4} placeholder="e.g. 6-month intern at TechCorp as React Developer. Built user dashboard, managed API integrations." value={pfForm.experience || ""} onChange={e => pffc("experience", e.target.value)} />
+                        <textarea className="pf-input" rows={4} placeholder="e.g. 6-month intern at TechCorp as React Developer." value={pfForm.experience || ""} onChange={e => pffc("experience", e.target.value)} />
                       </div>
                       <div className="pf-field">
                         <label className="pf-label">Projects</label>
@@ -1182,7 +1186,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* MEDIA */}
           {pfTab === "media" && (
             <motion.div key="md" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1194,7 +1197,7 @@ export default function StudentDashboard() {
                   {certs.map((c, i) => (
                     <div className="pf-upload-thumb" key={i} onClick={() => window.open(c.url, "_blank")}>
                       {c.type?.startsWith("image/") ? <img src={c.url} alt="" /> : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(79,70,229,.05)" }}><span style={{ fontSize: "1.8rem" }}>📑</span><span style={{ fontSize: ".6rem", fontWeight: 700, color: "var(--muted)" }}>PDF</span></div>}
-                      {pfEditing && <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("certificates", pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>}
+                      {pfEditing && <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("certificates", (pfForm.certificates || []).filter((_, j) => j !== i)); }}>✕</button>}
                     </div>
                   ))}
                   {pfEditing && <div className="pf-add-thumb" onClick={() => certRef.current?.click()}><span style={{ fontSize: "1.4rem" }}>+</span><span>Add</span></div>}
@@ -1210,7 +1213,7 @@ export default function StudentDashboard() {
                   {posts.map((p, i) => (
                     <div className="pf-upload-thumb" key={i} onClick={() => window.open(p.url, "_blank")}>
                       {p.type?.startsWith("image/") ? <img src={p.url} alt="" /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: "1.8rem" }}>🎬</span></div>}
-                      {pfEditing && <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("personalPosts", pfForm.personalPosts.filter((_, j) => j !== i)); }}>✕</button>}
+                      {pfEditing && <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("personalPosts", (pfForm.personalPosts || []).filter((_, j) => j !== i)); }}>✕</button>}
                     </div>
                   ))}
                   {pfEditing && <div className="pf-add-thumb" onClick={() => postRef.current?.click()}><span style={{ fontSize: "1.4rem" }}>+</span><span>Add</span></div>}
@@ -1223,7 +1226,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* RESUME */}
           {pfTab === "resume" && (
             <motion.div key="rv" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1248,7 +1250,7 @@ export default function StudentDashboard() {
                       </div>
                       <div style={{ display: "flex", gap: ".5rem" }}>
                         <a href={r.url} target="_blank" rel="noreferrer"><button style={{ padding: ".38rem .85rem", background: "rgba(79,70,229,.08)", border: "none", borderRadius: 8, fontSize: ".72rem", fontWeight: 700, color: "var(--indigo)", cursor: "pointer" }}>View</button></a>
-                        {pfEditing && <button style={{ padding: ".38rem .8rem", background: "rgba(244,63,94,.07)", border: "1px solid rgba(244,63,94,.18)", borderRadius: 8, fontSize: ".72rem", fontWeight: 700, color: "var(--rose)", cursor: "pointer" }} onClick={() => pffc("resumes", pfForm.resumes.filter((_, j) => j !== i))}>Remove</button>}
+                        {pfEditing && <button style={{ padding: ".38rem .8rem", background: "rgba(244,63,94,.07)", border: "1px solid rgba(244,63,94,.18)", borderRadius: 8, fontSize: ".72rem", fontWeight: 700, color: "var(--rose)", cursor: "pointer" }} onClick={() => pffc("resumes", (pfForm.resumes || []).filter((_, j) => j !== i))}>Remove</button>}
                       </div>
                     </div>
                   ))
@@ -1274,7 +1276,6 @@ export default function StudentDashboard() {
     );
   };
 
-  // ── Loading ────────────────────────────────────────────────────────────────
   if (!profile) return (
     <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4ff", flexDirection: "column", gap: "1.2rem" }}>
       <style>{CSS}</style>
@@ -1291,12 +1292,10 @@ export default function StudentDashboard() {
     return <span className="type-chip chip-job">{type}</span>;
   };
 
-  // ── Main render ────────────────────────────────────────────────────────────
   return (
     <>
       <style>{CSS}</style>
 
-      {/* NAV */}
       <nav className="s-nav">
         <div>
           <div className="brand">Campus2Career</div>
@@ -1319,20 +1318,15 @@ export default function StudentDashboard() {
       </nav>
 
       <div className="s-layout">
-        {/* ── LEFT SIDEBAR: own profile ── */}
         <aside className="s-sidebar">
           {renderPanel(profile, true)}
         </aside>
 
-        {/* ── MAIN CONTENT ── */}
         <main className="s-content">
           <AnimatePresence mode="wait">
 
-            {/* ══ FEED ══════════════════════════════════════════════════════ */}
             {activeTab === "feed" && (
               <motion.div key="feed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-
-                {/* Industries */}
                 <div className="page-sec">
                   <div className="sec-head">
                     <div>
@@ -1357,7 +1351,6 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Vacancy Feed */}
                 <div className="page-sec">
                   <div className="sec-head">
                     <div>
@@ -1408,11 +1401,8 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ JOBS ══════════════════════════════════════════════════════ */}
             {activeTab === "jobs" && (
               <motion.div key="jobs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-
-                {/* AI Matches */}
                 <div className="page-sec">
                   <div className="sec-head">
                     <div>
@@ -1476,7 +1466,6 @@ export default function StudentDashboard() {
                   }
                 </div>
 
-                {/* All Jobs */}
                 <div className="page-sec">
                   <div className="sec-head">
                     <div>
@@ -1510,7 +1499,6 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ COURSES ═══════════════════════════════════════════════════ */}
             {activeTab === "courses" && (
               <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="sec-head" style={{ marginBottom: "1.3rem" }}>
@@ -1543,7 +1531,6 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ APPLICATIONS ══════════════════════════════════════════════ */}
             {activeTab === "applications" && (
               <motion.div key="apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="sec-head" style={{ marginBottom: "1.3rem" }}>
@@ -1577,7 +1564,6 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ PROFILE PAGE ═══════════════════════════════════════════════ */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {renderProfilePage()}
@@ -1587,7 +1573,6 @@ export default function StudentDashboard() {
           </AnimatePresence>
         </main>
 
-        {/* ── RIGHT SIDEBAR: other user profile ── */}
         <AnimatePresence>
           {activeUserProfile && (
             <motion.aside className="s-sidebar right" initial={{ x: 340, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 340, opacity: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }}>
@@ -1597,7 +1582,6 @@ export default function StudentDashboard() {
         </AnimatePresence>
       </div>
 
-      {/* ── DM PANEL ── */}
       <AnimatePresence>
         {activeChat && (
           <motion.div className="dm-panel" initial={{ x: 360, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 360, opacity: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }}>
@@ -1629,7 +1613,6 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── POST DETAIL MODAL ── */}
       <AnimatePresence>
         {postDetailModal && (
           <motion.div className="modal-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={e => { if (e.target === e.currentTarget) setPostDetailModal(null); }}>
@@ -1657,7 +1640,6 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── APPLY MODAL ── */}
       <AnimatePresence>
         {applyModal && (
           <motion.div className="modal-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={e => { if (e.target === e.currentTarget) setApplyModal(null); }}>
@@ -1695,7 +1677,6 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── TOAST NOTIFICATIONS ── */}
       <div style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 2000, display: "flex", flexDirection: "column", gap: "10px" }}>
         <AnimatePresence>
           {notifications.map(n => (
