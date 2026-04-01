@@ -1,7 +1,7 @@
-// App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
-import Landing from "./pages/Landing";
+
+import Landing from "./pages/Landing"; // Changed 'landing' to 'Landing'
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -33,42 +33,48 @@ const LoadingSpinner = () => (
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, profile, loading } = useAuth();
 
-  // 1. Auth is still initializing — wait, never redirect yet
-  if (loading) return <LoadingSpinner />;
-
-  // 2. Not logged in at all
-  if (!user) return <Navigate to="/login" replace />;
-
-  // 3. User exists but profile not loaded yet — keep spinning
-  if (!profile) return <LoadingSpinner />;
-
-  // 4. Profile loaded but role missing (edge case right after signup)
-  if (!profile.role) return <LoadingSpinner />;
-
-  // 5. Wrong role for this route — redirect to correct dashboard
-  if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    if (profile.role === "industry") return <Navigate to="/industry" replace />;
-    if (profile.role === "admin")    return <Navigate to="/admin"    replace />;
-    return <Navigate to="/student" replace />;
+  // 1. Always check if the Auth initialization is still in progress first.
+  if (loading) {
+    return <LoadingSpinner />;
   }
 
+  // 2. If loading is finished and there is no user session, go to login.
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // 3. DEADLOCK FIX: If we have a user but NO profile and loading is DONE, 
+  // the database fetch failed or timed out. Don't spin—redirect.
+  if (!profile && !loading) {
+    console.error("User session exists but profile fetch failed/timed out.");
+    return <Navigate to="/login" replace />; 
+  }
+
+  // 4. If we have a user but the profile is still being fetched (rare race condition),
+  // then and only then show the spinner.
+  if (!profile) {
+    return <LoadingSpinner />;
+  }
+
+  // 5. Profile is loaded, but verify the role exists (edge case).
+  if (!profile.role) {
+    console.warn("Profile exists but no role is assigned.");
+    return <LoadingSpinner />;
+  }
+
+  // 6. Role-Based Access Control (RBAC)
+  // If user is in the wrong section, send them to their designated dashboard.
+  if (allowedRoles && !allowedRoles.includes(profile.role)) {
+    const roleRoutes = {
+      industry: "/industry",
+      admin: "/admin",
+      student: "/student"
+    };
+    return <Navigate to={roleRoutes[profile.role] || "/student"} replace />;
+  }
+
+  // 7. Everything passed!
   return children;
-}
-
-// Redirect already-logged-in users away from /login and /register
-function PublicRoute({ children }) {
-  const { user, profile, loading } = useAuth();
-
-  if (loading) return <LoadingSpinner />;
-  if (!user)   return children;
-
-  // User is logged in — send to their dashboard
-  if (profile?.role === "industry") return <Navigate to="/industry" replace />;
-  if (profile?.role === "admin")    return <Navigate to="/admin"    replace />;
-  if (profile?.role === "student")  return <Navigate to="/student"  replace />;
-
-  // Profile still loading
-  return <LoadingSpinner />;
 }
 
 function App() {
@@ -76,38 +82,33 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public pages */}
           <Route path="/" element={<Landing />} />
-
-          <Route path="/login" element={
-            <PublicRoute><Login /></PublicRoute>
-          } />
-
-          <Route path="/register" element={
-            <PublicRoute><Register /></PublicRoute>
-          } />
-
-          {/* Protected dashboards */}
-          <Route path="/student" element={
-            <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/industry" element={
-            <ProtectedRoute allowedRoles={["industry"]}>
-              <IndustryDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/student"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/industry"
+            element={
+              <ProtectedRoute allowedRoles={["industry"]}>
+                <IndustryDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
