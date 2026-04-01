@@ -45,10 +45,10 @@ function ProtectedRoute({ children, allowedRoles }) {
 
   // 3. DEADLOCK FIX: If we have a user but NO profile and loading is DONE, 
   // the database fetch failed or timed out. Don't spin—redirect.
-  if (!profile && !loading) {
-    console.error("User session exists but profile fetch failed/timed out.");
-    return <Navigate to="/login" replace />; 
-  }
+  // if (!profile && !loading) {
+  //   console.error("User session exists but profile fetch failed/timed out.");
+  //   return <Navigate to="/login" replace />; 
+  // }
 
   // 4. If we have a user but the profile is still being fetched (rare race condition),
   // then and only then show the spinner.
