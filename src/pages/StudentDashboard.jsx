@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from "framer-motion";
 import axios from 'axios';
@@ -403,27 +403,31 @@ export default function StudentDashboard() {
   const [authFailed, setAuthFailed] = useState(false);
   const [bootDone,   setBootDone]   = useState(false);
 
-  const coverRef  = useRef();
-  const avatarRef = useRef();
-  const certRef   = useRef();
-  const resumeRef = useRef();
-  const postRef   = useRef();
-  const chatEndRef = useRef();
+const coverRef     = useRef();
+  const avatarRef    = useRef();
+  const certRef      = useRef();
+  const resumeRef    = useRef();
+  const postRef      = useRef();
+  const chatEndRef   = useRef();
   const chatInputRef = useRef();
+  const isBootingRef = useRef(false);
+
+  const userId = authUser?.id ?? null;
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (isBootingRef.current) return;
+    isBootingRef.current = true;
+
     const boot = async () => {
       setIsFeedLoading(true);
 
-      // ── FIX: If Supabase refresh token is invalid, authUser & authProfile are
-      // both null. Without a guard the spinner hangs forever. We wait 1.5 s for
-      // AuthContext to finish, then redirect to login if still unauthenticated.
       if (!authUser && !authProfile) {
         await new Promise(r => setTimeout(r, 1500));
         setBootDone(true);
         setIsFeedLoading(false);
         setAuthFailed(true);
+        isBootingRef.current = false;
         return;
       }
 
@@ -459,7 +463,7 @@ export default function StudentDashboard() {
         // 1. Full profile from backend — only if we have a valid user id
         if (authUser?.id) {
           try {
-           const res = await axios.get(`${BASE}/api/get-profile?user_id=${authUser.id}`, { timeout: 18000 });
+           const res = await axios.get(`${BASE}/api/get-profile?user_id=${authUser.id}`, { timeout: 12000 });
             const d = res.data;
             if (d && d.id) {
               setProfile({
@@ -576,24 +580,37 @@ export default function StudentDashboard() {
       } finally {
         setIsFeedLoading(false);
         setBootDone(true);
+        isBootingRef.current = false;
       }
     };
     boot();
-  }, [authUser?.id]);
+  }, [userId]);
 
   // AI skill match
+ // AI skill match
+  const skillsKey = useMemo(
+    () => (profile?.skills ?? []).slice().sort().join(","),
+    [profile?.skills]
+  );
+
   useEffect(() => {
-    if (!profile?.skills?.length) return;
+    if (!skillsKey) return;
+    let cancelled = false;
+
     const doMatch = async () => {
       setIsMatchLoading(true);
       try {
-        const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(", ") }, { timeout: 12000 });
-        setMatchedJobs(Array.isArray(res.data) ? res.data : []);
-      } catch { setMatchedJobs([]); }
-      setIsMatchLoading(false);
+        const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: skillsKey }, { timeout: 12000 });
+        if (!cancelled) setMatchedJobs(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        if (!cancelled) setMatchedJobs([]);
+      }
+      if (!cancelled) setIsMatchLoading(false);
     };
+
     doMatch();
-  }, [profile?.skills?.join(",")]);
+    return () => { cancelled = true; };
+  }, [skillsKey]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [profile?.chats, activeChat]);
 
