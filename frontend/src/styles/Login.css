@@ -160,4 +160,30 @@
   .login-hero { display: none; }
   .login-form-side { border-radius: 28px; }
   .login-card { max-width: 440px; }
+  .back-home-btn { top: 1.2rem; left: 1.2rem; padding: 0.5rem 1rem; font-size: 0.85rem; }
+}
+
+.back-home-btn {
+  position: absolute;
+  top: 2.5rem;
+  left: 3rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.back-home-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(-4px);
 }

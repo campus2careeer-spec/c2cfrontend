@@ -47,6 +47,11 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <button className="back-home-btn" onClick={() => navigate("/")}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Back to Home
+      </button>
+
       {/* Ambient orbs */}
       <div className="login-orb" style={{ width: 400, height: 400, background: "rgba(79,70,229,0.12)", top: "-10%", left: "-5%" }} />
       <div className="login-orb" style={{ width: 300, height: 300, background: "rgba(124,58,237,0.1)", bottom: "-5%", right: "10%" }} />
