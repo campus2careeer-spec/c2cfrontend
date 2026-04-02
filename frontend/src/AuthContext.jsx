@@ -71,41 +71,30 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
+    // 1. Initialize and listen to session changes
+    const initSession = async () => {
       try {
-        const { data: { session: s } } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
         if (!mounted) return;
-
-        setSession(s);
-
-        if (s?.user) {
-          // ✅ FIX 3: Await fetchProfile BEFORE calling setLoading(false)
-          // so ProtectedRoute never sees loading=false + profile=null at same time.
-          await fetchProfile(s.user.id);
-        }
+        
+        setSession(data.session);
+        if (!data.session) setLoading(false);
       } catch (err) {
         console.error('Session initialize failed:', err);
-      } finally {
         if (mounted) setLoading(false);
       }
     };
 
-    init();
+    initSession();
 
-    // Auth state listener (handles login/logout events after initial load)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, s) => {
+      (_event, s) => {
         if (!mounted) return;
         setSession(s);
-
-        if (s?.user) {
-          // ✅ FIX 3 (same): await before clearing loading
-          await fetchProfile(s.user.id);
-        } else {
+        if (!s) {
           setProfile(null);
+          setLoading(false);
         }
-
-        if (mounted) setLoading(false);
       }
     );
 
@@ -114,6 +103,25 @@ export function AuthProvider({ children }) {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // 2. Fetch profile ONLY when the authenticated user ID changes
+  useEffect(() => {
+    let mounted = true;
+
+    const loadProfile = async () => {
+      if (session?.user?.id) {
+        setLoading(true);
+        await fetchProfile(session.user.id);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    if (session?.user?.id) {
+      loadProfile();
+    }
+
+    return () => { mounted = false; };
+  }, [session?.user?.id]);
 
   const signUp = async ({ email, password, fullName, role, extra = {} }) => {
     const { data, error } = await supabase.auth.signUp({
@@ -154,12 +162,7 @@ export function AuthProvider({ children }) {
       password,
     });
     if (error) throw error;
-
-    if (data?.user?.id) {
-      setSession(data.session);
-      await fetchProfile(data.user.id);
-    }
-
+    // Session state and Profile fetching will auto-handle via the useEffect hooks.
     return data;
   };
 
