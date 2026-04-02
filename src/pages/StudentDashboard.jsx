@@ -457,7 +457,7 @@ export default function StudentDashboard() {
         // 1. Full profile from backend — only if we have a valid user id
         if (authUser?.id) {
           try {
-            const res = await axios.get(`${BASE}/api/get-profile?user_id=${authUser.id}`, { timeout: 6000 });
+           const res = await axios.get(`${BASE}/api/get-profile?user_id=${authUser.id}`, { timeout: 18000 });
             const d = res.data;
             if (d && d.id) {
               setProfile({
@@ -661,17 +661,26 @@ export default function StudentDashboard() {
     setPfTab("overview");
   };
 
-  const savePfForm = async () => {
-    if (!profile?.id) return;
-    setPfSaving(true);
-    try {
-      await axios.put(`${BASE}/api/profile/${profile.id}`, pfForm);
-      setProfile(prev => ({ ...prev, ...pfForm }));
-      setPfEditing(false);
-      showPfToast("✓ Profile updated");
-    } catch { showPfToast("✗ Could not save", "error"); }
-    setPfSaving(false);
-  };
+ const savePfForm = async () => {
+  if (!profile?.id) return;
+  setPfSaving(true);
+  try {
+    // Strip base64-heavy fields — send only safe scalar + skills
+    const { certificates, resumes, personalPosts, ...safeFields } = pfForm;
+
+    await axios.put(`${BASE}/api/profile/${profile.id}`, safeFields, {
+      timeout: 20000,   // Render cold-start can take 10-15 s
+    });
+
+    setProfile(prev => ({ ...prev, ...pfForm }));
+    setPfEditing(false);
+    showPfToast("✓ Profile updated");
+  } catch (err) {
+    console.error("savePfForm error:", err?.response?.data || err.message);
+    showPfToast(`✗ ${err?.response?.data?.error || "Could not save"}`, "error");
+  }
+  setPfSaving(false);
+};
 
   const addSkill = (s) => {
     const sk = s.trim();
