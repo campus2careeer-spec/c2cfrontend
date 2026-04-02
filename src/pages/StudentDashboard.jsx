@@ -650,7 +650,7 @@ export default function StudentDashboard() {
       name: profile.name || "", phone: profile.phone || "", address: profile.address || "",
       about: profile.about || "", qualification: profile.qualification || "",
       tenth: profile.tenth || "", twelfth: profile.twelfth || "", graduation: profile.graduation || "",
-      website: profile.website || "", linkedin: profile.linkedin || "", github: profile.github || "",
+      website: profile.website || "", linkedin: profile.linkedin || "", 
       experience: profile.experience || "", cgpa: profile.cgpa || "",
       skills: [...(profile.skills || [])],
       certificates: [...(profile.certificates || [])],
@@ -847,7 +847,6 @@ export default function StudentDashboard() {
             <div className="details-row">📞 {user.phone || "Not provided"}</div>
             <div className="details-row">📍 {user.address || "Not provided"}</div>
             {user.linkedin && <div className="details-row">🔗 {user.linkedin}</div>}
-            {user.github && <div className="details-row">🐙 {user.github}</div>}
             <div className="details-sh">Academic</div>
             <div className="details-row">10th — {user.tenth || "—"}</div>
             <div className="details-row">12th — {user.twelfth || "—"}</div>
@@ -964,7 +963,7 @@ export default function StudentDashboard() {
             {profile.phone && <span>📞 {profile.phone}</span>}
             {profile.address && <span>📍 {profile.address}</span>}
             {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noreferrer" style={{ color: "var(--indigo)", textDecoration: "none" }}>🔗 LinkedIn</a>}
-            {profile.github && <a href={profile.github} target="_blank" rel="noreferrer" style={{ color: "var(--indigo)", textDecoration: "none" }}>🐙 GitHub</a>}
+           
           </div>
           {profile.about && <div className="pf-about">{profile.about}</div>}
           {skills.length > 0 && (
@@ -1004,7 +1003,7 @@ export default function StudentDashboard() {
                         { k: "experience", l: "Experience Summary", p: "e.g. 1 yr internship at XYZ" },
                         { k: "website", l: "Portfolio / Website", p: "https://..." },
                         { k: "linkedin", l: "LinkedIn URL", p: "linkedin.com/in/..." },
-                        { k: "github", l: "GitHub URL", p: "github.com/username" },
+                      
                       ].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
@@ -1034,7 +1033,7 @@ export default function StudentDashboard() {
                         ["Experience", profile.experience],
                         ["Portfolio", profile.website],
                         ["LinkedIn", profile.linkedin],
-                        ["GitHub", profile.github],
+                       
                       ].map(([l, v]) => (
                         <div key={l}>
                           <div className="pf-label" style={{ marginBottom: ".2rem" }}>{l}</div>
