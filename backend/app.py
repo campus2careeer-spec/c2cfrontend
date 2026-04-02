@@ -7,12 +7,11 @@ from core.engine import CareerEngine
 from core.knowledge_base import COURSE_DB
 
 import os
-import spacy
 from core.shared_utils import nlp
 
-nlp = spacy.load("en_core_web_sm")
-
 load_dotenv()
+
+app = Flask(__name__)
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
