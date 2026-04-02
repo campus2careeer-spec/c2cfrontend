@@ -1,0 +1,130 @@
+.reg-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  padding: 1.5rem; position: relative; overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+}
+.reg-page::before {
+  content: ''; position: absolute; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 70% 30%, rgba(16,185,129,0.12) 0%, transparent 50%),
+              radial-gradient(ellipse at 30% 70%, rgba(79,70,229,0.1) 0%, transparent 50%);
+  animation: auroraR 18s ease-in-out infinite alternate;
+}
+@keyframes auroraR { 0% { transform: translate(0,0); } 100% { transform: translate(3%,-2%); } }
+
+.reg-card {
+  position: relative; z-index: 10; display: flex; width: 100%; max-width: 1020px;
+  background: rgba(255,255,255,0.04); backdrop-filter: blur(40px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 28px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.reg-hero {
+  width: 42%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 3rem 2.5rem; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(79,70,229,0.15));
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.reg-hero h1 {
+  font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800;
+  color: white; text-align: center; line-height: 1.1; letter-spacing: -0.03em;
+  position: relative; z-index: 2;
+}
+.reg-hero p {
+  color: rgba(255,255,255,0.5); font-size: 0.85rem; text-align: center;
+  margin-top: 0.8rem; line-height: 1.5; position: relative; z-index: 2;
+}
+.reg-form-side {
+  flex: 1; padding: 2.5rem 2.8rem; display: flex; flex-direction: column;
+  justify-content: center; background: rgba(255,255,255,0.97); border-radius: 0 28px 28px 0;
+  overflow-y: auto; max-height: 92vh;
+}
+.reg-title {
+  font-family: 'Syne', sans-serif; font-size: 1.65rem; font-weight: 800;
+  color: #0f172a; margin-bottom: 0.2rem; letter-spacing: -0.03em;
+}
+.reg-sub { font-size: 0.82rem; color: #64748b; margin-bottom: 1.4rem; }
+.reg-tabs {
+  display: flex; background: #f1f5f9; padding: 4px; border-radius: 14px;
+  margin-bottom: 1.3rem; position: relative; border: 1px solid #e2e8f0;
+}
+.reg-tab {
+  flex: 1; padding: 0.6rem; text-align: center; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; border-radius: 11px; z-index: 2; position: relative;
+  color: #64748b; transition: color 0.2s; border: none; background: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.reg-tab.active { color: white; }
+.reg-slider {
+  position: absolute; top: 4px; bottom: 4px; left: 4px;
+  width: calc(50% - 4px); border-radius: 11px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+}
+.reg-google-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  padding: 0.72rem; background: white; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+  color: #334155; cursor: pointer; transition: 0.2s; margin-bottom: 1rem;
+}
+.reg-google-btn:hover { border-color: #4f46e5; background: #fafbff; }
+.reg-divider {
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;
+  font-size: 0.7rem; color: #94a3b8; font-weight: 600; letter-spacing: 0.06em;
+}
+.reg-divider::before, .reg-divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+.reg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.reg-field { margin-bottom: 0.7rem; }
+.reg-label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; margin-bottom: 0.25rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.reg-input {
+  width: 100%; padding: 0.72rem 0.9rem; border: 1.5px solid #e2e8f0; border-radius: 11px;
+  background: #fafbff; font-family: 'DM Sans', sans-serif; font-size: 0.84rem;
+  color: #0f172a; outline: none; transition: 0.25s;
+}
+.reg-input:focus { border-color: #4f46e5; background: white; box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.reg-input::placeholder { color: #94a3b8; }
+.reg-submit {
+  width: 100%; padding: 0.85rem; border: none; border-radius: 14px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;
+  font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 700;
+  cursor: pointer; margin-top: 0.3rem;
+  box-shadow: 0 6px 20px rgba(79,70,229,0.3); transition: 0.2s;
+}
+.reg-submit:hover { opacity: 0.92; transform: translateY(-1px); }
+.reg-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.reg-footer { text-align: center; margin-top: 1.2rem; font-size: 0.8rem; color: #64748b; }
+.reg-footer a { color: #4f46e5; font-weight: 700; cursor: pointer; text-decoration: none; }
+.reg-footer a:hover { text-decoration: underline; }
+.reg-error {
+  background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+  padding: 0.6rem 0.9rem; font-size: 0.78rem; color: #b91c1c; font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+.reg-success {
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+  padding: 0.6rem 0.9rem; font-size: 0.78rem; color: #166534; font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+@media (max-width: 768px) {
+  .reg-hero { display: none; }
+  .reg-page { padding: 1.5rem 1rem; min-height: 100vh; height: auto; align-items: center; justify-content: center; overflow-y: auto; }
+  .reg-form-side { padding: 2rem 1.4rem; border-radius: 22px; max-height: none; overflow: visible; }
+  .reg-card { max-width: 440px; border-radius: 22px; height: auto; min-height: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); margin: auto 0; }
+  .reg-row { grid-template-columns: 1fr; gap: 0rem; }
+  .reg-title { font-size: 1.6rem; text-align: center; }
+  .reg-sub { font-size: 0.8rem; text-align: center; margin-bottom: 1.2rem; }
+  .reg-tabs { margin-bottom: 1.2rem; }
+  .reg-field { margin-bottom: 0.8rem; }
+  .reg-input { padding: 0.75rem 0.9rem; font-size: 0.85rem; }
+  .reg-submit { padding: 0.85rem; font-size: 0.92rem; margin-top: 0.5rem; }
+  .reg-divider { margin-bottom: 1rem; }
+  .reg-google-btn { padding: 0.75rem; font-size: 0.82rem; margin-bottom: 1rem; }
+  .reg-footer { margin-top: 1rem; margin-bottom: 0.5rem; }
+}
+
+@media (max-width: 480px) {
+  .reg-page { padding: 1rem 0.75rem; }
+  .reg-form-side { padding: 1.8rem 1.2rem; }
+  .reg-title { font-size: 1.45rem; }
+}
