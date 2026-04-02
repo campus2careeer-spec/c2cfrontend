@@ -225,12 +225,14 @@ select.fi{cursor:pointer}
 
 /* ── COURSES ── */
 .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
-.course-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s}
+.course-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s;display:flex;flex-direction:column}
+.course-body{padding:1rem;flex:1;display:flex;flex-direction:column;justify-content:space-between}
 .course-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
 .course-header{padding:1.2rem;background:var(--grad);position:relative;overflow:hidden}
 .course-header::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,.08);border-radius:50%}
 .course-provider{font-size:.65rem;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.3rem}
-.course-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:white;line-height:1.3;position:relative;z-index:1}
+.course-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:white;line-height:1.3;position:relative;z-index:1;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .course-body{padding:1rem}
 .course-meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem}
 .cmeta{font-size:.68rem;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:.25rem}
