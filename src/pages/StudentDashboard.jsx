@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../AuthContext';
 import API_BASE_URL from '../apiConfig';
 
+// Backend only used for non-auth data: jobs, vacancies, courses, industries, AI matching
 const BASE = API_BASE_URL;
 
 // ─── SKILL SUGGESTIONS ────────────────────────────────────────────────────────
@@ -16,32 +17,32 @@ const SKILL_SUGGESTIONS = [
   "Android","Flutter","Swift","Kotlin","PHP","Laravel","Vue.js","Angular",
 ];
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
+// ─── MOCK FALLBACK DATA ───────────────────────────────────────────────────────
 const mockIndustries = [
-  { id: 1, name: "TechNova Solutions", logo: "TN", domain: "Cloud Computing", location: "Bangalore", tagline: "Cloud Native Excellence" },
-  { id: 2, name: "Quantum AI", logo: "QA", domain: "Artificial Intelligence", location: "Hyderabad", tagline: "Pioneering AI" },
-  { id: 3, name: "Nexus Fintech", logo: "NF", domain: "Blockchain", location: "Mumbai", tagline: "Next-Gen Finance" },
-  { id: 4, name: "GreenEnergy Co", logo: "GE", domain: "Sustainability", location: "Pune", tagline: "Sustainable Power" },
+  { id: 1, name: "TechNova Solutions", logo: "TN", domain: "Cloud Computing",     location: "Bangalore", tagline: "Cloud Native Excellence" },
+  { id: 2, name: "Quantum AI",         logo: "QA", domain: "Artificial Intelligence", location: "Hyderabad", tagline: "Pioneering AI" },
+  { id: 3, name: "Nexus Fintech",      logo: "NF", domain: "Blockchain",          location: "Mumbai",    tagline: "Next-Gen Finance" },
+  { id: 4, name: "GreenEnergy Co",     logo: "GE", domain: "Sustainability",      location: "Pune",      tagline: "Sustainable Power" },
 ];
 const mockCourses = [
-  { id: 1, title: "React.js Complete Guide", provider: "Udemy", duration: "40 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "BCA", skills: ["React","JSX","Hooks"] },
-  { id: 2, title: "Data Structures & Algorithms", provider: "Coursera", duration: "60 hrs", level: "Advanced", link: "#", rating: 4.9, field: "BCA", skills: ["DSA","C++"] },
-  { id: 3, title: "Machine Learning A-Z", provider: "Udemy", duration: "55 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "MCA", skills: ["Python","sklearn"] },
-  { id: 4, title: "System Design Fundamentals", provider: "Coursera", duration: "45 hrs", level: "Advanced", link: "#", rating: 4.9, field: "B.Tech", skills: ["Architecture","SQL"] },
-  { id: 5, title: "Python for Data Science", provider: "edX", duration: "35 hrs", level: "Beginner", link: "#", rating: 4.7, field: "MCA", skills: ["Python","Pandas"] },
+  { id: 1, title: "React.js Complete Guide",        provider: "Udemy",    duration: "40 hrs", level: "Intermediate", link: "#", rating: 4.8, skills: ["React","JSX","Hooks"] },
+  { id: 2, title: "Data Structures & Algorithms",   provider: "Coursera", duration: "60 hrs", level: "Advanced",     link: "#", rating: 4.9, skills: ["DSA","C++"] },
+  { id: 3, title: "Machine Learning A-Z",           provider: "Udemy",    duration: "55 hrs", level: "Intermediate", link: "#", rating: 4.8, skills: ["Python","sklearn"] },
+  { id: 4, title: "System Design Fundamentals",     provider: "Coursera", duration: "45 hrs", level: "Advanced",     link: "#", rating: 4.9, skills: ["Architecture","SQL"] },
+  { id: 5, title: "Python for Data Science",        provider: "edX",      duration: "35 hrs", level: "Beginner",     link: "#", rating: 4.7, skills: ["Python","Pandas"] },
 ];
 const mockVacancies = [
-  { id: 101, ownerId: 1, ownerName: "TechNova Solutions", ownerLogo: "TN", type: "Internship", title: "MERN Stack Intern", desc: "Seeking proactive students with React and Node.js expertise for our Bangalore office.", skills: "React, Node.js, Express, MongoDB", duration: "6 Months", offerings: "Stipend ₹20,000/month, Pre-placement offer", date: "2 hours ago", likes: 24 },
-  { id: 102, ownerId: 2, ownerName: "Quantum AI", ownerLogo: "QA", type: "Job Vacancy", title: "AI Research Associate", desc: "Join our neural network research team in Hyderabad. Masters preferred.", skills: "Python, PyTorch, Deep Learning", duration: "Full-Time", offerings: "Competitive Salary, Health Insurance", date: "3 days ago", likes: 89 },
-  { id: 103, ownerId: 3, ownerName: "Nexus Fintech", ownerLogo: "NF", type: "Internship", title: "Blockchain Developer Intern", desc: "Work on Ethereum smart contracts and DApps at our Mumbai office.", skills: "Solidity, Web3.js, JavaScript", duration: "3 Months", offerings: "₹15,000/month stipend", date: "1 day ago", likes: 41 },
+  { id: 101, ownerId: 1, ownerName: "TechNova Solutions", ownerLogo: "TN", type: "Internship",  title: "MERN Stack Intern",         desc: "Seeking proactive students with React and Node.js expertise.",             skills: "React, Node.js, Express, MongoDB",  duration: "6 Months",  offerings: "Stipend ₹20,000/month, PPO", date: "2 hours ago", likes: 24 },
+  { id: 102, ownerId: 2, ownerName: "Quantum AI",         ownerLogo: "QA", type: "Job Vacancy", title: "AI Research Associate",      desc: "Join our neural network research team. Masters preferred.",               skills: "Python, PyTorch, Deep Learning",    duration: "Full-Time", offerings: "Competitive Salary",         date: "3 days ago",  likes: 89 },
+  { id: 103, ownerId: 3, ownerName: "Nexus Fintech",      ownerLogo: "NF", type: "Internship",  title: "Blockchain Developer Intern",desc: "Work on Ethereum smart contracts and DApps at our Mumbai office.",        skills: "Solidity, Web3.js, JavaScript",     duration: "3 Months",  offerings: "₹15,000/month stipend",      date: "1 day ago",   likes: 41 },
 ];
 const mockJobs = [
-  { industry: "TechCorp India", job: "Frontend Developer", desc: "Build scalable React UIs.", role: "SDE-1", ug: "B.Tech/BCA", pg: "Not Required", url: "#", dept: "Engineering", skills: "React, TypeScript, CSS" },
-  { industry: "Infosys Ltd.", job: "Java Backend Engineer", desc: "Develop REST APIs with Spring Boot.", role: "Software Engineer", ug: "B.Tech", pg: "M.Tech preferred", url: "#", dept: "Backend", skills: "Java, Spring Boot, AWS" },
-  { industry: "Analytics Co.", job: "Data Analyst", desc: "Insights from large datasets.", role: "Analyst", ug: "Any Graduate", pg: "MBA/MCA plus", url: "#", dept: "Analytics", skills: "Python, SQL, Tableau" },
-  { industry: "CloudSoft", job: "DevOps Engineer", desc: "CI/CD pipelines and cloud infra.", role: "DevOps", ug: "B.Tech/BCA", pg: "Not Required", url: "#", dept: "Infrastructure", skills: "Docker, Kubernetes, AWS" },
-  { industry: "DataViz Inc.", job: "ML Engineer", desc: "Build and deploy ML models.", role: "MLE", ug: "B.Tech/MCA", pg: "M.Tech preferred", url: "#", dept: "AI/ML", skills: "Python, TensorFlow, MLflow" },
-  { industry: "StartupHub", job: "Full Stack Developer", desc: "End-to-end feature development.", role: "SDE-2", ug: "Any CS Degree", pg: "Not Required", url: "#", dept: "Product", skills: "React, Node.js, PostgreSQL" },
+  { industry: "TechCorp India",  job: "Frontend Developer",      desc: "Build scalable React UIs.",              role: "SDE-1",            ug: "B.Tech/BCA",  pg: "Not Required",    url: "#", dept: "Engineering", skills: "React, TypeScript, CSS" },
+  { industry: "Infosys Ltd.",    job: "Java Backend Engineer",   desc: "Develop REST APIs with Spring Boot.",    role: "Software Engineer", ug: "B.Tech",      pg: "M.Tech preferred", url: "#", dept: "Backend",      skills: "Java, Spring Boot, AWS" },
+  { industry: "Analytics Co.",   job: "Data Analyst",            desc: "Insights from large datasets.",          role: "Analyst",           ug: "Any Graduate", pg: "MBA/MCA plus",    url: "#", dept: "Analytics",    skills: "Python, SQL, Tableau" },
+  { industry: "CloudSoft",       job: "DevOps Engineer",         desc: "CI/CD pipelines and cloud infra.",       role: "DevOps",            ug: "B.Tech/BCA",  pg: "Not Required",    url: "#", dept: "Infrastructure",skills: "Docker, Kubernetes, AWS" },
+  { industry: "DataViz Inc.",    job: "ML Engineer",             desc: "Build and deploy ML models.",            role: "MLE",               ug: "B.Tech/MCA",  pg: "M.Tech preferred", url: "#", dept: "AI/ML",        skills: "Python, TensorFlow, MLflow" },
+  { industry: "StartupHub",      job: "Full Stack Developer",    desc: "End-to-end feature development.",        role: "SDE-2",             ug: "Any CS Degree",pg: "Not Required",   url: "#", dept: "Product",      skills: "React, Node.js, PostgreSQL" },
 ];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ function toBase64(file) {
 function calcCompletion(p) {
   if (!p) return 0;
   const checks = [
-    !!p.name, !!p.email, !!p.phone, !!p.address,
+    !!p.fullName || !!p.name, !!p.email, !!p.phone, !!p.address,
     !!(p.about?.length > 10), !!(p.skills?.length > 0),
     !!p.photo, !!p.tenth, !!p.twelfth, !!p.graduation,
     !!(p.certificates?.length > 0), !!(p.resumes?.length > 0),
@@ -66,37 +67,7 @@ function calcCompletion(p) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-function buildDefaultProfile(supabaseUser, authUser) {
-  return {
-    id:            supabaseUser?.id   || authUser?.id   || "",
-    name:          authUser?.fullName || supabaseUser?.email?.split("@")[0] || "Student",
-    email:         supabaseUser?.email || authUser?.email || "",
-    username:      (authUser?.fullName || "student").toLowerCase().replace(/\s+/g, "_"),
-    qualification: "",
-    phone:         "",
-    address:       "",
-    about:         "",
-    skills:        [],
-    photo:         null,
-    coverPhoto:    null,
-    tenth:         "",
-    twelfth:       "",
-    graduation:    "",
-    certificates:  [],
-    personalPosts: [],
-    resumes:       [],
-    chats:         {},
-    linkedin:      "",
-    github:        "",
-    website:       "",
-    experience:    "",
-    cgpa:          "",
-    projects:      "",
-    achievements:  "",
-  };
-}
-
-// ─── CSS ──────────────────────────────────────────────────────────────────────
+// ─── CSS (unchanged from original) ───────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
@@ -424,11 +395,15 @@ textarea.field-input{resize:vertical;min-height:85px}
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { user, authUser, signOut, loading } = useAuth();
+
+  // ── Pull everything from AuthContext — profile is read/written via Supabase
+  const { user, authUser, signOut, loading, saveProfile, refreshAuthUser } = useAuth();
+
+  // ── Local profile state (mirrors authUser, editable locally) ──────────────
+  const [profile, setProfile] = useState(null);
 
   // UI state
   const [activeTab,         setActiveTab]        = useState("feed");
-  const [editMode,          setEditMode]          = useState(false);
   const [showDetails,       setShowDetails]       = useState(false);
   const [activeChat,        setActiveChat]        = useState(null);
   const [activeUserProfile, setActiveUserProfile] = useState(null);
@@ -439,32 +414,26 @@ export default function StudentDashboard() {
   const [postDetailModal,   setPostDetailModal]   = useState(null);
   const [sidebarOpen,       setSidebarOpen]       = useState(false);
 
-  // Data state
-  const [profile,        setProfile]        = useState(null);
+  // Feed data (still from backend — not auth-related)
   const [industries,     setIndustries]     = useState([]);
   const [courses,        setCourses]        = useState([]);
   const [allJobs,        setAllJobs]        = useState([]);
   const [matchedJobs,    setMatchedJobs]    = useState([]);
   const [vacancies,      setVacancies]      = useState([]);
   const [myApplications, setMyApplications] = useState([]);
-
-  // Loading / boot state
   const [isFeedLoading,  setIsFeedLoading]  = useState(true);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [bootDone,       setBootDone]       = useState(false);
-  const [bootError,      setBootError]      = useState(null);
 
-  // Profile page state
-  const [pfTab,        setPfTab]        = useState("overview");
-  const [pfEditing,    setPfEditing]    = useState(false);
-  const [pfForm,       setPfForm]       = useState({});
-  const [pfSaving,     setPfSaving]     = useState(false);
-  const [pfToast,      setPfToast]      = useState(null);
-  const [skillInput,   setSkillInput]   = useState("");
+  // Profile edit state
+  const [pfTab,      setPfTab]      = useState("overview");
+  const [pfEditing,  setPfEditing]  = useState(false);
+  const [pfForm,     setPfForm]     = useState({});
+  const [pfSaving,   setPfSaving]   = useState(false);
+  const [pfToast,    setPfToast]    = useState(null);
+  const [skillInput, setSkillInput] = useState("");
   const [coverPreview, setCoverPreview] = useState(null);
 
-  // ── Refs ───────────────────────────────────────────────────────────────────
-  const hasBootedRef = useRef(false);
   const mountedRef   = useRef(true);
   const coverRef     = useRef();
   const avatarRef    = useRef();
@@ -473,386 +442,343 @@ export default function StudentDashboard() {
   const postRef      = useRef();
   const chatEndRef   = useRef();
   const chatInputRef = useRef();
+  const hasBootedRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ── Safe setState helpers ──────────────────────────────────────────────────
-  const safeSet = useCallback((setter) => (...args) => {
-    if (mountedRef.current) setter(...args);
-  }, []);
+  // ── Sync profile from authUser (populated by Supabase directly) ───────────
+  useEffect(() => {
+    if (!authUser) return;
+    setProfile({
+      id:            authUser.id,
+      name:          authUser.fullName || authUser.email?.split('@')[0] || 'Student',
+      email:         authUser.email         || '',
+      username:      authUser.username      || (authUser.fullName || 'student').toLowerCase().replace(/\s+/g, '_'),
+      qualification: authUser.qualification || '',
+      phone:         authUser.phone         || '',
+      address:       authUser.address       || '',
+      about:         authUser.about         || '',
+      skills:        authUser.skills        || [],
+      photo:         authUser.photo         || null,
+      coverPhoto:    authUser.coverPhoto    || null,
+      tenth:         authUser.tenth         || '',
+      twelfth:       authUser.twelfth       || '',
+      graduation:    authUser.graduation    || '',
+      cgpa:          authUser.cgpa          || '',
+      certificates:  authUser.certificates  || [],
+      personalPosts: authUser.personalPosts || [],
+      resumes:       authUser.resumes       || [],
+      chats:         {},
+      linkedin:      authUser.linkedin      || '',
+      github:        authUser.github        || '',
+      website:       authUser.website       || '',
+      experience:    authUser.experience    || '',
+      projects:      authUser.projects      || '',
+      achievements:  authUser.achievements  || '',
+    });
+  }, [authUser]);
 
-  const setProfileSafe        = useCallback(safeSet(setProfile),        [safeSet]);
-  const setIndustriesSafe     = useCallback(safeSet(setIndustries),     [safeSet]);
-  const setCoursesSafe        = useCallback(safeSet(setCourses),        [safeSet]);
-  const setAllJobsSafe        = useCallback(safeSet(setAllJobs),        [safeSet]);
-  const setVacanciesSafe      = useCallback(safeSet(setVacancies),      [safeSet]);
-  const setMyApplicationsSafe = useCallback(safeSet(setMyApplications), [safeSet]);
-  const setMatchedJobsSafe    = useCallback(safeSet(setMatchedJobs),    [safeSet]);
-  const setIsFeedLoadingSafe  = useCallback(safeSet(setIsFeedLoading),  [safeSet]);
-  const setBootDoneSafe       = useCallback(safeSet(setBootDone),       [safeSet]);
-  const setBootErrorSafe      = useCallback(safeSet(setBootError),      [safeSet]);
-  const setIsMatchLoadingSafe = useCallback(safeSet(setIsMatchLoading), [safeSet]);
+  // ── Auth guard ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (loading) return;
+    if (!user && !authUser) { navigate('/login', { replace: true }); return; }
+    if (!hasBootedRef.current) { hasBootedRef.current = true; loadFeedData(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, authUser]);
 
-  // ── BOOT FUNCTION — defined first so the effect below can call it ──────────
-  // Accepts resolvedUser and resolvedAuthUser as params so it always gets
-  // the live auth values at the moment boot is triggered, not stale closures.
-  const runBoot = useCallback(async (resolvedUser, resolvedAuthUser) => {
-    setIsFeedLoadingSafe(true);
-
-    const userId = resolvedUser?.id || resolvedAuthUser?.id;
-
-    // Seed skeleton immediately so UI is never blank
-    setProfileSafe(buildDefaultProfile(resolvedUser, resolvedAuthUser));
-
+  // ── Load non-auth feed data from backend ──────────────────────────────────
+  const loadFeedData = async () => {
+    setIsFeedLoading(true);
+    const userId = authUser?.id || user?.id;
     try {
-      if (userId) {
-        try {
-          const res = await axios.get(
-            `${BASE}/api/get-profile?user_id=${userId}`,
-            { timeout: 10000 }
-          );
-          const d = res.data;
-          if (d?.id && mountedRef.current) {
-            setProfileSafe({
-              id:            d.id,
-              name:          d.name || d.full_name || resolvedAuthUser?.fullName || resolvedUser?.email?.split("@")[0] || "Student",
-              email:         d.email || resolvedUser?.email || "",
-              username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
-              qualification: d.qualification || "",
-              phone:         d.phone         || "",
-              address:       d.address       || d.location || "",
-              about:         d.about         || "",
-              skills:        Array.isArray(d.skills) ? d.skills : [],
-              photo:         d.photo         || null,
-              coverPhoto:    d.coverPhoto    || null,
-              tenth:         d.tenth         || "",
-              twelfth:       d.twelfth       || "",
-              graduation:    d.graduation    || "",
-              certificates:  d.certificates  || [],
-              personalPosts: d.personalPosts || d.personal_posts || [],
-              resumes:       d.resumes       || [],
-              chats:         d.chats         || {},
-              linkedin:      d.linkedin      || "",
-              github:        d.github        || "",
-              website:       d.website       || "",
-              experience:    d.experience    || "",
-              cgpa:          d.cgpa          || "",
-              projects:      d.projects      || "",
-              achievements:  d.achievements  || "",
-            });
-          }
-        } catch (profileErr) {
-          console.warn("Profile fetch failed — using skeleton:", profileErr?.message);
-        }
-      }
-
       const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
         axios.get(`${BASE}/api/industries`,  { timeout: 8000 }),
         axios.get(`${BASE}/api/courses`,     { timeout: 8000 }),
         axios.get(`${BASE}/api/vacancies`,   { timeout: 8000 }),
-        userId
-          ? axios.get(`${BASE}/api/applications/student/${userId}`, { timeout: 8000 })
-          : Promise.resolve({ data: [] }),
+        userId ? axios.get(`${BASE}/api/applications/student/${userId}`, { timeout: 8000 }) : Promise.resolve({ data: [] }),
         axios.get(`${BASE}/api/all-jobs`,    { timeout: 8000 }),
       ]);
 
       if (!mountedRef.current) return;
 
-      setIndustriesSafe(
-        indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
-          ? indRes.value.data : mockIndustries
+      setIndustries(
+        indRes.status === 'fulfilled' && indRes.value?.data?.length ? indRes.value.data : mockIndustries
       );
-      setCoursesSafe(
-        coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
-          ? coursesRes.value.data : mockCourses
+      setCourses(
+        coursesRes.status === 'fulfilled' && coursesRes.value?.data?.length ? coursesRes.value.data : mockCourses
       );
 
-      const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
+      const loadedInd = indRes.status === 'fulfilled' && indRes.value?.data?.length
         ? indRes.value.data : mockIndustries;
 
-      if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
-        setVacanciesSafe(vacRes.value.data.map(v => ({
+      if (vacRes.status === 'fulfilled' && Array.isArray(vacRes.value?.data)) {
+        setVacancies(vacRes.value.data.map(v => ({
           id:        v.id,
           ownerId:   v.owner_id || v.ownerId,
-          ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
-          ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
-          type:      v.type || "Job Vacancy",
+          ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || 'Company',
+          ownerLogo: (v.owner_name || 'CO').substring(0, 2).toUpperCase(),
+          type:      v.type || 'Job Vacancy',
           title:     v.title,
-          desc:      v.description || v.desc || "",
-          skills:    v.skills || "",
-          duration:  v.duration || "Full-Time",
-          offerings: v.offerings || "",
-          date:      v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
+          desc:      v.description || v.desc || '',
+          skills:    v.skills || '',
+          duration:  v.duration || 'Full-Time',
+          offerings: v.offerings || '',
+          date:      v.created_at ? new Date(v.created_at).toLocaleDateString() : 'Recent',
           likes:     v.likes || 0,
         })));
-      } else {
-        setVacanciesSafe(mockVacancies);
-      }
+      } else setVacancies(mockVacancies);
 
-      if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
-        setMyApplicationsSafe(appsRes.value.data.map(a => ({
+      if (appsRes.status === 'fulfilled' && Array.isArray(appsRes.value?.data)) {
+        setMyApplications(appsRes.value.data.map(a => ({
           id:          a.id,
           postId:      a.vacancy_id,
-          role:        a.vacancies?.title || "Role",
-          company:     a.vacancies?.owner_name || "Company",
+          role:        a.vacancies?.title || 'Role',
+          company:     a.vacancies?.owner_name || 'Company',
           appliedOn:   new Date(a.created_at).toLocaleDateString(),
-          status:      a.status || "Pending",
+          status:      a.status || 'Pending',
           coverLetter: a.cover_letter,
         })));
       }
 
-      if (jobsRes.status === "fulfilled") {
+      if (jobsRes.status === 'fulfilled') {
         let raw = jobsRes.value?.data || [];
-        if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
         if (!Array.isArray(raw)) raw = [];
         const jobs = raw.map(j => ({
-          industry: j.industry || j.company || j.employer || "Company",
-          job:      j.job      || j.title   || j.position || "Job Opening",
-          desc:     j.desc     || j.description || j.summary || "",
-          role:     j.role     || j.role_type   || "",
-          ug:       j.ug       || j.education_ug || j.education || "",
-          pg:       j.pg       || j.education_pg || "",
-          url:      j.url      || j.link || j.apply_url || "#",
-          dept:     j.dept     || j.department || j.category || "",
-          skills:   j.skills   || j.required_skills || "",
+          industry: j.industry || j.company || 'Company',
+          job:      j.job      || j.title   || 'Job Opening',
+          desc:     j.desc     || j.description || '',
+          role:     j.role     || '',
+          ug:       j.ug       || j.education || '',
+          pg:       j.pg       || '',
+          url:      j.url      || j.link || '#',
+          dept:     j.dept     || j.department || '',
+          skills:   j.skills   || '',
         }));
-        setAllJobsSafe(jobs.length ? jobs : mockJobs);
-      } else {
-        setAllJobsSafe(mockJobs);
-      }
+        setAllJobs(jobs.length ? jobs : mockJobs);
+      } else setAllJobs(mockJobs);
 
-    } catch (err) {
-      console.error("Boot error:", err);
-      if (!mountedRef.current) return;
-      setIndustriesSafe(mockIndustries);
-      setCoursesSafe(mockCourses);
-      setVacanciesSafe(mockVacancies);
-      setAllJobsSafe(mockJobs);
+    } catch {
+      setIndustries(mockIndustries);
+      setCourses(mockCourses);
+      setVacancies(mockVacancies);
+      setAllJobs(mockJobs);
     } finally {
-      if (mountedRef.current) {
-        setIsFeedLoadingSafe(false);
-        setBootDoneSafe(true);
-      }
+      if (mountedRef.current) { setIsFeedLoading(false); setBootDone(true); }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
-  // ── Wait for AuthContext to resolve, then boot exactly once ───────────────
-  useEffect(() => {
-    if (loading) return;                      // AuthContext still initialising
-
-    if (!user && !authUser) {                 // Auth done, no session → login
-      setBootErrorSafe("auth");
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    if (!hasBootedRef.current) {              // Auth ready → boot once
-      hasBootedRef.current = true;
-      runBoot(user, authUser);               // Pass live values as args
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, authUser]);
-
-  // ── AI skill match ─────────────────────────────────────────────────────────
+  // ── AI skill match ────────────────────────────────────────────────────────
   const skillsKey = useMemo(
-    () => (profile?.skills ?? []).slice().sort().join(","),
+    () => (profile?.skills ?? []).slice().sort().join(','),
     [profile?.skills]
   );
-
   useEffect(() => {
     if (!skillsKey || !bootDone) return;
     let cancelled = false;
     const doMatch = async () => {
-      setIsMatchLoadingSafe(true);
+      setIsMatchLoading(true);
       try {
-        const res = await axios.post(
-          `${BASE}/api/analyze-skills`,
-          { skills: skillsKey },
-          { timeout: 12000 }
-        );
-        if (!cancelled && mountedRef.current)
-          setMatchedJobsSafe(Array.isArray(res.data) ? res.data : []);
-      } catch {
-        if (!cancelled && mountedRef.current) setMatchedJobsSafe([]);
-      }
-      if (!cancelled && mountedRef.current) setIsMatchLoadingSafe(false);
+        const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: skillsKey }, { timeout: 12000 });
+        if (!cancelled && mountedRef.current) setMatchedJobs(Array.isArray(res.data) ? res.data : []);
+      } catch { if (!cancelled) setMatchedJobs([]); }
+      if (!cancelled && mountedRef.current) setIsMatchLoading(false);
     };
     doMatch();
     return () => { cancelled = true; };
   }, [skillsKey, bootDone]);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [profile?.chats, activeChat]);
-
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [profile?.chats, activeChat]);
   useEffect(() => { setSidebarOpen(false); }, [activeTab]);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const pushNotify = useCallback((msg) => {
     const id = Date.now();
     setNotifications(prev => [...prev, { id, msg }]);
-    setTimeout(() => {
-      if (mountedRef.current)
-        setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 3500);
+    setTimeout(() => { if (mountedRef.current) setNotifications(prev => prev.filter(n => n.id !== id)); }, 3500);
   }, []);
 
-  const showPfToast = useCallback((msg, type = "success") => {
+  const showPfToast = useCallback((msg, type = 'success') => {
     setPfToast({ msg, type });
     setTimeout(() => { if (mountedRef.current) setPfToast(null); }, 3000);
   }, []);
 
   const alreadyApplied = (postId) => myApplications.some(a => a.postId === postId);
 
+  // ── Send message (backend still used for messaging) ───────────────────────
   const sendMessage = async (toId, message) => {
-    if (!authUser?.id) return;
+    if (!user?.id) return;
     try {
-      await axios.post(`${BASE}/api/messages`, {
-        sender_id: authUser.id, receiver_id: toId, text: message,
-      });
-      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      await axios.post(`${BASE}/api/messages`, { sender_id: user.id, receiver_id: toId, text: message });
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setProfile(prev => ({
         ...prev,
-        chats: {
-          ...prev.chats,
-          [toId]: [...(prev.chats?.[toId] || []), { sender: prev.name, message, time }],
-        },
+        chats: { ...prev.chats, [toId]: [...(prev.chats?.[toId] || []), { sender: prev.name, message, time }] },
       }));
-    } catch { pushNotify("Failed to send message."); }
+    } catch { pushNotify('Failed to send message.'); }
   };
 
+  // ── Apply to vacancy (backend) ────────────────────────────────────────────
   const handleApplySubmit = async (e) => {
     e.preventDefault();
-    if (!applyModal || !authUser?.id) return;
+    if (!applyModal || !user?.id) return;
     try {
       const res = await axios.post(`${BASE}/api/applications`, {
         vacancy_id:   applyModal.id,
-        student_id:   authUser.id,
+        student_id:   user.id,
         cover_letter: applyForm.coverLetter,
       });
       setMyApplications(prev => [...prev, {
         id: res.data.id || Date.now(), postId: applyModal.id,
         role: applyModal.title, company: applyModal.ownerName,
-        appliedOn: new Date().toLocaleDateString(), status: "Pending",
+        appliedOn: new Date().toLocaleDateString(), status: 'Pending',
       }]);
       pushNotify(`✓ Applied to ${applyModal.title}!`);
-      setApplyForm({ coverLetter: "" });
+      setApplyForm({ coverLetter: '' });
       setApplyModal(null);
       setPostDetailModal(null);
-    } catch { pushNotify("Failed to apply — you may have already applied."); }
+    } catch { pushNotify('Failed to apply — you may have already applied.'); }
   };
 
   const handleLogout = async () => {
     try { await signOut(); } catch {}
-    navigate("/login");
+    navigate('/login');
+  };
+
+  // ── Profile photo / cover upload — saved DIRECTLY to Supabase ─────────────
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const b64 = await toBase64(file);
+    try {
+      await saveProfile(profile.id, { photo: b64 });
+      setProfile(p => ({ ...p, photo: b64 }));
+      showPfToast('✓ Photo updated');
+    } catch { showPfToast('✗ Upload failed', 'error'); }
+  };
+
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const b64 = await toBase64(file);
+    setCoverPreview(b64);
+    try { await saveProfile(profile.id, { coverPhoto: b64 }); }
+    catch { console.warn('Cover upload failed'); }
+  };
+
+  const handleCertUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
+    setPfForm(p => ({ ...p, certificates: [...(p.certificates || []), ...results] }));
+  };
+
+  const handleResumeUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
+    setPfForm(p => ({ ...p, resumes: [...(p.resumes || []), ...results] }));
+  };
+
+  const handlePostUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
+    setPfForm(p => ({ ...p, personalPosts: [...(p.personalPosts || []), ...results] }));
   };
 
   const deletePost = (type, idx) => {
-    const key = type === "certificate" ? "certificates" : "personalPosts";
-    setProfile(prev => {
-      const arr = [...prev[key]];
-      arr.splice(idx, 1);
-      return { ...prev, [key]: arr };
-    });
+    const key = type === 'certificate' ? 'certificates' : 'personalPosts';
+    setProfile(prev => { const arr = [...prev[key]]; arr.splice(idx, 1); return { ...prev, [key]: arr }; });
   };
-
   const deleteResume = (idx) => {
-    setProfile(prev => {
-      const arr = [...prev.resumes];
-      arr.splice(idx, 1);
-      return { ...prev, resumes: arr };
-    });
+    setProfile(prev => { const arr = [...prev.resumes]; arr.splice(idx, 1); return { ...prev, resumes: arr }; });
   };
 
-  // ── Profile edit helpers ───────────────────────────────────────────────────
+  // ── Profile edit — saves DIRECTLY to Supabase via AuthContext.saveProfile ──
   const pffc = (k, v) => setPfForm(p => ({ ...p, [k]: v }));
 
   const startPfEdit = () => {
     setPfForm({
-      name:          profile.name          || "",
-      phone:         profile.phone         || "",
-      address:       profile.address       || "",
-      about:         profile.about         || "",
-      qualification: profile.qualification || "",
-      tenth:         profile.tenth         || "",
-      twelfth:       profile.twelfth       || "",
-      graduation:    profile.graduation    || "",
-      website:       profile.website       || "",
-      linkedin:      profile.linkedin      || "",
-      github:        profile.github        || "",
-      experience:    profile.experience    || "",
-      cgpa:          profile.cgpa          || "",
-      projects:      profile.projects      || "",
-      achievements:  profile.achievements  || "",
+      name:          profile.name          || '',
+      phone:         profile.phone         || '',
+      address:       profile.address       || '',
+      about:         profile.about         || '',
+      qualification: profile.qualification || '',
+      tenth:         profile.tenth         || '',
+      twelfth:       profile.twelfth       || '',
+      graduation:    profile.graduation    || '',
+      website:       profile.website       || '',
+      linkedin:      profile.linkedin      || '',
+      github:        profile.github        || '',
+      experience:    profile.experience    || '',
+      cgpa:          profile.cgpa          || '',
+      projects:      profile.projects      || '',
+      achievements:  profile.achievements  || '',
       skills:        [...(profile.skills        || [])],
       certificates:  [...(profile.certificates  || [])],
       resumes:       [...(profile.resumes       || [])],
       personalPosts: [...(profile.personalPosts || [])],
     });
     setPfEditing(true);
-    setPfTab("overview");
+    setPfTab('overview');
   };
 
   const savePfForm = async () => {
     if (!profile?.id) return;
     setPfSaving(true);
     try {
-      const payload = {
-        name:          pfForm.name          || "",
-        phone:         pfForm.phone         || "",
-        address:       pfForm.address       || "",
-        about:         pfForm.about         || "",
-        qualification: pfForm.qualification || "",
-        tenth:         pfForm.tenth         || "",
-        twelfth:       pfForm.twelfth       || "",
-        graduation:    pfForm.graduation    || "",
-        website:       pfForm.website       || "",
-        linkedin:      pfForm.linkedin      || "",
-        github:        pfForm.github        || "",
-        cgpa:          pfForm.cgpa          || "",
-        experience:    pfForm.experience    || "",
-        projects:      pfForm.projects      || "",
-        achievements:  pfForm.achievements  || "",
+      // Save directly to Supabase through AuthContext.saveProfile
+      const updated = await saveProfile(profile.id, {
+        fullName:      pfForm.name          || '',
+        phone:         pfForm.phone         || '',
+        address:       pfForm.address       || '',
+        about:         pfForm.about         || '',
+        qualification: pfForm.qualification || '',
+        tenth:         pfForm.tenth         || '',
+        twelfth:       pfForm.twelfth       || '',
+        graduation:    pfForm.graduation    || '',
+        website:       pfForm.website       || '',
+        linkedin:      pfForm.linkedin      || '',
+        github:        pfForm.github        || '',
+        cgpa:          pfForm.cgpa          || '',
+        experience:    pfForm.experience    || '',
+        projects:      pfForm.projects      || '',
+        achievements:  pfForm.achievements  || '',
         skills:        pfForm.skills        || [],
-        ...(pfForm.certificates  ? { certificates:  pfForm.certificates  } : {}),
-        ...(pfForm.resumes       ? { resumes:       pfForm.resumes       } : {}),
-        ...(pfForm.personalPosts ? { personalPosts: pfForm.personalPosts } : {}),
-      };
+        certificates:  pfForm.certificates  || [],
+        resumes:       pfForm.resumes       || [],
+        personalPosts: pfForm.personalPosts || [],
+      });
 
-      await axios.put(`${BASE}/api/profile/${profile.id}`, payload, { timeout: 20000 });
-
-      setProfile(prev => ({
-        ...prev,
-        name:          payload.name,
-        phone:         payload.phone,
-        address:       payload.address,
-        about:         payload.about,
-        qualification: payload.qualification,
-        tenth:         payload.tenth,
-        twelfth:       payload.twelfth,
-        graduation:    payload.graduation,
-        website:       payload.website,
-        linkedin:      payload.linkedin,
-        github:        payload.github,
-        cgpa:          payload.cgpa,
-        experience:    payload.experience,
-        projects:      payload.projects,
-        achievements:  payload.achievements,
-        skills:        payload.skills,
-        ...(pfForm.certificates  ? { certificates:  pfForm.certificates  } : {}),
-        ...(pfForm.resumes       ? { resumes:       pfForm.resumes       } : {}),
-        ...(pfForm.personalPosts ? { personalPosts: pfForm.personalPosts } : {}),
-      }));
+      // Sync local profile state with what came back from Supabase
+      if (updated) {
+        setProfile(prev => ({
+          ...prev,
+          name:          updated.fullName      || prev.name,
+          phone:         updated.phone         || '',
+          address:       updated.address       || '',
+          about:         updated.about         || '',
+          qualification: updated.qualification || '',
+          tenth:         updated.tenth         || '',
+          twelfth:       updated.twelfth       || '',
+          graduation:    updated.graduation    || '',
+          website:       updated.website       || '',
+          linkedin:      updated.linkedin      || '',
+          github:        updated.github        || '',
+          cgpa:          updated.cgpa          || '',
+          experience:    updated.experience    || '',
+          projects:      updated.projects      || '',
+          achievements:  updated.achievements  || '',
+          skills:        updated.skills        || [],
+          certificates:  updated.certificates  || [],
+          resumes:       updated.resumes       || [],
+          personalPosts: updated.personalPosts || [],
+        }));
+      }
 
       setPfEditing(false);
-      showPfToast("✓ Profile updated");
+      showPfToast('✓ Profile updated');
     } catch (err) {
-      console.error("savePfForm error:", err?.response?.data || err.message);
-      showPfToast(`✗ ${err?.response?.data?.error || "Could not save — check console"}`, "error");
+      console.error('savePfForm error:', err);
+      showPfToast(`✗ ${err?.message || 'Could not save profile'}`, 'error');
     }
     setPfSaving(false);
   };
@@ -860,103 +786,38 @@ export default function StudentDashboard() {
   const addSkill = (s) => {
     const sk = s.trim();
     if (!sk || pfForm.skills?.includes(sk)) return;
-    pffc("skills", [...(pfForm.skills || []), sk]);
-    setSkillInput("");
+    pffc('skills', [...(pfForm.skills || []), sk]);
+    setSkillInput('');
   };
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const b64 = await toBase64(file);
-    try {
-      await axios.put(`${BASE}/api/profile/${profile.id}`, { photo: b64 });
-      setProfile(p => ({ ...p, photo: b64 }));
-      showPfToast("✓ Photo updated");
-    } catch { showPfToast("✗ Upload failed", "error"); }
-  };
-
-  const handleCoverUpload = async (e) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    const b64 = await toBase64(file);
-    setCoverPreview(b64);
-    try { await axios.put(`${BASE}/api/profile/${profile.id}`, { coverPhoto: b64 }); } catch {}
-  };
-
-  const handleCertUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
-    pffc("certificates", [...(pfForm.certificates || []), ...results]);
-  };
-
-  const handleResumeUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
-    pffc("resumes", [...(pfForm.resumes || []), ...results]);
-  };
-
-  const handlePostUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
-    pffc("personalPosts", [...(pfForm.personalPosts || []), ...results]);
-  };
-
-  // ── Type chip helper ───────────────────────────────────────────────────────
+  // ── Type chip ─────────────────────────────────────────────────────────────
   const typeChip = (type) => {
     if (!type) return <span className="type-chip chip-job">Job</span>;
-    if (type.toLowerCase().includes("intern")) return <span className="type-chip chip-intern">Internship</span>;
-    if (type.toLowerCase().includes("train"))  return <span className="type-chip chip-train">Training</span>;
+    if (type.toLowerCase().includes('intern')) return <span className="type-chip chip-intern">Internship</span>;
+    if (type.toLowerCase().includes('train'))  return <span className="type-chip chip-train">Training</span>;
     return <span className="type-chip chip-job">{type}</span>;
   };
 
-  // ── Sidebar panel ──────────────────────────────────────────────────────────
+  // ── Sidebar panel ─────────────────────────────────────────────────────────
   const renderPanel = (panelUser, editable = false) => (
-    <div style={{ overflowY: "auto", height: "100%" }}>
+    <div style={{ overflowY: 'auto', height: '100%' }}>
       <div className="sb-top">
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
             <div className="sb-av">
-              {panelUser.photo
-                ? <img src={panelUser.photo} alt="" />
-                : (panelUser.name || "U")[0].toUpperCase()
-              }
+              {panelUser.photo ? <img src={panelUser.photo} alt="" /> : (panelUser.name || 'U')[0].toUpperCase()}
             </div>
             <div>
-              <div className="sb-name">{panelUser.name || "Student"}</div>
-              <div className="sb-handle">@{panelUser.username || "student"}</div>
+              <div className="sb-name">{panelUser.name || 'Student'}</div>
+              <div className="sb-handle">@{panelUser.username || 'student'}</div>
             </div>
           </div>
-          {editable
-            ? <div style={{ display: "flex", gap: 5 }}>
-                {editMode && (
-                  <button className="sb-save-btn" onClick={async () => {
-                    if (!authUser?.id || !profile) return;
-                    try {
-                      await axios.put(`${BASE}/api/profile/${authUser.id}`, {
-                        name:        profile.name,
-                        qualification: profile.qualification,
-                        phone:       profile.phone,
-                        address:     profile.address,
-                        tenth:       profile.tenth,
-                        twelfth:     profile.twelfth,
-                        graduation:  profile.graduation,
-                        skills:      profile.skills,
-                        about:       profile.about,
-                      });
-                      pushNotify("✓ Profile saved");
-                    } catch { pushNotify("Changes saved locally."); }
-                    setEditMode(false);
-                  }}>✓ Save</button>
-                )}
-                <button className="sb-edit-btn" onClick={() => setEditMode(m => !m)}>
-                  {editMode ? "✕" : "✎ Edit"}
-                </button>
-              </div>
-            : <button className="close-x" onClick={() => setActiveUserProfile(null)}>✕</button>
-          }
+          {!editable && <button className="close-x" onClick={() => setActiveUserProfile(null)}>✕</button>}
         </div>
-        <div style={{ marginTop: ".65rem", display: "flex", flexWrap: "wrap", gap: ".3rem", position: "relative", zIndex: 1 }}>
+        <div style={{ marginTop: '.65rem', display: 'flex', flexWrap: 'wrap', gap: '.3rem', position: 'relative', zIndex: 1 }}>
           {panelUser.qualification && <span className="sb-badge">🎓 {panelUser.qualification}</span>}
           {(panelUser.skills || []).slice(0, 3).map((s, i) => (
-            <span key={i} className="sb-badge" style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.18)", fontSize: ".6rem" }}>⚡ {s}</span>
+            <span key={i} className="sb-badge" style={{ background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.18)', fontSize: '.6rem' }}>⚡ {s}</span>
           ))}
         </div>
       </div>
@@ -967,119 +828,29 @@ export default function StudentDashboard() {
           <div className="comp-bar-wrap">
             <div className="comp-label">
               <span>Profile Strength</span>
-              <span style={{ color: comp >= 80 ? "var(--emerald)" : comp >= 50 ? "var(--amber)" : "var(--rose)" }}>{comp}%</span>
+              <span style={{ color: comp >= 80 ? 'var(--emerald)' : comp >= 50 ? 'var(--amber)' : 'var(--rose)' }}>{comp}%</span>
             </div>
             <div className="comp-track"><div className="comp-fill" style={{ width: `${comp}%` }} /></div>
           </div>
         );
       })()}
 
-      {editable && editMode && (
-        <>
-          <div className="fs">
-            <div className="fs-title">Photo</div>
-            <label className="upload-btn">📷 Change Photo
-              <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
-                const f = e.target.files[0];
-                if (f) setProfile(p => ({ ...p, photo: URL.createObjectURL(f) }));
-              }} />
-            </label>
-          </div>
-          <div className="fs">
-            <div className="fs-title">Personal Info</div>
-            <div className="fg">
-              {[
-                { name: "name",          label: "Full Name",    placeholder: "Your full name" },
-                { name: "phone",         label: "Phone",        placeholder: "+91 XXXXXXXXXX" },
-                { name: "address",       label: "City",         placeholder: "Your city" },
-                { name: "qualification", label: "Qualification",placeholder: "e.g. BCA" },
-              ].map(f => (
-                <div className="ff" key={f.name}>
-                  <label className="fl">{f.label}</label>
-                  <input name={f.name} placeholder={f.placeholder} value={profile?.[f.name] || ""}
-                    onChange={e => setProfile(p => ({ ...p, [e.target.name]: e.target.value }))}
-                    className="fi" />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="fs">
-            <div className="fs-title">Academic</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: ".38rem" }}>
-              {[
-                { name: "tenth",      label: "10th" },
-                { name: "twelfth",    label: "12th" },
-                { name: "graduation", label: "Graduation / College" },
-              ].map(f => (
-                <div className="ff" key={f.name}>
-                  <label className="fl">{f.label}</label>
-                  <input name={f.name} value={profile?.[f.name] || ""}
-                    onChange={e => setProfile(p => ({ ...p, [e.target.name]: e.target.value }))}
-                    className="fi" />
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="fs">
-            <div className="fs-title">Upload Resume</div>
-            <label className="upload-btn">📄 Add Resume
-              <input type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                setProfile(prev => ({
-                  ...prev,
-                  resumes: [...prev.resumes, { url: URL.createObjectURL(file), name: file.name, type: file.type }],
-                }));
-                pushNotify("Resume added!");
-              }} />
-            </label>
-            {(profile?.resumes || []).map((r, i) => (
-              <div key={i} className="resume-item" style={{ marginTop: ".38rem" }}>
-                <span style={{ fontSize: "1rem" }}>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
-                <span className="resume-name">{r.name}</span>
-                <button className="resume-del" onClick={() => deleteResume(i)}>✕</button>
-              </div>
-            ))}
-          </div>
-          <div className="fs">
-            <div className="fs-title">Certificate</div>
-            <label className="upload-btn">+ Add Certificate
-              <input type="file" style={{ display: "none" }} onChange={e => {
-                const f = e.target.files[0];
-                if (!f) return;
-                setProfile(p => ({ ...p, certificates: [...p.certificates, { url: URL.createObjectURL(f), type: f.type }] }));
-              }} />
-            </label>
-          </div>
-          <div className="fs">
-            <div className="fs-title">Activity Post</div>
-            <label className="upload-btn">+ Add Post
-              <input type="file" style={{ display: "none" }} onChange={e => {
-                const f = e.target.files[0];
-                if (!f) return;
-                setProfile(p => ({ ...p, personalPosts: [...p.personalPosts, { url: URL.createObjectURL(f), type: f.type }] }));
-              }} />
-            </label>
-          </div>
-        </>
-      )}
-
-      <div style={{ padding: ".8rem 1.2rem", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ padding: '.8rem 1.2rem', borderBottom: '1px solid var(--border)' }}>
         <button className="know-btn" onClick={() => setShowDetails(d => !d)}>
-          <span style={{ fontSize: ".6rem" }}>{showDetails ? "▲" : "▼"}</span>
-          {showDetails ? "Hide Details" : "View Details"}
+          <span style={{ fontSize: '.6rem' }}>{showDetails ? '▲' : '▼'}</span>
+          {showDetails ? 'Hide Details' : 'View Details'}
         </button>
         {showDetails && (
-          <div className="details-box" style={{ marginTop: ".6rem" }}>
-            <div className="details-row">✉ {panelUser.email    || "Not provided"}</div>
-            <div className="details-row">📞 {panelUser.phone   || "Not provided"}</div>
-            <div className="details-row">📍 {panelUser.address || "Not provided"}</div>
+          <div className="details-box" style={{ marginTop: '.6rem' }}>
+            <div className="details-row">✉ {panelUser.email    || 'Not provided'}</div>
+            <div className="details-row">📞 {panelUser.phone   || 'Not provided'}</div>
+            <div className="details-row">📍 {panelUser.address || 'Not provided'}</div>
             {panelUser.linkedin && <div className="details-row">🔗 {panelUser.linkedin}</div>}
             <div className="details-sh">Academic</div>
-            <div className="details-row">10th — {panelUser.tenth      || "—"}</div>
-            <div className="details-row">12th — {panelUser.twelfth    || "—"}</div>
-            <div className="details-row">Grad — {panelUser.graduation || "—"}</div>
-            {panelUser.cgpa && <div className="details-row">CGPA — {panelUser.cgpa}</div>}
+            <div className="details-row">10th — {panelUser.tenth      || '—'}</div>
+            <div className="details-row">12th — {panelUser.twelfth    || '—'}</div>
+            <div className="details-row">Grad  — {panelUser.graduation || '—'}</div>
+            {panelUser.cgpa && <div className="details-row">CGPA  — {panelUser.cgpa}</div>}
           </div>
         )}
       </div>
@@ -1090,7 +861,7 @@ export default function StudentDashboard() {
           ? <div className="empty-feed">No resumes uploaded.</div>
           : (panelUser.resumes || []).map((r, i) => (
             <div key={i} className="resume-item">
-              <span style={{ fontSize: "1rem" }}>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
+              <span style={{ fontSize: '1rem' }}>{r.type === 'application/pdf' ? '📑' : '🖼️'}</span>
               <span className="resume-name">{r.name}</span>
               {editable && <button className="resume-del" onClick={() => deleteResume(i)}>✕</button>}
             </div>
@@ -1104,8 +875,8 @@ export default function StudentDashboard() {
           : <div className="posts-grid">
               {(panelUser.certificates || []).map((p, i) => (
                 <div key={i} className="post-cell">
-                  {editable && <button className="post-del" onClick={() => deletePost("certificate", i)}>✕</button>}
-                  {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
+                  {editable && <button className="post-del" onClick={() => deletePost('certificate', i)}>✕</button>}
+                  {p.type?.startsWith('video') ? <video src={p.url} /> : <img src={p.url} alt="" />}
                 </div>
               ))}
             </div>
@@ -1118,8 +889,8 @@ export default function StudentDashboard() {
           : <div className="posts-grid">
               {(panelUser.personalPosts || []).map((p, i) => (
                 <div key={i} className="post-cell">
-                  {editable && <button className="post-del" onClick={() => deletePost("personal", i)}>✕</button>}
-                  {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
+                  {editable && <button className="post-del" onClick={() => deletePost('personal', i)}>✕</button>}
+                  {p.type?.startsWith('video') ? <video src={p.url} /> : <img src={p.url} alt="" />}
                 </div>
               ))}
             </div>
@@ -1128,7 +899,7 @@ export default function StudentDashboard() {
     </div>
   );
 
-  // ── Profile Page ───────────────────────────────────────────────────────────
+  // ── Profile Page ──────────────────────────────────────────────────────────
   const renderProfilePage = () => {
     const data       = pfEditing ? pfForm : profile;
     const skills     = data?.skills        || [];
@@ -1142,28 +913,28 @@ export default function StudentDashboard() {
       .slice(0, 8);
 
     const pfTabs = [
-      { id: "overview",   icon: "👤", label: "Overview"   },
-      { id: "skills",     icon: "⚡", label: "Skills"     },
-      { id: "academic",   icon: "🎓", label: "Academic"   },
-      { id: "experience", icon: "💼", label: "Experience" },
-      { id: "media",      icon: "🖼️", label: "Media"      },
-      { id: "resume",     icon: "📄", label: "Resume"     },
+      { id: 'overview',   icon: '👤', label: 'Overview'   },
+      { id: 'skills',     icon: '⚡', label: 'Skills'     },
+      { id: 'academic',   icon: '🎓', label: 'Academic'   },
+      { id: 'experience', icon: '💼', label: 'Experience' },
+      { id: 'media',      icon: '🖼️', label: 'Media'      },
+      { id: 'resume',     icon: '📄', label: 'Resume'     },
     ];
 
     return (
-      <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <input ref={coverRef}  type="file" accept="image/*"                    style={{ display: "none" }} onChange={handleCoverUpload}  />
-        <input ref={avatarRef} type="file" accept="image/*"                    style={{ display: "none" }} onChange={handleAvatarUpload} />
-        <input ref={certRef}   type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload}   />
-        <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: "none" }} onChange={handleResumeUpload} />
-        <input ref={postRef}   type="file" accept="image/*,video/*"         multiple style={{ display: "none" }} onChange={handlePostUpload}   />
+      <div style={{ maxWidth: 860, margin: '0 auto' }}>
+        <input ref={coverRef}  type="file" accept="image/*"                 style={{ display: 'none' }} onChange={handleCoverUpload}  />
+        <input ref={avatarRef} type="file" accept="image/*"                 style={{ display: 'none' }} onChange={handleAvatarUpload} />
+        <input ref={certRef}   type="file" accept="image/*,application/pdf" multiple style={{ display: 'none' }} onChange={handleCertUpload}   />
+        <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: 'none' }} onChange={handleResumeUpload} />
+        <input ref={postRef}   type="file" accept="image/*,video/*"         multiple style={{ display: 'none' }} onChange={handlePostUpload}   />
 
         {/* Cover */}
         <div className="pf-cover" onClick={() => coverRef.current?.click()}>
           {(coverPreview || profile.coverPhoto)
             ? <img src={coverPreview || profile.coverPhoto} alt="cover" />
-            : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0ea5e9 100%)", position: "relative" }}>
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)" }} />
+            : <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0ea5e9 100%)', position: 'relative' }}>
+                <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)' }} />
               </div>
           }
           <div className="pf-cover-ov"><span className="pf-cover-lbl">📸 Change Cover</span></div>
@@ -1171,38 +942,38 @@ export default function StudentDashboard() {
 
         {/* Hero */}
         <div className="pf-hero">
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: ".7rem" }}>
-            <div style={{ position: "relative" }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '.7rem' }}>
+            <div style={{ position: 'relative' }}>
               <div className="pf-av" onClick={() => avatarRef.current?.click()}>
                 {profile.photo
-                  ? <img src={profile.photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : <span>{(profile.name || "U")[0].toUpperCase()}</span>
+                  ? <img src={profile.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span>{(profile.name || 'U')[0].toUpperCase()}</span>
                 }
               </div>
               <div className="pf-av-cam" onClick={() => avatarRef.current?.click()}>📷</div>
             </div>
-            <div style={{ textAlign: "center", marginLeft: ".4rem" }}>
-              <div style={{ font: `800 1.5rem/1 'Syne',sans-serif`, color: completion >= 80 ? "var(--emerald)" : "var(--indigo)" }}>{completion}%</div>
-              <div style={{ fontSize: ".62rem", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".06em" }}>Complete</div>
+            <div style={{ textAlign: 'center', marginLeft: '.4rem' }}>
+              <div style={{ font: `800 1.5rem/1 'Syne',sans-serif`, color: completion >= 80 ? 'var(--emerald)' : 'var(--indigo)' }}>{completion}%</div>
+              <div style={{ fontSize: '.62rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Complete</div>
             </div>
-            <div style={{ display: "flex", gap: ".45rem", paddingBottom: ".2rem", marginLeft: "auto" }}>
+            <div style={{ display: 'flex', gap: '.45rem', paddingBottom: '.2rem', marginLeft: 'auto' }}>
               {pfEditing
                 ? <>
                     <button className="pf-edit-btn" onClick={() => setPfEditing(false)}>Cancel</button>
-                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
+                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button>
                   </>
                 : <button className="pf-save-btn" onClick={startPfEdit}>✏️ Edit Profile</button>
               }
             </div>
           </div>
 
-          <div className="pf-name">{profile.name || "Your Name"}</div>
-          <div className="pf-qual">{profile.qualification || "Add your qualification"}</div>
+          <div className="pf-name">{profile.name || 'Your Name'}</div>
+          <div className="pf-qual">{profile.qualification || 'Add your qualification'}</div>
           <div className="pf-meta">
             {profile.email    && <span>✉ {profile.email}</span>}
             {profile.phone    && <span>📞 {profile.phone}</span>}
             {profile.address  && <span>📍 {profile.address}</span>}
-            {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noreferrer" style={{ color: "var(--indigo)", textDecoration: "none" }}>🔗 LinkedIn</a>}
+            {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noreferrer" style={{ color: 'var(--indigo)', textDecoration: 'none' }}>🔗 LinkedIn</a>}
           </div>
           {profile.about && <div className="pf-about">{profile.about}</div>}
           {skills.length > 0 && (
@@ -1211,7 +982,7 @@ export default function StudentDashboard() {
                 <span key={s} className="pf-skill-chip">{s}</span>
               ))}
               {(profile.skills || []).length > 8 && (
-                <span className="pf-skill-chip" style={{ cursor: "pointer" }} onClick={() => setPfTab("skills")}>
+                <span className="pf-skill-chip" style={{ cursor: 'pointer' }} onClick={() => setPfTab('skills')}>
                   +{profile.skills.length - 8}
                 </span>
               )}
@@ -1222,22 +993,21 @@ export default function StudentDashboard() {
         {/* Tabs */}
         <div className="pf-tabs">
           {pfTabs.map(t => (
-            <button key={t.id} className={`pf-tab ${pfTab === t.id ? "active" : ""}`} onClick={() => setPfTab(t.id)}>
+            <button key={t.id} className={`pf-tab ${pfTab === t.id ? 'active' : ''}`} onClick={() => setPfTab(t.id)}>
               {t.icon} {t.label}
             </button>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          {pfTab === "overview" && (
+          {pfTab === 'overview' && (
             <motion.div key="ov" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">✍️ About Me</div>
                 {pfEditing
-                  ? <textarea className="pf-input" style={{ width: "100%" }} placeholder="Write about yourself…"
-                      value={pfForm.about || ""} onChange={e => pffc("about", e.target.value)} />
-                  : <p style={{ color: "var(--muted)", lineHeight: 1.7, fontSize: ".87rem" }}>
-                      {profile.about || <em style={{ color: "var(--subtle)" }}>No bio yet. Click Edit Profile to add one.</em>}
+                  ? <textarea className="pf-input" style={{ width: '100%' }} placeholder="Write about yourself…" value={pfForm.about || ''} onChange={e => pffc('about', e.target.value)} />
+                  : <p style={{ color: 'var(--muted)', lineHeight: 1.7, fontSize: '.87rem' }}>
+                      {profile.about || <em style={{ color: 'var(--subtle)' }}>No bio yet. Click Edit Profile to add one.</em>}
                     </p>
                 }
               </div>
@@ -1246,177 +1016,171 @@ export default function StudentDashboard() {
                 {pfEditing
                   ? <div className="pf-grid">
                       {[
-                        { k: "name",       l: "Full Name",           p: "Your full name" },
-                        { k: "phone",      l: "Phone",               p: "+91 XXXXXXXXXX" },
-                        { k: "address",    l: "City / Location",     p: "Your city" },
-                        { k: "cgpa",       l: "CGPA / Percentage",   p: "e.g. 8.5 or 85%" },
-                        { k: "experience", l: "Experience Summary",  p: "e.g. 1 yr internship at XYZ" },
-                        { k: "website",    l: "Portfolio / Website", p: "https://..." },
-                        { k: "linkedin",   l: "LinkedIn URL",        p: "linkedin.com/in/..." },
-                        { k: "github",     l: "GitHub URL",          p: "github.com/username" },
+                        { k: 'name',       l: 'Full Name',           p: 'Your full name' },
+                        { k: 'phone',      l: 'Phone',               p: '+91 XXXXXXXXXX' },
+                        { k: 'address',    l: 'City / Location',     p: 'Your city' },
+                        { k: 'cgpa',       l: 'CGPA / Percentage',   p: 'e.g. 8.5 or 85%' },
+                        { k: 'experience', l: 'Experience Summary',  p: 'e.g. 1 yr internship at XYZ' },
+                        { k: 'website',    l: 'Portfolio / Website', p: 'https://...' },
+                        { k: 'linkedin',   l: 'LinkedIn URL',        p: 'linkedin.com/in/...' },
+                        { k: 'github',     l: 'GitHub URL',          p: 'github.com/username' },
                       ].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
-                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pffc(f.k, e.target.value)} />
                         </div>
                       ))}
                       <div className="pf-field">
                         <label className="pf-label">Qualification</label>
-                        <select className="pf-input" value={pfForm.qualification || ""} onChange={e => pffc("qualification", e.target.value)}>
+                        <select className="pf-input" value={pfForm.qualification || ''} onChange={e => pffc('qualification', e.target.value)}>
                           <option value="">Select…</option>
-                          {["10th","12th","Diploma","ITI","BCA","B.Tech","B.Sc","B.Com","BA","MCA","M.Tech","M.Sc","MBA","PhD","Other"].map(q => (
+                          {['10th','12th','Diploma','ITI','BCA','B.Tech','B.Sc','B.Com','BA','MCA','M.Tech','M.Sc','MBA','PhD','Other'].map(q => (
                             <option key={q} value={q}>{q}</option>
                           ))}
                         </select>
                       </div>
                       <div className="pf-field">
                         <label className="pf-label">Email (read-only)</label>
-                        <input className="pf-input" value={profile.email || ""} readOnly style={{ background: "#f8fafc", cursor: "not-allowed", opacity: .7 }} />
+                        <input className="pf-input" value={profile.email || ''} readOnly style={{ background: '#f8fafc', cursor: 'not-allowed', opacity: .7 }} />
                       </div>
                     </div>
                   : <div className="pf-grid">
                       {[
-                        ["Full Name",    profile.name],
-                        ["Email",        profile.email],
-                        ["Phone",        profile.phone],
-                        ["Location",     profile.address],
-                        ["Qualification",profile.qualification],
-                        ["CGPA / %",     profile.cgpa],
-                        ["Experience",   profile.experience],
-                        ["Portfolio",    profile.website],
-                        ["LinkedIn",     profile.linkedin],
-                        ["GitHub",       profile.github],
+                        ['Full Name',    profile.name],
+                        ['Email',        profile.email],
+                        ['Phone',        profile.phone],
+                        ['Location',     profile.address],
+                        ['Qualification',profile.qualification],
+                        ['CGPA / %',     profile.cgpa],
+                        ['Experience',   profile.experience],
+                        ['Portfolio',    profile.website],
+                        ['LinkedIn',     profile.linkedin],
+                        ['GitHub',       profile.github],
                       ].map(([l, v]) => (
                         <div key={l}>
-                          <div className="pf-label" style={{ marginBottom: ".18rem" }}>{l}</div>
-                          <div style={{ fontWeight: 600, color: v ? "var(--navy)" : "var(--subtle)", fontStyle: v ? "normal" : "italic", fontSize: ".85rem", wordBreak: "break-all" }}>
-                            {v || "Not provided"}
+                          <div className="pf-label" style={{ marginBottom: '.18rem' }}>{l}</div>
+                          <div style={{ fontWeight: 600, color: v ? 'var(--navy)' : 'var(--subtle)', fontStyle: v ? 'normal' : 'italic', fontSize: '.85rem', wordBreak: 'break-all' }}>
+                            {v || 'Not provided'}
                           </div>
                         </div>
                       ))}
                     </div>
                 }
                 {pfEditing && (
-                  <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
-                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
+                  <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button>
                   </div>
                 )}
               </div>
             </motion.div>
           )}
 
-          {pfTab === "skills" && (
+          {pfTab === 'skills' && (
             <motion.div key="sk" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">⚡ Skills & Expertise</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: ".38rem" }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.38rem' }}>
                   {skills.map(s => (
                     <span key={s} className="pf-skill-chip">
                       {s}
                       {pfEditing && (
-                        <button onClick={() => pffc("skills", pfForm.skills.filter(x => x !== s))}
-                          style={{ background: "none", border: "none", color: "var(--rose)", cursor: "pointer", marginLeft: ".28rem", fontWeight: 800, fontSize: ".63rem" }}>✕</button>
+                        <button onClick={() => pffc('skills', pfForm.skills.filter(x => x !== s))}
+                          style={{ background: 'none', border: 'none', color: 'var(--rose)', cursor: 'pointer', marginLeft: '.28rem', fontWeight: 800, fontSize: '.63rem' }}>✕</button>
                       )}
                     </span>
                   ))}
-                  {skills.length === 0 && <em style={{ color: "var(--subtle)", fontSize: ".84rem" }}>No skills added yet.</em>}
+                  {skills.length === 0 && <em style={{ color: 'var(--subtle)', fontSize: '.84rem' }}>No skills added yet.</em>}
                 </div>
                 {pfEditing && (
                   <>
-                    <div style={{ height: 1, background: "var(--border)", margin: ".9rem 0" }} />
-                    <div className="pf-label" style={{ marginBottom: ".45rem" }}>Add Skill</div>
+                    <div style={{ height: 1, background: 'var(--border)', margin: '.9rem 0' }} />
+                    <div className="pf-label" style={{ marginBottom: '.45rem' }}>Add Skill</div>
                     <div className="pf-skill-add-row">
                       <input className="pf-input" style={{ flex: 1 }} placeholder="Type skill name…" value={skillInput}
                         onChange={e => setSkillInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }} />
-                      <button className="pf-save-btn" style={{ padding: ".55rem 1.1rem" }} onClick={() => addSkill(skillInput)}>+ Add</button>
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSkill(skillInput); } }} />
+                      <button className="pf-save-btn" style={{ padding: '.55rem 1.1rem' }} onClick={() => addSkill(skillInput)}>+ Add</button>
                     </div>
                     {skillInput.length > 0 && filteredSugg.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: ".3rem", marginTop: ".45rem" }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.3rem', marginTop: '.45rem' }}>
                         {filteredSugg.map(s => <span key={s} className="pf-sugg" onClick={() => addSkill(s)}>{s}</span>)}
                       </div>
                     )}
                     {skillInput.length === 0 && (
                       <>
-                        <div className="pf-label" style={{ marginTop: ".9rem", marginBottom: ".38rem" }}>Popular Skills (tap to add)</div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: ".3rem" }}>
+                        <div className="pf-label" style={{ marginTop: '.9rem', marginBottom: '.38rem' }}>Popular Skills (tap to add)</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.3rem' }}>
                           {SKILL_SUGGESTIONS.filter(s => !skills.includes(s)).slice(0, 20).map(s => (
                             <span key={s} className="pf-sugg" onClick={() => addSkill(s)}>{s}</span>
                           ))}
                         </div>
                       </>
                     )}
-                    <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
-                      <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save Skills"}</button>
+                    <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save Skills'}</button>
                     </div>
                   </>
                 )}
-                {!pfEditing && <div style={{ marginTop: ".85rem" }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Edit Skills</button></div>}
+                {!pfEditing && <div style={{ marginTop: '.85rem' }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Edit Skills</button></div>}
               </div>
             </motion.div>
           )}
 
-          {pfTab === "academic" && (
+          {pfTab === 'academic' && (
             <motion.div key="ac" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">🎓 Academic Background</div>
                 {pfEditing
                   ? <div className="pf-grid-3">
                       {[
-                        { k: "tenth",      l: "10th — School / Board / %", p: "e.g. CBSE – 92%" },
-                        { k: "twelfth",    l: "12th — School / Board / %", p: "e.g. BSEB – 85%" },
-                        { k: "graduation", l: "College / Degree / CGPA",   p: "e.g. MIT Patna – 8.4 CGPA" },
+                        { k: 'tenth',      l: '10th — School / Board / %', p: 'e.g. CBSE – 92%' },
+                        { k: 'twelfth',    l: '12th — School / Board / %', p: 'e.g. BSEB – 85%' },
+                        { k: 'graduation', l: 'College / Degree / CGPA',   p: 'e.g. MIT Patna – 8.4 CGPA' },
                       ].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
-                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pffc(f.k, e.target.value)} />
                         </div>
                       ))}
                     </div>
                   : <div className="pf-grid-3">
-                      {[["10th Standard", profile.tenth], ["12th Standard", profile.twelfth], ["Graduation", profile.graduation]].map(([l, v]) => (
+                      {[['10th Standard', profile.tenth], ['12th Standard', profile.twelfth], ['Graduation', profile.graduation]].map(([l, v]) => (
                         <div className="pf-acad-card" key={l}>
                           <div className="pf-acad-level">{l}</div>
-                          <div className="pf-acad-name">{v || <em style={{ color: "var(--subtle)", fontStyle: "italic" }}>Not added</em>}</div>
+                          <div className="pf-acad-name">{v || <em style={{ color: 'var(--subtle)', fontStyle: 'italic' }}>Not added</em>}</div>
                         </div>
                       ))}
                     </div>
                 }
-                {pfEditing && (
-                  <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
-                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
-                  </div>
-                )}
-                {!pfEditing && <div style={{ marginTop: ".9rem" }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Edit Academic</button></div>}
+                {pfEditing && <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}><button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button></div>}
+                {!pfEditing && <div style={{ marginTop: '.9rem' }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Edit Academic</button></div>}
               </div>
             </motion.div>
           )}
 
-          {pfTab === "experience" && (
+          {pfTab === 'experience' && (
             <motion.div key="ex" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">💼 Experience & Projects</div>
                 {pfEditing
-                  ? <div style={{ display: "flex", flexDirection: "column", gap: ".85rem" }}>
+                  ? <div style={{ display: 'flex', flexDirection: 'column', gap: '.85rem' }}>
                       {[
-                        { k: "experience",   l: "Work / Internship Experience", p: "e.g. 6-month intern at TechCorp as React Developer." },
-                        { k: "projects",     l: "Projects",                     p: "Describe your key projects, tech stack, outcomes…" },
-                        { k: "achievements", l: "Achievements / Awards",        p: "Hackathon wins, certifications, recognitions…" },
+                        { k: 'experience',   l: 'Work / Internship Experience', p: 'e.g. 6-month intern at TechCorp as React Developer.' },
+                        { k: 'projects',     l: 'Projects',                     p: 'Describe your key projects, tech stack, outcomes…' },
+                        { k: 'achievements', l: 'Achievements / Awards',        p: 'Hackathon wins, certifications, recognitions…' },
                       ].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
-                          <textarea className="pf-input" rows={3} placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                          <textarea className="pf-input" rows={3} placeholder={f.p} value={pfForm[f.k] || ''} onChange={e => pffc(f.k, e.target.value)} />
                         </div>
                       ))}
-                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
-                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}><button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button></div>
                     </div>
-                  : <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-                      {[["Work / Internship Experience", profile.experience], ["Projects", profile.projects], ["Achievements / Awards", profile.achievements]].map(([l, v]) => (
+                  : <div style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                      {[['Work / Internship Experience', profile.experience], ['Projects', profile.projects], ['Achievements / Awards', profile.achievements]].map(([l, v]) => (
                         <div key={l}>
-                          <div className="pf-label" style={{ marginBottom: ".35rem" }}>{l}</div>
-                          <p style={{ fontSize: ".85rem", color: v ? "var(--slate)" : "var(--subtle)", lineHeight: 1.65, fontStyle: v ? "normal" : "italic" }}>
+                          <div className="pf-label" style={{ marginBottom: '.35rem' }}>{l}</div>
+                          <p style={{ fontSize: '.85rem', color: v ? 'var(--slate)' : 'var(--subtle)', lineHeight: 1.65, fontStyle: v ? 'normal' : 'italic' }}>
                             {v || `No ${l.toLowerCase()} added yet.`}
                           </p>
                         </div>
@@ -1428,107 +1192,101 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {pfTab === "media" && (
+          {pfTab === 'media' && (
             <motion.div key="md" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ".9rem" }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem' }}>
                   <div className="pf-card-title" style={{ marginBottom: 0 }}>🏆 Certificates</div>
                   {pfEditing && <button className="pf-edit-btn" onClick={() => certRef.current?.click()}>+ Upload</button>}
                 </div>
                 <div className="pf-upload-grid">
                   {certs.map((c, i) => (
-                    <div className="pf-upload-thumb" key={i} onClick={() => window.open(c.url, "_blank")}>
-                      {c.type?.startsWith("image/")
+                    <div className="pf-upload-thumb" key={i} onClick={() => window.open(c.url, '_blank')}>
+                      {c.type?.startsWith('image/')
                         ? <img src={c.url} alt="" />
-                        : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(79,70,229,.05)" }}>
-                            <span style={{ fontSize: "1.6rem" }}>📑</span>
-                            <span style={{ fontSize: ".58rem", fontWeight: 700, color: "var(--muted)" }}>PDF</span>
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(79,70,229,.05)' }}>
+                            <span style={{ fontSize: '1.6rem' }}>📑</span>
+                            <span style={{ fontSize: '.58rem', fontWeight: 700, color: 'var(--muted)' }}>PDF</span>
                           </div>
                       }
                       {pfEditing && (
                         <button className="pf-upload-thumb-del"
-                          onClick={e => { e.stopPropagation(); pffc("certificates", pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>
+                          onClick={e => { e.stopPropagation(); pffc('certificates', pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>
                       )}
                     </div>
                   ))}
-                  {pfEditing && <div className="pf-add-thumb" onClick={() => certRef.current?.click()}><span style={{ fontSize: "1.3rem" }}>+</span><span>Add</span></div>}
-                  {!pfEditing && certs.length === 0 && <em style={{ color: "var(--subtle)", fontSize: ".82rem" }}>No certificates yet.</em>}
+                  {pfEditing && <div className="pf-add-thumb" onClick={() => certRef.current?.click()}><span style={{ fontSize: '1.3rem' }}>+</span><span>Add</span></div>}
+                  {!pfEditing && certs.length === 0 && <em style={{ color: 'var(--subtle)', fontSize: '.82rem' }}>No certificates yet.</em>}
                 </div>
               </div>
               <div className="pf-card">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ".9rem" }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '.9rem' }}>
                   <div className="pf-card-title" style={{ marginBottom: 0 }}>📸 Personal Posts</div>
                   {pfEditing && <button className="pf-edit-btn" onClick={() => postRef.current?.click()}>+ Upload</button>}
                 </div>
                 <div className="pf-upload-grid">
                   {posts.map((p, i) => (
-                    <div className="pf-upload-thumb" key={i} onClick={() => window.open(p.url, "_blank")}>
-                      {p.type?.startsWith("image/")
+                    <div className="pf-upload-thumb" key={i} onClick={() => window.open(p.url, '_blank')}>
+                      {p.type?.startsWith('image/')
                         ? <img src={p.url} alt="" />
-                        : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: "1.6rem" }}>🎬</span></div>
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '1.6rem' }}>🎬</span></div>
                       }
                       {pfEditing && (
                         <button className="pf-upload-thumb-del"
-                          onClick={e => { e.stopPropagation(); pffc("personalPosts", pfForm.personalPosts.filter((_, j) => j !== i)); }}>✕</button>
+                          onClick={e => { e.stopPropagation(); pffc('personalPosts', pfForm.personalPosts.filter((_, j) => j !== i)); }}>✕</button>
                       )}
                     </div>
                   ))}
-                  {pfEditing && <div className="pf-add-thumb" onClick={() => postRef.current?.click()}><span style={{ fontSize: "1.3rem" }}>+</span><span>Add</span></div>}
-                  {!pfEditing && posts.length === 0 && <em style={{ color: "var(--subtle)", fontSize: ".82rem" }}>No posts yet.</em>}
+                  {pfEditing && <div className="pf-add-thumb" onClick={() => postRef.current?.click()}><span style={{ fontSize: '1.3rem' }}>+</span><span>Add</span></div>}
+                  {!pfEditing && posts.length === 0 && <em style={{ color: 'var(--subtle)', fontSize: '.82rem' }}>No posts yet.</em>}
                 </div>
-                {pfEditing && (
-                  <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
-                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save Media"}</button>
-                  </div>
-                )}
+                {pfEditing && <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}><button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save Media'}</button></div>}
               </div>
             </motion.div>
           )}
 
-          {pfTab === "resume" && (
+          {pfTab === 'resume' && (
             <motion.div key="rv" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.1rem" }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.1rem' }}>
                   <div className="pf-card-title" style={{ marginBottom: 0 }}>📄 My Resumes</div>
                   {pfEditing && <button className="pf-edit-btn" onClick={() => resumeRef.current?.click()}>+ Upload</button>}
                 </div>
                 {resumes.length === 0
-                  ? <div style={{ textAlign: "center", padding: "1.8rem 1rem", color: "var(--subtle)" }}>
-                      <div style={{ fontSize: "2rem", marginBottom: ".45rem" }}>📄</div>
-                      <div style={{ fontWeight: 700, color: "var(--muted)" }}>No Resumes Yet</div>
-                      <div style={{ fontSize: ".76rem", marginTop: ".28rem" }}>Upload a resume to attach it to applications.</div>
+                  ? <div style={{ textAlign: 'center', padding: '1.8rem 1rem', color: 'var(--subtle)' }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '.45rem' }}>📄</div>
+                      <div style={{ fontWeight: 700, color: 'var(--muted)' }}>No Resumes Yet</div>
+                      <div style={{ fontSize: '.76rem', marginTop: '.28rem' }}>Upload a resume to attach it to applications.</div>
                       {pfEditing
-                        ? <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => resumeRef.current?.click()}>+ Upload Resume</button>
-                        : <button className="pf-edit-btn" style={{ marginTop: ".9rem" }} onClick={startPfEdit}>Go to Edit Mode</button>
+                        ? <button className="pf-save-btn" style={{ marginTop: '.9rem' }} onClick={() => resumeRef.current?.click()}>+ Upload Resume</button>
+                        : <button className="pf-edit-btn" style={{ marginTop: '.9rem' }} onClick={startPfEdit}>Go to Edit Mode</button>
                       }
                     </div>
                   : resumes.map((r, i) => (
                     <div className="pf-resume-item" key={i}>
-                      <div className="pf-resume-icon">{r.type === "application/pdf" ? "📑" : "🖼️"}</div>
+                      <div className="pf-resume-icon">{r.type === 'application/pdf' ? '📑' : '🖼️'}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="pf-resume-name">{r.name || `Resume ${i + 1}`}</div>
-                        <div style={{ fontSize: ".66rem", color: "var(--subtle)", fontWeight: 600 }}>{r.type}</div>
+                        <div style={{ fontSize: '.66rem', color: 'var(--subtle)', fontWeight: 600 }}>{r.type}</div>
                       </div>
-                      <div style={{ display: "flex", gap: ".45rem", flexShrink: 0 }}>
+                      <div style={{ display: 'flex', gap: '.45rem', flexShrink: 0 }}>
                         <a href={r.url} target="_blank" rel="noreferrer">
-                          <button style={{ padding: ".35rem .8rem", background: "rgba(79,70,229,.08)", border: "none", borderRadius: 8, fontSize: ".7rem", fontWeight: 700, color: "var(--indigo)", cursor: "pointer" }}>View</button>
+                          <button style={{ padding: '.35rem .8rem', background: 'rgba(79,70,229,.08)', border: 'none', borderRadius: 8, fontSize: '.7rem', fontWeight: 700, color: 'var(--indigo)', cursor: 'pointer' }}>View</button>
                         </a>
                         {pfEditing && (
-                          <button style={{ padding: ".35rem .75rem", background: "rgba(244,63,94,.07)", border: "1px solid rgba(244,63,94,.18)", borderRadius: 8, fontSize: ".7rem", fontWeight: 700, color: "var(--rose)", cursor: "pointer" }}
-                            onClick={() => pffc("resumes", pfForm.resumes.filter((_, j) => j !== i))}>Remove</button>
+                          <button style={{ padding: '.35rem .75rem', background: 'rgba(244,63,94,.07)', border: '1px solid rgba(244,63,94,.18)', borderRadius: 8, fontSize: '.7rem', fontWeight: 700, color: 'var(--rose)', cursor: 'pointer' }}
+                            onClick={() => pffc('resumes', pfForm.resumes.filter((_, j) => j !== i))}>Remove</button>
                         )}
                       </div>
                     </div>
                   ))
                 }
                 {pfEditing && resumes.length > 0 && (
-                  <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
-                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
+                  <div style={{ marginTop: '1.1rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? 'Saving…' : '💾 Save'}</button>
                   </div>
                 )}
-                {!pfEditing && (
-                  <div style={{ marginTop: ".9rem" }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Manage Resumes</button></div>
-                )}
+                {!pfEditing && <div style={{ marginTop: '.9rem' }}><button className="pf-edit-btn" onClick={startPfEdit}>✏️ Manage Resumes</button></div>}
               </div>
             </motion.div>
           )}
@@ -1536,7 +1294,7 @@ export default function StudentDashboard() {
 
         <AnimatePresence>
           {pfToast && (
-            <motion.div className={`pf-toast ${pfToast.type === "error" ? "pf-toast-error" : "pf-toast-success"}`}
+            <motion.div className={`pf-toast ${pfToast.type === 'error' ? 'pf-toast-error' : 'pf-toast-success'}`}
               initial={{ opacity: 0, y: 14, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0 }}>
               {pfToast.msg}
             </motion.div>
@@ -1546,36 +1304,24 @@ export default function StudentDashboard() {
     );
   };
 
-  // ── Loading / error screen ─────────────────────────────────────────────────
+  // ── Loading screen ────────────────────────────────────────────────────────
   if (!profile) return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", flexDirection: "column", gap: "1.1rem" }}>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', flexDirection: 'column', gap: '1.1rem' }}>
       <style>{CSS}</style>
-      <div style={{ fontFamily: "Syne,sans-serif", fontSize: "1.8rem", fontWeight: 800, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+      <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '1.8rem', fontWeight: 800, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
         Campus2Career
       </div>
-      {bootDone && bootError
-        ? <>
-            <div style={{ color: "#f43f5e", fontSize: ".88rem", fontWeight: 700 }}>
-              Session expired — please log in again
-            </div>
-            <button style={{ marginTop: ".45rem", padding: ".55rem 1.3rem", borderRadius: "99px", border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: ".83rem" }}
-              onClick={() => navigate("/login")}>Go to Login</button>
-          </>
-        : <>
-            <div className="spinner" />
-            <div style={{ color: "#94a3b8", fontSize: ".82rem" }}>Loading your dashboard…</div>
-          </>
-      }
+      <div className="spinner" />
+      <div style={{ color: '#94a3b8', fontSize: '.82rem' }}>Loading your dashboard…</div>
     </div>
   );
 
-  // ── Main render ────────────────────────────────────────────────────────────
   const NAV_TABS = [
-    { id: "feed",         icon: "🏠", label: "Feed"     },
-    { id: "jobs",         icon: "💼", label: "Jobs"     },
-    { id: "courses",      icon: "📚", label: "Courses"  },
-    { id: "applications", icon: "📋", label: "My Apps"  },
-    { id: "profile",      icon: "👤", label: "Profile"  },
+    { id: 'feed',         icon: '🏠', label: 'Feed'    },
+    { id: 'jobs',         icon: '💼', label: 'Jobs'    },
+    { id: 'courses',      icon: '📚', label: 'Courses' },
+    { id: 'applications', icon: '📋', label: 'My Apps' },
+    { id: 'profile',      icon: '👤', label: 'Profile' },
   ];
 
   return (
@@ -1598,24 +1344,24 @@ export default function StudentDashboard() {
         <div className="nav-right">
           <div className="nav-pills-desktop">
             {NAV_TABS.map(t => (
-              <button key={t.id} className={`nav-pill ${activeTab === t.id ? "active" : ""}`} onClick={() => setActiveTab(t.id)}>
+              <button key={t.id} className={`nav-pill ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
                 {t.icon} {t.label}
               </button>
             ))}
           </div>
           <div className="notif-btn"><span>🔔</span><span className="notif-dot" /></div>
           <div className="nav-av" title={profile.name}>
-            {profile.photo ? <img src={profile.photo} alt="" /> : (profile.name || "S")[0].toUpperCase()}
+            {profile.photo ? <img src={profile.photo} alt="" /> : (profile.name || 'S')[0].toUpperCase()}
           </div>
           <button className="signout-btn" onClick={handleLogout}>Sign Out</button>
         </div>
       </nav>
 
-      {/* MOBILE BOTTOM NAV */}
+      {/* MOBILE NAV */}
       <div className="mobile-nav">
         <div className="mobile-nav-inner">
           {NAV_TABS.map(t => (
-            <button key={t.id} className={`mob-tab ${activeTab === t.id ? "active" : ""}`} onClick={() => setActiveTab(t.id)}>
+            <button key={t.id} className={`mob-tab ${activeTab === t.id ? 'active' : ''}`} onClick={() => setActiveTab(t.id)}>
               <span className="mob-icon">{t.icon}</span>
               <span className="mob-label">{t.label}</span>
             </button>
@@ -1624,10 +1370,10 @@ export default function StudentDashboard() {
       </div>
 
       <div className="s-layout">
-        <div className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`} onClick={() => setSidebarOpen(false)} />
+        <div className={`sidebar-overlay ${sidebarOpen ? 'show' : ''}`} onClick={() => setSidebarOpen(false)} />
 
         {/* LEFT SIDEBAR */}
-        <aside className={`s-sidebar ${sidebarOpen ? "open" : ""}`}>
+        <aside className={`s-sidebar ${sidebarOpen ? 'open' : ''}`}>
           {renderPanel(profile, true)}
         </aside>
 
@@ -1636,27 +1382,24 @@ export default function StudentDashboard() {
           <AnimatePresence mode="wait">
 
             {/* FEED */}
-            {activeTab === "feed" && (
+            {activeTab === 'feed' && (
               <motion.div key="feed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="page-sec">
                   <div className="sec-head">
-                    <div>
-                      <span className="sec-title">Partner Industries</span>
-                      <span className="sec-sub">· {industries.length} registered</span>
-                    </div>
+                    <div><span className="sec-title">Partner Industries</span><span className="sec-sub">· {industries.length} registered</span></div>
                   </div>
                   <div className="ind-grid">
                     {industries.map((ind, i) => (
                       <motion.div key={ind.id || i} className="ind-card"
                         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                         onClick={() => setActiveChat(ind.id)}>
-                        <div className="ind-logo">{ind.logo || (ind.name || "CO").substring(0, 2).toUpperCase()}</div>
+                        <div className="ind-logo">{ind.logo || (ind.name || 'CO').substring(0, 2).toUpperCase()}</div>
                         <div className="ind-name">{ind.name}</div>
                         <div className="ind-domain">{ind.domain}</div>
                         <div className="ind-loc">📍 {ind.location}</div>
                         {ind.tagline && <div className="ind-tagline">"{ind.tagline}"</div>}
-                        <div style={{ marginTop: ".75rem" }}>
-                          <button className="apply-btn" style={{ padding: ".38rem .85rem", fontSize: ".7rem", width: "auto" }}
+                        <div style={{ marginTop: '.75rem' }}>
+                          <button className="apply-btn" style={{ padding: '.38rem .85rem', fontSize: '.7rem', width: 'auto' }}
                             onClick={e => { e.stopPropagation(); setActiveChat(ind.id); }}>💬 Message</button>
                         </div>
                       </motion.div>
@@ -1666,21 +1409,18 @@ export default function StudentDashboard() {
 
                 <div className="page-sec">
                   <div className="sec-head">
-                    <div>
-                      <span className="sec-title">Opportunity Feed</span>
-                      <span className="sec-sub">· {vacancies.length} openings</span>
-                    </div>
+                    <div><span className="sec-title">Opportunity Feed</span><span className="sec-sub">· {vacancies.length} openings</span></div>
                   </div>
                   {isFeedLoading
-                    ? <div style={{ textAlign: "center", padding: "2.5rem" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
+                    ? <div style={{ textAlign: 'center', padding: '2.5rem' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
                     : <div className="feed-grid">
                         {vacancies.map((v, i) => (
                           <motion.div key={v.id || i} className="vac-card"
                             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                             <div className="vac-body">
                               <div className="vac-top">
-                                <div style={{ display: "flex", alignItems: "center", gap: ".65rem" }}>
-                                  <div className="vac-logo">{v.ownerLogo || "CO"}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '.65rem' }}>
+                                  <div className="vac-logo">{v.ownerLogo || 'CO'}</div>
                                   <div>
                                     <div className="vac-owner-name">{v.ownerName}</div>
                                     <div className="vac-date">{v.date}</div>
@@ -1691,18 +1431,18 @@ export default function StudentDashboard() {
                               <div className="vac-title">{v.title}</div>
                               <div className="vac-desc">{v.desc}</div>
                               <div className="skill-pills">
-                                {(v.skills || "").split(",").filter(Boolean).slice(0, 5).map((sk, j) => (
+                                {(v.skills || '').split(',').filter(Boolean).slice(0, 5).map((sk, j) => (
                                   <span key={j} className="spill">{sk.trim()}</span>
                                 ))}
                               </div>
                             </div>
                             <div className="vac-foot">
-                              <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
+                              <div style={{ display: 'flex', gap: '.85rem', flexWrap: 'wrap' }}>
                                 {v.duration  && <div className="vac-meta-item">⏱ {v.duration}</div>}
-                                {v.offerings && <div className="vac-meta-item">💰 {v.offerings.slice(0, 26)}{v.offerings.length > 26 ? "…" : ""}</div>}
+                                {v.offerings && <div className="vac-meta-item">💰 {v.offerings.slice(0, 26)}{v.offerings.length > 26 ? '…' : ''}</div>}
                               </div>
-                              <div style={{ display: "flex", gap: ".45rem" }}>
-                                <button style={{ padding: ".38rem .8rem", borderRadius: 99, background: "rgba(79,70,229,.08)", border: "1.5px solid var(--border2)", color: "var(--indigo)", fontSize: ".7rem", fontWeight: 700, cursor: "pointer" }}
+                              <div style={{ display: 'flex', gap: '.45rem' }}>
+                                <button style={{ padding: '.38rem .8rem', borderRadius: 99, background: 'rgba(79,70,229,.08)', border: '1.5px solid var(--border2)', color: 'var(--indigo)', fontSize: '.7rem', fontWeight: 700, cursor: 'pointer' }}
                                   onClick={() => setPostDetailModal(v)}>Details</button>
                                 {alreadyApplied(v.id)
                                   ? <span className="applied-tag">✓ Applied</span>
@@ -1719,19 +1459,16 @@ export default function StudentDashboard() {
             )}
 
             {/* JOBS */}
-            {activeTab === "jobs" && (
+            {activeTab === 'jobs' && (
               <motion.div key="jobs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="page-sec">
                   <div className="sec-head">
-                    <div>
-                      <span className="sec-title">🤖 AI Skill Matches</span>
-                      <span className="sec-sub">· Based on your skills</span>
-                    </div>
+                    <div><span className="sec-title">🤖 AI Skill Matches</span><span className="sec-sub">· Based on your skills</span></div>
                     {profile.skills?.length > 0 && (
                       <button className="sec-link" onClick={async () => {
                         setIsMatchLoading(true);
                         try {
-                          const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(", ") }, { timeout: 12000 });
+                          const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(', ') }, { timeout: 12000 });
                           setMatchedJobs(Array.isArray(res.data) ? res.data : []);
                         } catch {}
                         setIsMatchLoading(false);
@@ -1739,14 +1476,14 @@ export default function StudentDashboard() {
                     )}
                   </div>
                   {isMatchLoading
-                    ? <div style={{ textAlign: "center", padding: "2rem" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
+                    ? <div style={{ textAlign: 'center', padding: '2rem' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
                     : !profile.skills?.length
                       ? <div className="empty-block">
                           <div className="empty-icon">⚡</div>
                           <div className="empty-title">No skills added yet</div>
                           <div className="empty-text">Add skills in your profile to get AI-powered job matches.</div>
-                          <button className="pf-save-btn" style={{ marginTop: ".9rem" }}
-                            onClick={() => { setActiveTab("profile"); setTimeout(() => setPfTab("skills"), 100); }}>Add Skills →</button>
+                          <button className="pf-save-btn" style={{ marginTop: '.9rem' }}
+                            onClick={() => { setActiveTab('profile'); setTimeout(() => setPfTab('skills'), 100); }}>Add Skills →</button>
                         </div>
                       : matchedJobs.length === 0
                         ? <div className="empty-block"><div className="empty-icon">🔍</div><div className="empty-title">No matches yet</div><div className="empty-text">Click Refresh to run the AI analysis.</div></div>
@@ -1757,29 +1494,29 @@ export default function StudentDashboard() {
                                 <div className="match-conf">{m.match_confidence ?? m.accuracy ?? 0}%</div>
                                 <div className="match-label">Match Confidence</div>
                                 <div className="match-bar"><div className="match-fill" style={{ width: `${m.match_confidence ?? m.accuracy ?? 0}%` }} /></div>
-                                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: ".92rem", color: "var(--navy)", marginBottom: ".28rem" }}>{m.job || m.matched_job}</div>
-                                {m.industry && <div style={{ fontSize: ".7rem", color: "var(--muted)", fontWeight: 600, marginBottom: ".65rem" }}>📍 {m.industry}</div>}
+                                <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: '.92rem', color: 'var(--navy)', marginBottom: '.28rem' }}>{m.job || m.matched_job}</div>
+                                {m.industry && <div style={{ fontSize: '.7rem', color: 'var(--muted)', fontWeight: 600, marginBottom: '.65rem' }}>📍 {m.industry}</div>}
                                 {m.missing_skills?.length > 0 && (
-                                  <div style={{ marginBottom: ".65rem" }}>
-                                    <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--rose)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Skills to Learn</div>
+                                  <div style={{ marginBottom: '.65rem' }}>
+                                    <div style={{ fontSize: '.63rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--rose)', letterSpacing: '.06em', marginBottom: '.3rem' }}>Skills to Learn</div>
                                     <div>{m.missing_skills.map((s, j) => <span key={j} className="miss-chip">{s}</span>)}</div>
                                   </div>
                                 )}
                                 {m.courses?.length > 0 && (
                                   <div>
-                                    <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--emerald)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Recommended Courses</div>
+                                    <div style={{ fontSize: '.63rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--emerald)', letterSpacing: '.06em', marginBottom: '.3rem' }}>Recommended Courses</div>
                                     {m.courses.map((c, j) => (
-                                      <a key={j} href={c.link || c.url || "#"} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+                                      <a key={j} href={c.link || c.url || '#'} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                                         <div className="course-rec">
-                                          <span style={{ fontSize: ".95rem" }}>📚</span>
+                                          <span style={{ fontSize: '.95rem' }}>📚</span>
                                           <div className="course-rec-title">{c.title}</div>
-                                          <span style={{ fontSize: ".63rem", color: "var(--indigo)", fontWeight: 700, flexShrink: 0 }}>→</span>
+                                          <span style={{ fontSize: '.63rem', color: 'var(--indigo)', fontWeight: 700, flexShrink: 0 }}>→</span>
                                         </div>
                                       </a>
                                     ))}
                                   </div>
                                 )}
-                                {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="apply-btn" style={{ width: "100%", marginTop: ".65rem" }}>View Job →</button></a>}
+                                {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="apply-btn" style={{ width: '100%', marginTop: '.65rem' }}>View Job →</button></a>}
                               </motion.div>
                             ))}
                           </div>
@@ -1788,10 +1525,7 @@ export default function StudentDashboard() {
 
                 <div className="page-sec">
                   <div className="sec-head">
-                    <div>
-                      <span className="sec-title">All Job Listings</span>
-                      <span className="sec-sub">· {allJobs.length} openings</span>
-                    </div>
+                    <div><span className="sec-title">All Job Listings</span><span className="sec-sub">· {allJobs.length} openings</span></div>
                   </div>
                   <div className="jobs-grid">
                     {allJobs
@@ -1807,13 +1541,13 @@ export default function StudentDashboard() {
                           <div className="job-title">{j.job}</div>
                           <div className="job-desc">{j.desc}</div>
                           <div className="job-tags">
-                            {j.dept && <span className="jtag" style={{ background: "#e0f2fe", color: "#0369a1", borderColor: "#bae6fd" }}>{j.dept}</span>}
-                            {j.role && <span className="jtag" style={{ background: "#ede9fe", color: "#5b21b6", borderColor: "#ddd6fe" }}>{j.role}</span>}
-                            {j.ug   && <span className="jtag" style={{ background: "#dcfce7", color: "#166534", borderColor: "#bbf7d0" }}>{j.ug}</span>}
+                            {j.dept && <span className="jtag" style={{ background: '#e0f2fe', color: '#0369a1', borderColor: '#bae6fd' }}>{j.dept}</span>}
+                            {j.role && <span className="jtag" style={{ background: '#ede9fe', color: '#5b21b6', borderColor: '#ddd6fe' }}>{j.role}</span>}
+                            {j.ug   && <span className="jtag" style={{ background: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' }}>{j.ug}</span>}
                           </div>
-                          <div className="skill-pills" style={{ marginBottom: ".65rem" }}>
-                            {(j.skills || "").split(",").filter(Boolean).slice(0, 4).map((sk, k) => (
-                              <span key={k} className="spill" style={{ fontSize: ".63rem" }}>{sk.trim()}</span>
+                          <div className="skill-pills" style={{ marginBottom: '.65rem' }}>
+                            {(j.skills || '').split(',').filter(Boolean).slice(0, 4).map((sk, k) => (
+                              <span key={k} className="spill" style={{ fontSize: '.63rem' }}>{sk.trim()}</span>
                             ))}
                           </div>
                           <div className="job-foot">
@@ -1829,16 +1563,16 @@ export default function StudentDashboard() {
             )}
 
             {/* COURSES */}
-            {activeTab === "courses" && (
+            {activeTab === 'courses' && (
               <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
+                <div className="sec-head" style={{ marginBottom: '1.1rem' }}>
                   <div><span className="sec-title">Recommended Courses</span><span className="sec-sub">· {courses.length} available</span></div>
                 </div>
                 <div className="courses-grid">
                   {courses.map((c, i) => (
                     <motion.div key={c.id || i} className="course-card"
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                      onClick={() => window.open(c.link || c.url || "#", "_blank")}>
+                      onClick={() => window.open(c.link || c.url || '#', '_blank')}>
                       <div className="course-header">
                         <div className="course-provider">{c.provider}</div>
                         <div className="course-title">{c.title}</div>
@@ -1850,9 +1584,9 @@ export default function StudentDashboard() {
                             {c.rating   && <span className="cmeta">⭐ {c.rating}</span>}
                             {c.students && <span className="cmeta">👥 {c.students}</span>}
                           </div>
-                          {c.level && <div style={{ marginBottom: ".7rem" }}><span className={`level-pill level-${c.level}`}>{c.level}</span></div>}
+                          {c.level && <div style={{ marginBottom: '.7rem' }}><span className={`level-pill level-${c.level}`}>{c.level}</span></div>}
                           {(c.skills || []).length > 0 && (
-                            <div className="skill-pills" style={{ marginBottom: ".7rem" }}>
+                            <div className="skill-pills" style={{ marginBottom: '.7rem' }}>
                               {c.skills.slice(0, 3).map((sk, j) => <span key={j} className="spill">{sk}</span>)}
                             </div>
                           )}
@@ -1866,9 +1600,9 @@ export default function StudentDashboard() {
             )}
 
             {/* APPLICATIONS */}
-            {activeTab === "applications" && (
+            {activeTab === 'applications' && (
               <motion.div key="apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
+                <div className="sec-head" style={{ marginBottom: '1.1rem' }}>
                   <div><span className="sec-title">My Applications</span><span className="sec-sub">· {myApplications.length} submitted</span></div>
                 </div>
                 {myApplications.length === 0
@@ -1876,20 +1610,20 @@ export default function StudentDashboard() {
                       <div className="empty-icon">📋</div>
                       <div className="empty-title">No applications yet</div>
                       <div className="empty-text">Browse the feed and apply to internships and job vacancies.</div>
-                      <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => setActiveTab("feed")}>Browse Openings →</button>
+                      <button className="pf-save-btn" style={{ marginTop: '.9rem' }} onClick={() => setActiveTab('feed')}>Browse Openings →</button>
                     </div>
                   : <div className="app-list">
                       {myApplications.map((a, i) => (
                         <motion.div key={a.id || i} className="app-card"
                           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: ".4rem" }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '.4rem' }}>
                             <div>
                               <div className="app-role">{a.role}</div>
                               <div className="app-co">🏢 {a.company}</div>
                             </div>
                             <span className={`status-pill sp-${a.status}`}>{a.status}</span>
                           </div>
-                          <div style={{ fontSize: ".76rem", color: "var(--muted)", marginTop: ".55rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                          <div style={{ fontSize: '.76rem', color: 'var(--muted)', marginTop: '.55rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                             <span>📅 Applied: {a.appliedOn}</span>
                             {a.coverLetter && <span>📝 Cover letter attached</span>}
                           </div>
@@ -1901,7 +1635,7 @@ export default function StudentDashboard() {
             )}
 
             {/* PROFILE */}
-            {activeTab === "profile" && (
+            {activeTab === 'profile' && (
               <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {renderProfilePage()}
               </motion.div>
@@ -1915,8 +1649,8 @@ export default function StudentDashboard() {
           {activeUserProfile && (
             <motion.aside className="s-sidebar right"
               initial={{ x: 320, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 320, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 280, damping: 28 }}
-              style={{ position: "fixed", right: 0, top: "var(--nav-h)", zIndex: 160 }}>
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              style={{ position: 'fixed', right: 0, top: 'var(--nav-h)', zIndex: 160 }}>
               {renderPanel(activeUserProfile, false)}
             </motion.aside>
           )}
@@ -1928,19 +1662,19 @@ export default function StudentDashboard() {
         {activeChat && (
           <motion.div className="dm-panel"
             initial={{ x: 360, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 360, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}>
+            transition={{ type: 'spring', stiffness: 280, damping: 28 }}>
             <div className="dm-head">
               <div>
-                <div className="dm-recipient">{industries.find(i => i.id === activeChat)?.name ?? "Company"}</div>
+                <div className="dm-recipient">{industries.find(i => i.id === activeChat)?.name ?? 'Company'}</div>
                 <div className="dm-status"><span className="online-dot" />Active</div>
               </div>
               <button className="close-x" onClick={() => setActiveChat(null)}>✕</button>
             </div>
             <div className="dm-body">
               {!(profile.chats?.[activeChat] || []).length
-                ? <div className="dm-empty"><span style={{ fontSize: "1.7rem" }}>💬</span><span>No messages yet. Say hello!</span></div>
+                ? <div className="dm-empty"><span style={{ fontSize: '1.7rem' }}>💬</span><span>No messages yet. Say hello!</span></div>
                 : (profile.chats?.[activeChat] || []).map((msg, i) => (
-                  <div key={i} className={`bubble ${msg.sender === profile.name ? "sent" : "recv"}`}>
+                  <div key={i} className={`bubble ${msg.sender === profile.name ? 'sent' : 'recv'}`}>
                     <div>{msg.message}</div>
                     <div className="bubble-time">{msg.time}</div>
                   </div>
@@ -1951,16 +1685,16 @@ export default function StudentDashboard() {
             <div className="dm-foot">
               <input ref={chatInputRef} className="dm-input" placeholder="Type a message…"
                 onKeyDown={e => {
-                  if (e.key === "Enter" && e.target.value.trim()) {
+                  if (e.key === 'Enter' && e.target.value.trim()) {
                     sendMessage(activeChat, e.target.value.trim());
-                    e.target.value = "";
+                    e.target.value = '';
                   }
                 }} />
               <button className="send-btn" onClick={() => {
                 const inp = chatInputRef.current;
                 if (!inp?.value?.trim()) return;
                 sendMessage(activeChat, inp.value.trim());
-                inp.value = "";
+                inp.value = '';
               }}>➤</button>
             </div>
           </motion.div>
@@ -1974,23 +1708,23 @@ export default function StudentDashboard() {
             onClick={e => { if (e.target === e.currentTarget) setPostDetailModal(null); }}>
             <motion.div className="modal-box" initial={{ scale: .94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: .94, opacity: 0 }}>
               <button className="modal-close" onClick={() => setPostDetailModal(null)}>✕</button>
-              <div style={{ display: "flex", alignItems: "center", gap: ".8rem", marginBottom: "1.2rem" }}>
-                <div style={{ width: 46, height: 46, borderRadius: 12, background: "rgba(79,70,229,.1)", color: "var(--indigo)", fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {postDetailModal.ownerLogo || "CO"}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.8rem', marginBottom: '1.2rem' }}>
+                <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(79,70,229,.1)', color: 'var(--indigo)', fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: '.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {postDetailModal.ownerLogo || 'CO'}
                 </div>
                 <div>
-                  <div className="modal-title" style={{ fontSize: "1.2rem" }}>{postDetailModal.title}</div>
-                  <div style={{ color: "var(--indigo)", fontWeight: 700, fontSize: ".8rem" }}>{postDetailModal.ownerName} · {postDetailModal.type}</div>
+                  <div className="modal-title" style={{ fontSize: '1.2rem' }}>{postDetailModal.title}</div>
+                  <div style={{ color: 'var(--indigo)', fontWeight: 700, fontSize: '.8rem' }}>{postDetailModal.ownerName} · {postDetailModal.type}</div>
                 </div>
               </div>
-              <div style={{ marginBottom: "1rem", lineHeight: 1.65, color: "var(--muted)", fontSize: ".86rem" }}>{postDetailModal.desc}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".7rem", marginBottom: "1.1rem", fontSize: ".84rem" }}>
+              <div style={{ marginBottom: '1rem', lineHeight: 1.65, color: 'var(--muted)', fontSize: '.86rem' }}>{postDetailModal.desc}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.7rem', marginBottom: '1.1rem', fontSize: '.84rem' }}>
                 {postDetailModal.duration  && <div><strong>Duration:</strong> {postDetailModal.duration}</div>}
                 {postDetailModal.skills    && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
-                {postDetailModal.offerings && <div style={{ gridColumn: "1 / -1" }}><strong>Offerings:</strong> {postDetailModal.offerings}</div>}
+                {postDetailModal.offerings && <div style={{ gridColumn: '1 / -1' }}><strong>Offerings:</strong> {postDetailModal.offerings}</div>}
               </div>
               {alreadyApplied(postDetailModal.id)
-                ? <div style={{ textAlign: "center", padding: ".8rem", background: "#dcfce7", borderRadius: 12, color: "#166634", fontWeight: 700 }}>✓ Already Applied</div>
+                ? <div style={{ textAlign: 'center', padding: '.8rem', background: '#dcfce7', borderRadius: 12, color: '#166634', fontWeight: 700 }}>✓ Already Applied</div>
                 : <button className="btn-primary" onClick={() => { setApplyModal(postDetailModal); setPostDetailModal(null); }}>Apply for this Role</button>
               }
             </motion.div>
@@ -2009,21 +1743,21 @@ export default function StudentDashboard() {
               <div className="modal-sub">Applying to <strong>{applyModal?.ownerName}</strong> for <strong>{applyModal?.title}</strong></div>
               <form onSubmit={handleApplySubmit}>
                 <label className="field-label">Your Name</label>
-                <input className="field-input" value={profile?.name || ""} readOnly style={{ background: "#f8fafc", cursor: "not-allowed", opacity: .8 }} />
+                <input className="field-input" value={profile?.name || ''} readOnly style={{ background: '#f8fafc', cursor: 'not-allowed', opacity: .8 }} />
                 <label className="field-label">Email</label>
-                <input className="field-input" value={profile?.email || ""} readOnly style={{ background: "#f8fafc", cursor: "not-allowed", opacity: .8 }} />
+                <input className="field-input" value={profile?.email || ''} readOnly style={{ background: '#f8fafc', cursor: 'not-allowed', opacity: .8 }} />
                 <label className="field-label">Resume</label>
                 {(profile?.resumes || []).length > 0
-                  ? <div style={{ marginBottom: ".9rem" }}>
+                  ? <div style={{ marginBottom: '.9rem' }}>
                       {(profile.resumes || []).map((r, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: ".45rem", background: "rgba(79,70,229,.05)", border: "1px solid rgba(79,70,229,.15)", borderRadius: 10, padding: ".45rem .75rem", marginBottom: ".38rem" }}>
-                          <span>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
-                          <span style={{ fontSize: ".8rem", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
-                          <span style={{ fontSize: ".66rem", background: "#dcfce7", color: "#166534", padding: ".1rem .45rem", borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>Attached</span>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '.45rem', background: 'rgba(79,70,229,.05)', border: '1px solid rgba(79,70,229,.15)', borderRadius: 10, padding: '.45rem .75rem', marginBottom: '.38rem' }}>
+                          <span>{r.type === 'application/pdf' ? '📑' : '🖼️'}</span>
+                          <span style={{ fontSize: '.8rem', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                          <span style={{ fontSize: '.66rem', background: '#dcfce7', color: '#166534', padding: '.1rem .45rem', borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>Attached</span>
                         </div>
                       ))}
                     </div>
-                  : <div style={{ marginBottom: ".9rem", padding: ".65rem .9rem", background: "#fff8e6", border: "1px solid #fbbf24", borderRadius: 10, fontSize: ".78rem", color: "#92400e", fontWeight: 600 }}>
+                  : <div style={{ marginBottom: '.9rem', padding: '.65rem .9rem', background: '#fff8e6', border: '1px solid #fbbf24', borderRadius: 10, fontSize: '.78rem', color: '#92400e', fontWeight: 600 }}>
                       ⚠️ No resume on file. Go to <strong>My Profile → Resume</strong> to upload one first.
                     </div>
                 }
@@ -2039,7 +1773,7 @@ export default function StudentDashboard() {
       </AnimatePresence>
 
       {/* TOAST NOTIFICATIONS */}
-      <div style={{ position: "fixed", bottom: "5rem", right: "1rem", zIndex: 2000, display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ position: 'fixed', bottom: '5rem', right: '1rem', zIndex: 2000, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <AnimatePresence>
           {notifications.map(n => (
             <motion.div key={n.id} className="notif-toast"
