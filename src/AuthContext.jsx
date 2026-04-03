@@ -164,7 +164,10 @@ export function AuthProvider({ children }) {
         }
         if (!mounted) return;
         setSession(s);
-        if (s?.user) await fetchAuthUser(s.user.id);
+       if (s?.user) {
+  const result = await fetchAuthUser(s.user.id);
+  if (!result && mounted) setLoading(false);
+}
       } catch (err) {
         console.error('Auth init failed:', err);
         clearSupabaseStorage();
@@ -190,8 +193,9 @@ export function AuthProvider({ children }) {
       }
 
       setSession(s);
-      if (s?.user && s.user.id !== lastFetchedId.current) {
-        await fetchAuthUser(s.user.id);
+     if (s?.user && s.user.id !== lastFetchedId.current) {
+  const result = await fetchAuthUser(s.user.id);
+  if (!result && mounted) { setAuthUser(null); setLoading(false); }
       } else if (!s?.user) {
         setAuthUser(null); lastFetchedId.current = null;
       }
