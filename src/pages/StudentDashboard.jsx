@@ -619,28 +619,210 @@ export default function StudentDashboard() {
     if (hasBootedRef.current) return;
     hasBootedRef.current = true;
 
+
+    // const boot = async () => {
+    //   setIsFeedLoadingSafe(true);
+
+    //   // FIX #5: Wait up to 3 s for auth context to populate, polling every
+    //   //         200 ms. Previously the 1500 ms fixed delay could expire BEFORE
+    //   //         authUser arrived, causing a false "not authenticated" failure.
+    //   let resolvedUser = authUser;
+    //   let resolvedProfile = authProfile;
+
+    //   if (!resolvedUser) {
+    //     for (let i = 0; i < 15; i++) {
+    //       await new Promise(r => setTimeout(r, 200));
+    //       if (!mountedRef.current) return; // unmounted — bail out entirely
+    //       // Re-read from module scope isn't possible for hook values,
+    //       // so we break and let the block below handle the null case.
+    //       break;
+    //     }
+    //   }
+
+    //   // FIX #6: If still no user after waiting, redirect immediately — don't
+    //   //         set authFailed state (which would trigger another useEffect and
+    //   //         potentially cause re-renders / re-runs).
+    //   if (!authUser && !authProfile) {
+    //     setBootDoneSafe(true);
+    //     setIsFeedLoadingSafe(false);
+    //     setBootErrorSafe("auth");
+    //     try { await signOut(); } catch { }
+    //     if (mountedRef.current) navigate("/login");
+    //     return;
+    //   }
+
+    //   // Seed profile immediately from AuthContext so UI is never blank
+    //   setProfileSafe(buildDefaultProfile(authUser, authProfile));
+
+    //   try {
+    //     // 1. Full profile from backend — only if we have a valid user id
+    //     if (authUser?.id) {
+    //       try {
+    //         const res = await axios.get(
+    //           `${BASE}/api/get-profile?user_id=${authUser.id}`,
+    //           { timeout: 10000 }
+    //         );
+    //         const d = res.data;
+    //         if (d?.id && mountedRef.current) {
+    //           setProfileSafe({
+    //             id: d.id,
+    //             name: d.name || d.full_name || authProfile?.name || authUser?.email?.split("@")[0] || "Student",
+    //             email: d.email || authUser?.email || "",
+    //             username: d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
+    //             qualification: d.qualification || authProfile?.qualification || "",
+    //             phone: d.phone || "",
+    //             address: d.address || d.location || "",
+    //             about: d.about || "",
+    //             skills: Array.isArray(d.skills) ? d.skills : [],
+    //             photo: d.photo || null,
+    //             tenth: d.tenth || "",
+    //             twelfth: d.twelfth || "",
+    //             graduation: d.graduation || "",
+    //             certificates: d.certificates || [],
+    //             personalPosts: d.personalPosts || d.personal_posts || [],
+    //             resumes: d.resumes || [],
+    //             chats: d.chats || {},
+    //             linkedin: d.linkedin || "",
+    //             github: d.github || "",
+    //             website: d.website || "",
+    //             experience: d.experience || "",
+    //             cgpa: d.cgpa || "",
+    //           });
+    //         }
+    //       } catch (profileErr) {
+    //         // FIX #7: Profile fetch failing is a WARNING, not a fatal error.
+    //         // We already seeded from AuthContext, so the user sees the dashboard.
+    //         console.warn("Profile fetch failed — using cached session data:", profileErr?.message);
+    //       }
+    //     }
+
+    //     // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
+    //     const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] = await Promise.allSettled([
+    //       axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
+    //       axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
+    //       axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
+    //       authUser?.id
+    //         ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
+    //         : Promise.resolve({ data: [] }),
+    //       axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
+    //       authUser?.id
+    //         ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
+    //         : Promise.resolve({ data: [] }),
+    //     ]);
+
+    //     if (!mountedRef.current) return;
+
+    //     setIndustriesSafe(
+    //       indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
+    //         ? indRes.value.data : mockIndustries
+    //     );
+    //     setCoursesSafe(
+    //       coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
+    //         ? coursesRes.value.data : mockCourses
+    //     );
+
+    //     const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
+    //       ? indRes.value.data : mockIndustries;
+
+    //     if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
+    //       setVacanciesSafe(vacRes.value.data.map(v => ({
+    //         id: v.id,
+    //         ownerId: v.owner_id || v.ownerId,
+    //         ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
+    //         ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
+    //         type: v.type || "Job Vacancy",
+    //         title: v.title,
+    //         desc: v.description || v.desc || "",
+    //         skills: v.skills || "",
+    //         duration: v.duration || "Full-Time",
+    //         offerings: v.offerings || "",
+    //         date: v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
+    //         likes: v.likes || 0,
+    //       })));
+    //     } else {
+    //       setVacanciesSafe(mockVacancies);
+    //     }
+
+    //     if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
+    //       setMyApplicationsSafe(appsRes.value.data.map(a => ({
+    //         id: a.id,
+    //         postId: a.vacancy_id,
+    //         role: a.vacancies?.title || "Role",
+    //         company: a.vacancies?.owner_name || "Company",
+    //         appliedOn: new Date(a.created_at).toLocaleDateString(),
+    //         status: a.status || "Pending",
+    //         coverLetter: a.cover_letter,
+    //       })));
+    //     }
+
+    //     if (jobsRes.status === "fulfilled") {
+    //       let raw = jobsRes.value?.data || [];
+    //       if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
+    //       if (!Array.isArray(raw)) raw = [];
+    //       const jobs = raw.map(j => ({
+    //         industry: j.industry || j.company || j.employer || "Company",
+    //         job: j.job || j.title || j.position || "Job Opening",
+    //         desc: j.desc || j.description || j.summary || "",
+    //         role: j.role || j.role_type || "",
+    //         ug: j.ug || j.education_ug || j.education || "",
+    //         pg: j.pg || j.education_pg || "",
+    //         url: j.url || j.link || j.apply_url || "#",
+    //         dept: j.dept || j.department || j.category || "",
+    //         skills: j.skills || j.required_skills || "",
+    //       }));
+    //       setAllJobsSafe(jobs.length ? jobs : mockJobs);
+    //     } else {
+    //       setAllJobsSafe(mockJobs);
+    //     }
+
+    //   } catch (err) {
+    //     console.error("Boot error:", err);
+    //     if (!mountedRef.current) return;
+    //     // Fall back to mock data — dashboard is never completely blank
+    //     setIndustriesSafe(mockIndustries);
+    //     setCoursesSafe(mockCourses);
+    //     setVacanciesSafe(mockVacancies);
+    //     setAllJobsSafe(mockJobs);
+    //   } finally {
+    //     if (mountedRef.current) {
+    //       setIsFeedLoadingSafe(false);
+    //       setBootDoneSafe(true);
+    //       // FIX #8: We intentionally do NOT reset hasBootedRef here — it must
+    //       // stay true forever so userId changes never re-trigger the boot.
+    //     }
+    //   }
+
+    //   // Load messages from backend and group by conversation partner
+
+    //   if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
+    //     const msgs = {};
+    //     msgsRes.value.data.forEach(m => {
+    //       const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+    //       if (!msgs[partnerId]) msgs[partnerId] = [];
+    //       msgs[partnerId].push({
+    //         sender: m.sender_id === authUser.id ? "me" : "them",
+    //         message: m.text,
+    //         time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    //       });
+    //     });
+    //     if (mountedRef.current) setChatMessages(msgs);
+    //   }
+    // };
+
     const boot = async () => {
       setIsFeedLoadingSafe(true);
 
-      // FIX #5: Wait up to 3 s for auth context to populate, polling every
-      //         200 ms. Previously the 1500 ms fixed delay could expire BEFORE
-      //         authUser arrived, causing a false "not authenticated" failure.
       let resolvedUser = authUser;
       let resolvedProfile = authProfile;
 
       if (!resolvedUser) {
         for (let i = 0; i < 15; i++) {
           await new Promise(r => setTimeout(r, 200));
-          if (!mountedRef.current) return; // unmounted — bail out entirely
-          // Re-read from module scope isn't possible for hook values,
-          // so we break and let the block below handle the null case.
+          if (!mountedRef.current) return;
           break;
         }
       }
 
-      // FIX #6: If still no user after waiting, redirect immediately — don't
-      //         set authFailed state (which would trigger another useEffect and
-      //         potentially cause re-renders / re-runs).
       if (!authUser && !authProfile) {
         setBootDoneSafe(true);
         setIsFeedLoadingSafe(false);
@@ -650,11 +832,10 @@ export default function StudentDashboard() {
         return;
       }
 
-      // Seed profile immediately from AuthContext so UI is never blank
       setProfileSafe(buildDefaultProfile(authUser, authProfile));
 
       try {
-        // 1. Full profile from backend — only if we have a valid user id
+        // 1. Profile fetch
         if (authUser?.id) {
           try {
             const res = await axios.get(
@@ -662,6 +843,7 @@ export default function StudentDashboard() {
               { timeout: 10000 }
             );
             const d = res.data;
+
             if (d?.id && mountedRef.current) {
               setProfileSafe({
                 id: d.id,
@@ -688,127 +870,112 @@ export default function StudentDashboard() {
                 cgpa: d.cgpa || "",
               });
             }
-          } catch (profileErr) {
-            // FIX #7: Profile fetch failing is a WARNING, not a fatal error.
-            // We already seeded from AuthContext, so the user sees the dashboard.
-            console.warn("Profile fetch failed — using cached session data:", profileErr?.message);
+          } catch (e) {
+            console.warn("Profile fetch failed:", e?.message);
           }
         }
 
-        // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
-        const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] = await Promise.allSettled([
-          axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
-          axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
-          authUser?.id
-            ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
-            : Promise.resolve({ data: [] }),
-          axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
-          authUser?.id
-            ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
-            : Promise.resolve({ data: [] }),
-        ]);
+        // 2. Parallel fetch
+        const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] =
+          await Promise.allSettled([
+            axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
+            axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
+            axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
+            authUser?.id
+              ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
+              : Promise.resolve({ data: [] }),
+            axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
+            authUser?.id
+              ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
+              : Promise.resolve({ data: [] }),
+          ]);
 
         if (!mountedRef.current) return;
 
+        // industries
         setIndustriesSafe(
-          indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
-            ? indRes.value.data : mockIndustries
+          indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
+            ? indRes.value.data
+            : mockIndustries
         );
+
+        // courses
         setCoursesSafe(
-          coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
-            ? coursesRes.value.data : mockCourses
+          coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data)
+            ? coursesRes.value.data
+            : mockCourses
         );
 
-        const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
-          ? indRes.value.data : mockIndustries;
-
+        // vacancies
         if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
-          setVacanciesSafe(vacRes.value.data.map(v => ({
-            id: v.id,
-            ownerId: v.owner_id || v.ownerId,
-            ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
-            ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
-            type: v.type || "Job Vacancy",
-            title: v.title,
-            desc: v.description || v.desc || "",
-            skills: v.skills || "",
-            duration: v.duration || "Full-Time",
-            offerings: v.offerings || "",
-            date: v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
-            likes: v.likes || 0,
-          })));
+          setVacanciesSafe(vacRes.value.data);
         } else {
           setVacanciesSafe(mockVacancies);
         }
 
+        // applications
         if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
-          setMyApplicationsSafe(appsRes.value.data.map(a => ({
-            id: a.id,
-            postId: a.vacancy_id,
-            role: a.vacancies?.title || "Role",
-            company: a.vacancies?.owner_name || "Company",
-            appliedOn: new Date(a.created_at).toLocaleDateString(),
-            status: a.status || "Pending",
-            coverLetter: a.cover_letter,
-          })));
+          setMyApplicationsSafe(appsRes.value.data);
         }
 
+        // jobs
         if (jobsRes.status === "fulfilled") {
-          let raw = jobsRes.value?.data || [];
-          if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
-          if (!Array.isArray(raw)) raw = [];
-          const jobs = raw.map(j => ({
-            industry: j.industry || j.company || j.employer || "Company",
-            job: j.job || j.title || j.position || "Job Opening",
-            desc: j.desc || j.description || j.summary || "",
-            role: j.role || j.role_type || "",
-            ug: j.ug || j.education_ug || j.education || "",
-            pg: j.pg || j.education_pg || "",
-            url: j.url || j.link || j.apply_url || "#",
-            dept: j.dept || j.department || j.category || "",
-            skills: j.skills || j.required_skills || "",
-          }));
+          const jobs = jobsRes.value?.data || [];
           setAllJobsSafe(jobs.length ? jobs : mockJobs);
         } else {
           setAllJobsSafe(mockJobs);
         }
 
+        // ✅ FIXED: MESSAGES LOGIC INSIDE TRY
+        if (
+          msgsRes.status === "fulfilled" &&
+          Array.isArray(msgsRes.value?.data) &&
+          authUser?.id
+        ) {
+          const msgs = {};
+
+          msgsRes.value.data.forEach(m => {
+            const partnerId =
+              m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+
+            if (!msgs[partnerId]) msgs[partnerId] = [];
+
+            msgs[partnerId].push({
+              sender: m.sender_id === authUser.id ? "me" : "them",
+              message: m.text,
+              time: new Date(m.created_at).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            });
+          });
+
+          setChatMessagesSafe(msgs); // ✅ correct setter
+        }
+
       } catch (err) {
         console.error("Boot error:", err);
+
         if (!mountedRef.current) return;
-        // Fall back to mock data — dashboard is never completely blank
+
         setIndustriesSafe(mockIndustries);
         setCoursesSafe(mockCourses);
         setVacanciesSafe(mockVacancies);
         setAllJobsSafe(mockJobs);
+
       } finally {
         if (mountedRef.current) {
           setIsFeedLoadingSafe(false);
           setBootDoneSafe(true);
-          // FIX #8: We intentionally do NOT reset hasBootedRef here — it must
-          // stay true forever so userId changes never re-trigger the boot.
         }
-      }
-
-      // Load messages from backend and group by conversation partner
-      if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
-        const msgs = {};
-        msgsRes.value.data.forEach(m => {
-          const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
-          if (!msgs[partnerId]) msgs[partnerId] = [];
-          msgs[partnerId].push({
-            sender: m.sender_id === authUser.id ? "me" : "them",
-            message: m.text,
-            time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          });
-        });
-        if (mountedRef.current) setChatMessages(msgs);
       }
     };
 
+
+
+
     boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps   
   }, []); // ← EMPTY DEPS: boot runs once on mount, never again.
 
   // ── AI skill match — stable key prevents unnecessary re-runs ─────────────
@@ -938,8 +1105,24 @@ export default function StudentDashboard() {
   };
 
   const handleLogout = async () => {
-    try { await signOut(); } catch { }
-    navigate("/login");
+    setProfile(null);
+
+    const forceRedirect = setTimeout(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("/");
+    }, 1000);
+
+    try {
+      if (signOut) await signOut();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      clearTimeout(forceRedirect);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("/");
+    }
   };
 
   const deletePost = (type, idx) => {
@@ -1261,6 +1444,44 @@ export default function StudentDashboard() {
           </div>
         }
       </div>
+
+      {/* ── LOGOUT (Mobile Sidebar) ── */}
+      {editable && (
+        <div style={{
+          padding: "1.5rem 1.2rem",
+          marginTop: "auto",
+          borderTop: "1px solid var(--border)",
+          background: "var(--surface)",
+          position: "relative",
+          zIndex: 9999
+        }}>
+          <button
+            type="button"
+            style={{
+              width: "100%",
+              padding: "1rem",
+              background: "var(--rose)",
+              color: "white",
+              border: "none",
+              borderRadius: "12px",
+              fontWeight: "700",
+              cursor: "pointer",
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(244, 63, 94, 0.2)"
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleLogout();
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -1750,7 +1971,9 @@ export default function StudentDashboard() {
           <div className="nav-av" title={profile.name}>
             {profile.photo ? <img src={profile.photo} alt="" /> : (profile.name || "S")[0].toUpperCase()}
           </div>
-          <button className="signout-btn" onClick={handleLogout}>Sign Out</button>
+          <button className="signout-btn" onClick={handleLogout}>
+            Sign Out
+          </button>
         </div>
       </nav>
 
