@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
-
-import Landing from "./pages/Landing"; // Changed 'landing' to 'Landing'
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import StudentDashboard from "./pages/StudentDashboard";
+import Landing         from "./pages/Landing";
+import Login           from "./pages/Login";
+import Register        from "./pages/Register";
+import StudentDashboard  from "./pages/StudentDashboard";
 import IndustryDashboard from "./pages/IndustryDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard    from "./pages/AdminDashboard";
 
+// ─── Loading spinner (unchanged) ─────────────────────────────────────────────
 const LoadingSpinner = () => (
   <div style={{
     height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
@@ -30,61 +30,49 @@ const LoadingSpinner = () => (
   </div>
 );
 
+// ─── Protected Route ──────────────────────────────────────────────────────────
+// Uses authUser (id + email + role only) from AuthContext.
+// Full profile data is fetched inside each dashboard from the Python backend.
 function ProtectedRoute({ children, allowedRoles }) {
-  const { user, profile, loading } = useAuth();
+  const { user, authUser, loading } = useAuth();
 
-  // 1. Always check if the Auth initialization is still in progress first.
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // 1. Auth still initialising
+  if (loading) return <LoadingSpinner />;
 
-  // 2. If loading is finished and there is no user session, go to login.
-  if (!user) {
+  // 2. No Supabase session → go to login
+  if (!user) return <Navigate to="/login" replace />;
+
+  // 3. Session exists but authUser (role row) not yet fetched
+  //    This is a brief race — spinner, not redirect
+  if (!authUser) return <LoadingSpinner />;
+
+  // 4. Role missing in DB — something is wrong with the account
+  if (!authUser.role) {
+    console.warn("authUser has no role assigned:", authUser);
+    // Send to login; user should re-register or contact support
     return <Navigate to="/login" replace />;
   }
 
-  // 3. DEADLOCK FIX: If we have a user but NO profile and loading is DONE, 
-  // the database fetch failed or timed out. Don't spin—redirect.
-  // if (!profile && !loading) {
-  //   console.error("User session exists but profile fetch failed/timed out.");
-  //   return <Navigate to="/login" replace />; 
-  // }
-
-  // 4. If we have a user but the profile is still being fetched (rare race condition),
-  // then and only then show the spinner.
-  if (!profile) {
-    return <LoadingSpinner />;
+  // 5. RBAC — wrong role for this route → redirect to correct dashboard
+  if (allowedRoles && !allowedRoles.includes(authUser.role)) {
+    const roleRoutes = { industry: "/industry", admin: "/admin", student: "/student" };
+    return <Navigate to={roleRoutes[authUser.role] || "/student"} replace />;
   }
 
-  // 5. Profile is loaded, but verify the role exists (edge case).
-  if (!profile.role) {
-    console.warn("Profile exists but no role is assigned.");
-    return <LoadingSpinner />;
-  }
-
-  // 6. Role-Based Access Control (RBAC)
-  // If user is in the wrong section, send them to their designated dashboard.
-  if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    const roleRoutes = {
-      industry: "/industry",
-      admin: "/admin",
-      student: "/student"
-    };
-    return <Navigate to={roleRoutes[profile.role] || "/student"} replace />;
-  }
-
-  // 7. Everything passed!
+  // 6. All good — render the dashboard
   return children;
 }
 
+// ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/"        element={<Landing />} />
+          <Route path="/login"   element={<Login />} />
           <Route path="/register" element={<Register />} />
+
           <Route
             path="/student"
             element={
