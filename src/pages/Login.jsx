@@ -144,30 +144,34 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle, user, profile, loading } = useAuth();
+  const { signIn, signInWithGoogle, user, authUser, loading } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && user && profile) {
-      if (profile.role === "industry") navigate("/industry", { replace: true });
-      else if (profile.role === "admin") navigate("/admin", { replace: true });
+    if (!loading && user && authUser) {
+      if (authUser.role === "industry") navigate("/industry", { replace: true });
+      else if (authUser.role === "admin") navigate("/admin", { replace: true });
       else navigate("/student", { replace: true });
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, authUser, loading, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
     try {
-      await signIn({ email, password });
-      // Auth state listener in AuthContext will handle redirect
+      const data = await signIn({ email, password });
+      // signIn returns the full auth data including the user's fetched authUser
+      // Navigate based on role — authUser is set inside signIn() before it returns
+      const userRole = data?.user?.user_metadata?.role;
+      if (userRole === "industry") navigate("/industry", { replace: true });
+      else if (userRole === "admin") navigate("/admin", { replace: true });
+      else navigate("/student", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     }
     setIsLoading(false);
   };
-
   const handleGoogleLogin = async () => {
     setError("");
     try {
