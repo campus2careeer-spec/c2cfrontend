@@ -37,16 +37,15 @@ export function AuthProvider({ children }) {
       let error = null;
       for (let attempt = 1; attempt <= 3; attempt++) {
        // Inside fetchProfile in AuthContext.jsx
-         // Replace lines 41-47 with this:
-const { data: resultData, error: resultError } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('id', userId)
-  .single();
+          const result = await Promise.race([
+            supabase.from('profiles').select('*').eq('id', userId).single(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Profile fetch timed out')), 15000) // Changed from 5000 to 15000
+            ),
+          ]);
+        data = result.data;
+        error = result.error;
 
-data = resultData;
-error = resultError;
-      
         if (data) break; // success
 
         // Row might not exist yet right after signup — wait and retry
