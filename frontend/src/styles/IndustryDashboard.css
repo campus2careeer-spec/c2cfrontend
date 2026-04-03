@@ -1,35 +1,35 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #07090f;
-  --surface: #0d1117;
-  --surface2: #131923;
-  --surface3: #1a2332;
-  --surface4: #202d40;
-  --border: rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.1);
-  --border3: rgba(255,255,255,0.16);
-  --accent: #3b82f6;
-  --accent2: #60a5fa;
-  --accent3: rgba(59,130,246,0.12);
-  --accent-glow: rgba(59,130,246,0.2);
+  --bg: #f4f7fe;
+  --surface: #ffffff;
+  --surface2: #fafbfc;
+  --surface3: #f1f5f9;
+  --surface4: #e2e8f0;
+  --border: rgba(15,23,42,0.08);
+  --border2: rgba(15,23,42,0.15);
+  --border3: rgba(15,23,42,0.22);
+  --accent: #4f46e5;
+  --accent2: #6366f1;
+  --accent3: rgba(79,70,229,0.1);
+  --accent-glow: rgba(79,70,229,0.25);
   --green: #10b981;
-  --green2: rgba(16,185,129,0.12);
+  --green2: #dcfce7;
   --amber: #f59e0b;
-  --amber2: rgba(245,158,11,0.12);
+  --amber2: #fef3c7;
   --red: #ef4444;
-  --red2: rgba(239,68,68,0.12);
+  --red2: #fee2e2;
   --violet: #8b5cf6;
-  --violet2: rgba(139,92,246,0.12);
+  --violet2: #ede9fe;
   --cyan: #06b6d4;
-  --cyan2: rgba(6,182,212,0.1);
-  --text: #f1f5f9;
-  --text2: #94a3b8;
-  --text3: #4b5a6b;
-  --r: 14px;
-  --r-lg: 20px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-accent: 0 4px 24px rgba(59,130,246,0.15);
+  --cyan2: #cffafe;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #64748b;
+  --r: 16px;
+  --r-lg: 24px;
+  --shadow: 0 10px 40px rgba(0,0,0,0.06);
+  --shadow-accent: 0 8px 30px rgba(79,70,229,0.2);
 }
 
 html, body { height: 100%; }
@@ -74,7 +74,7 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 
 .id-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-.topbar { height: 58px; background: rgba(7,9,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; z-index: 50; }
+.topbar { height: 58px; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; gap: 1rem; flex-shrink: 0; z-index: 50; }
 .topbar-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 1rem; font-weight: 700; flex: 1; }
 .search-box { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 0.45rem 0.9rem; width: 260px; transition: 0.15s; }
 .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent3); }
@@ -109,8 +109,8 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.8rem; }
 .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.4rem; position: relative; overflow: hidden; transition: 0.18s; }
-.stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
-.stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: var(--glow, rgba(59,130,246,0.06)); filter: blur(15px); }
+.stat-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
+.stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: var(--glow, rgba(79,70,229,0.1)); filter: blur(15px); }
 .stat-label { font-size: 0.65rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.65rem; }
 .stat-value { font-family: 'Cabinet Grotesk', sans-serif; font-size: 2rem; font-weight: 900; line-height: 1; margin-bottom: 0.45rem; }
 .stat-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
@@ -218,10 +218,10 @@ body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color:
 .bar:hover { opacity: 0.8; }
 .bar-label { font-size: 0.58rem; color: var(--text3); text-align: center; margin-top: 5px; }
 
-.profile-cover { background: linear-gradient(135deg, #1e3a5f 0%, #0f2040 50%, #0a0c14 100%); border-radius: var(--r-lg); padding: 2rem; margin-bottom: 4.5rem; position: relative; overflow: hidden; }
-.profile-cover::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.15) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(139,92,246,0.1) 0%, transparent 50%); }
-.profile-av-wrap { position: absolute; bottom: -45px; left: 2rem; width: 100px; height: 100px; border-radius: 20px; border: 3px solid var(--surface); overflow: hidden; background: var(--surface2); cursor: pointer; }
-.profile-av-wrap:hover::after { content: '📷'; position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.profile-cover { background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #818cf8 100%); border-radius: var(--r-lg); padding: 2rem; margin-bottom: 4.5rem; position: relative; overflow: hidden; }
+.profile-cover::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.4) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.3) 0%, transparent 50%); }
+.profile-av-wrap { position: absolute; bottom: -45px; left: 2rem; width: 100px; height: 100px; border-radius: 20px; border: 4px solid var(--surface); overflow: hidden; background: var(--surface2); cursor: pointer; box-shadow: var(--shadow); }
+.profile-av-wrap:hover::after { content: '📷'; position: absolute; inset: 0; background: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
 .post-types { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.2rem; }
 .post-type-btn { padding: 0.42rem 0.85rem; border-radius: 7px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border2); color: var(--text2); background: transparent; transition: 0.15s; font-family: inherit; }
