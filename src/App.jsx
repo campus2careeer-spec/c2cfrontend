@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./AuthContext";
 import Landing              from "./pages/Landing";
 import Login                from "./pages/Login";
@@ -35,13 +35,12 @@ const LoadingSpinner = () => (
 // No backend involved for identity/role checking.
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, authUser, loading } = useAuth();
-  const [timedOut, setTimedOut] = React.useState(false);
+ const [timedOut, setTimedOut] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const t = setTimeout(() => setTimedOut(true), 7000);
     return () => clearTimeout(t);
   }, []);
-
   if (loading && !timedOut) return <LoadingSpinner />;
   if (!user || (timedOut && !authUser)) return <Navigate to="/login" replace />;
   if (!authUser) return <LoadingSpinner />;  
