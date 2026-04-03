@@ -1,24 +1,55 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 
 const AuthContext = createContext(null);
 
+// ─── Clear ALL Supabase-related storage to kill stale refresh tokens ──────────
+function clearSupabaseStorage() {
+  try {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key);
+      }
+    });
+    Object.keys(sessionStorage || {}).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch {}
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession]   = useState(null);
-  const [authUser, setAuthUser] = useState(null);   // { id, email, role }
+  const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading]   = useState(true);
 
-  // ─── Fetch ONLY id + email + role from Supabase ───────────────────────────
-  // Everything else (name, skills, photo, etc.) is fetched by the dashboard
-  // directly from the Python backend. Keeping these two fetches separate
-  // prevents the auth context and dashboard from fighting over profile state.
+  // Guard: prevents setState after unmount
+  const mountedRef    = useRef(true);
+  // Guard: prevents fetchAuthUser running concurrently
+  const fetchingRef   = useRef(false);
+  // Guard: tracks last fetched userId so we don't re-fetch for same user
+  const lastFetchedId = useRef(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const fetchAuthUser = async (userId) => {
+    if (!userId) return null;
+    // Don't re-fetch if we already have this user's data
+    if (lastFetchedId.current === userId && authUser?.id === userId) return authUser;
+    // Prevent concurrent fetches
+    if (fetchingRef.current) return null;
+
+    fetchingRef.current = true;
     try {
       let data = null;
       for (let attempt = 1; attempt <= 3; attempt++) {
         const { data: row, error } = await supabase
           .from('profiles')
-          .select('id, email, role, full_name')   // minimal — role is all we need here
+          .select('id, email, role, full_name')
           .eq('id', userId)
           .single();
 
@@ -28,7 +59,7 @@ export function AuthProvider({ children }) {
       }
 
       if (!data) {
-        setAuthUser(null);
+        if (mountedRef.current) setAuthUser(null);
         return null;
       }
 
@@ -38,27 +69,43 @@ export function AuthProvider({ children }) {
         role:     data.role ?? null,
         fullName: data.full_name ?? '',
       };
-      setAuthUser(minimal);
+
+      lastFetchedId.current = userId;
+      if (mountedRef.current) setAuthUser(minimal);
       return minimal;
     } catch (err) {
       console.error('fetchAuthUser fatal:', err);
-      setAuthUser(null);
+      if (mountedRef.current) setAuthUser(null);
       return null;
+    } finally {
+      fetchingRef.current = false;
     }
   };
 
-  // ─── Init ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
 
     const init = async () => {
       try {
-        const { data: { session: s } } = await supabase.auth.getSession();
+        const { data: { session: s }, error } = await supabase.auth.getSession();
+
+        // ── FIX: If Supabase returns an auth error (e.g. bad refresh token),
+        //         clear storage immediately and don't try to use the stale session.
+        if (error) {
+          console.warn('getSession error — clearing stale tokens:', error.message);
+          clearSupabaseStorage();
+          await supabase.auth.signOut().catch(() => {});
+          if (mounted) { setSession(null); setAuthUser(null); setLoading(false); }
+          return;
+        }
+
         if (!mounted) return;
         setSession(s);
         if (s?.user) await fetchAuthUser(s.user.id);
       } catch (err) {
         console.error('Auth init failed:', err);
+        // If init totally fails, clear storage so the next page load is clean
+        clearSupabaseStorage();
       } finally {
         if (mounted) setLoading(false);
       }
@@ -67,14 +114,41 @@ export function AuthProvider({ children }) {
     init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, s) => {
+      async (event, s) => {
         if (!mounted) return;
+
+        // ── FIX: Handle token refresh errors — they fire as TOKEN_REFRESHED
+        //         with a null session or as a separate error event.
+        if (event === 'TOKEN_REFRESHED' && !s) {
+          console.warn('Token refresh failed — clearing stale session');
+          clearSupabaseStorage();
+          setSession(null);
+          setAuthUser(null);
+          setLoading(false);
+          return;
+        }
+
+        // ── FIX: SIGNED_OUT cleans everything up
+        if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setAuthUser(null);
+          lastFetchedId.current = null;
+          setLoading(false);
+          return;
+        }
+
         setSession(s);
+
         if (s?.user) {
-          await fetchAuthUser(s.user.id);
+          // Only fetch if the user actually changed
+          if (s.user.id !== lastFetchedId.current) {
+            await fetchAuthUser(s.user.id);
+          }
         } else {
           setAuthUser(null);
+          lastFetchedId.current = null;
         }
+
         if (mounted) setLoading(false);
       }
     );
@@ -83,6 +157,7 @@ export function AuthProvider({ children }) {
       mounted = false;
       subscription?.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Auth actions ──────────────────────────────────────────────────────────
@@ -111,16 +186,23 @@ export function AuthProvider({ children }) {
   };
 
   const signIn = async ({ email, password }) => {
+    // ── FIX: Clear any stale tokens BEFORE signing in so Supabase doesn't
+    //         try to merge a corrupted old session with the new one.
+    clearSupabaseStorage();
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+
     if (data?.user?.id) {
       setSession(data.session);
+      lastFetchedId.current = null; // force re-fetch
       await fetchAuthUser(data.user.id);
     }
     return data;
   };
 
   const signInWithGoogle = async () => {
+    clearSupabaseStorage();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/login' },
@@ -130,22 +212,27 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try { await supabase.auth.signOut(); } catch {}
+    clearSupabaseStorage();
     setSession(null);
     setAuthUser(null);
+    lastFetchedId.current = null;
   };
 
   const value = {
     session,
-    user:    session?.user || null,  // raw Supabase user (has .id, .email)
-    authUser,                         // { id, email, role, fullName } from profiles table
+    user:    session?.user || null,
+    authUser,
     loading,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
-    // Expose refetch so dashboard can call after profile creation if needed
-    refreshAuthUser: () => session?.user && fetchAuthUser(session.user.id),
+    refreshAuthUser: () => {
+      if (!session?.user) return;
+      lastFetchedId.current = null; // force re-fetch
+      return fetchAuthUser(session.user.id);
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
