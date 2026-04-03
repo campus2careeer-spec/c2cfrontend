@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
-import Landing         from "./pages/Landing";
-import Login           from "./pages/Login";
-import Register        from "./pages/Register";
-import StudentDashboard  from "./pages/StudentDashboard";
-import IndustryDashboard from "./pages/IndustryDashboard";
-import AdminDashboard    from "./pages/AdminDashboard";
+import Landing              from "./pages/Landing";
+import Login                from "./pages/Login";
+import Register             from "./pages/Register";
+import StudentDashboard     from "./pages/StudentDashboard";
+import IndustryDashboard    from "./pages/IndustryDashboard";
+import AdminDashboard       from "./pages/AdminDashboard";
 
-// ─── Loading spinner (unchanged) ─────────────────────────────────────────────
+// ─── Loading spinner ──────────────────────────────────────────────────────────
 const LoadingSpinner = () => (
   <div style={{
     height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
@@ -31,35 +31,25 @@ const LoadingSpinner = () => (
 );
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
-// Uses authUser (id + email + role only) from AuthContext.
-// Full profile data is fetched inside each dashboard from the Python backend.
+// Auth and profile are both resolved in AuthContext via direct Supabase calls.
+// No backend involved for identity/role checking.
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, authUser, loading } = useAuth();
 
-  // 1. Auth still initialising
-  if (loading) return <LoadingSpinner />;
+  if (loading)   return <LoadingSpinner />;
+  if (!user)     return <Navigate to="/login" replace />;
+  if (!authUser) return <LoadingSpinner />;    // brief race — spinner, not redirect
 
-  // 2. No Supabase session → go to login
-  if (!user) return <Navigate to="/login" replace />;
-
-  // 3. Session exists but authUser (role row) not yet fetched
-  //    This is a brief race — spinner, not redirect
-  if (!authUser) return <LoadingSpinner />;
-
-  // 4. Role missing in DB — something is wrong with the account
   if (!authUser.role) {
     console.warn("authUser has no role assigned:", authUser);
-    // Send to login; user should re-register or contact support
     return <Navigate to="/login" replace />;
   }
 
-  // 5. RBAC — wrong role for this route → redirect to correct dashboard
   if (allowedRoles && !allowedRoles.includes(authUser.role)) {
     const roleRoutes = { industry: "/industry", admin: "/admin", student: "/student" };
     return <Navigate to={roleRoutes[authUser.role] || "/student"} replace />;
   }
 
-  // 6. All good — render the dashboard
   return children;
 }
 
@@ -69,34 +59,25 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/"        element={<Landing />} />
-          <Route path="/login"   element={<Login />} />
+          <Route path="/"         element={<Landing />} />
+          <Route path="/login"    element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/student"
-            element={
-              <ProtectedRoute allowedRoles={["student"]}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/industry"
-            element={
-              <ProtectedRoute allowedRoles={["industry"]}>
-                <IndustryDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/student"  element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/industry" element={
+            <ProtectedRoute allowedRoles={["industry"]}>
+              <IndustryDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin"    element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
