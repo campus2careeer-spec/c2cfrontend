@@ -599,11 +599,8 @@ export default function StudentDashboard() {
     setIsFeedLoadingSafe(true);
 
     if (!user && !authUser) {
-      for (let i = 0; i < 15; i++) {
-        await new Promise(r => setTimeout(r, 200));
-        if (!mountedRef.current) return;
-        break;
-      }
+      await new Promise(r => setTimeout(r, 600));
+      if (!mountedRef.current) return;
     }
 
     if (!user && !authUser) {
@@ -629,30 +626,34 @@ export default function StudentDashboard() {
           );
           const d = res.data;
           if (d?.id && mountedRef.current) {
-            setProfileSafe({
-              id:            d.id,
-              name:          d.name || d.full_name || authUser?.fullName || user?.email?.split("@")[0] || "Student",
-              email:         d.email || user?.email || "",
-              username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
-              qualification: d.qualification || "",
-              phone:         d.phone || "",
-              address:       d.address || d.location || "",
-              about:         d.about || "",
-              skills:        Array.isArray(d.skills) ? d.skills : [],
-              photo:         d.photo || null,
-              tenth:         d.tenth || "",
-              twelfth:       d.twelfth || "",
-              graduation:    d.graduation || "",
-              certificates:  d.certificates || [],
-              personalPosts: d.personalPosts || d.personal_posts || [],
-              resumes:       d.resumes || [],
-              chats:         d.chats || {},
-              linkedin:      d.linkedin || "",
-              github:        d.github || "",
-              website:       d.website || "",
-              experience:    d.experience || "",
-              cgpa:          d.cgpa || "",
-            });
+           setProfileSafe({
+                id:            d.id,
+                name:          d.name || d.full_name || authUser?.fullName || user?.email?.split("@")[0] || "Student",
+                email:         d.email || user?.email || "",
+                username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
+                qualification: d.qualification || "",
+                phone:         d.phone         || "",
+                address:       d.address       || d.location || "",
+                about:         d.about         || "",
+                skills:        Array.isArray(d.skills) ? d.skills : [],
+                photo:         d.photo         || null,
+                coverPhoto:    d.coverPhoto     || null,      // ← ADD
+                tenth:         d.tenth         || "",
+                twelfth:       d.twelfth       || "",
+                graduation:    d.graduation    || "",
+                certificates:  d.certificates  || [],
+                personalPosts: d.personalPosts || d.personal_posts || [],
+                resumes:       d.resumes       || [],
+                chats:         d.chats         || {},
+                linkedin:      d.linkedin      || "",
+                github:        d.github        || "",
+                website:       d.website       || "",
+                experience:    d.experience    || "",
+                cgpa:          d.cgpa          || "",
+                projects:      d.projects      || "",         // ← ADD
+                achievements:  d.achievements  || "",         // ← ADD
+              });
+            
           }
         } catch (profileErr) {
           console.warn("Python profile fetch failed — using auth fallback:", profileErr?.message);
@@ -871,41 +872,89 @@ export default function StudentDashboard() {
   // ── Profile edit helpers ───────────────────────────────────────────────────
   const pffc = (k, v) => setPfForm(p => ({ ...p, [k]: v }));
 
-  const startPfEdit = () => {
+ const startPfEdit = () => {
     setPfForm({
-      name:          profile.name || "",
-      phone:         profile.phone || "",
-      address:       profile.address || "",
-      about:         profile.about || "",
+      name:          profile.name          || "",
+      phone:         profile.phone         || "",
+      address:       profile.address       || "",
+      about:         profile.about         || "",
       qualification: profile.qualification || "",
-      tenth:         profile.tenth || "",
-      twelfth:       profile.twelfth || "",
-      graduation:    profile.graduation || "",
-      website:       profile.website || "",
-      linkedin:      profile.linkedin || "",
-      experience:    profile.experience || "",
-      cgpa:          profile.cgpa || "",
-      skills:        [...(profile.skills || [])],
-      certificates:  [...(profile.certificates || [])],
-      resumes:       [...(profile.resumes || [])],
+      tenth:         profile.tenth         || "",
+      twelfth:       profile.twelfth       || "",
+      graduation:    profile.graduation    || "",
+      website:       profile.website       || "",
+      linkedin:      profile.linkedin      || "",
+      github:        profile.github        || "",   // ← ADD THIS
+      experience:    profile.experience    || "",
+      cgpa:          profile.cgpa          || "",
+      projects:      profile.projects      || "",   // ← ADD THIS
+      achievements:  profile.achievements  || "",   // ← ADD THIS
+      skills:        [...(profile.skills        || [])],
+      certificates:  [...(profile.certificates  || [])],
+      resumes:       [...(profile.resumes       || [])],
       personalPosts: [...(profile.personalPosts || [])],
     });
     setPfEditing(true);
     setPfTab("overview");
   };
 
+  
   const savePfForm = async () => {
     if (!profile?.id) return;
     setPfSaving(true);
     try {
-      const { certificates, resumes, personalPosts, ...safeFields } = pfForm;
-      await axios.put(`${BASE}/api/profile/${profile.id}`, safeFields, { timeout: 20000 });
-      setProfile(prev => ({ ...prev, ...pfForm }));
+      const payload = {
+        name:          pfForm.name          || "",
+        phone:         pfForm.phone         || "",
+        address:       pfForm.address       || "",
+        about:         pfForm.about         || "",
+        qualification: pfForm.qualification || "",
+        tenth:         pfForm.tenth         || "",
+        twelfth:       pfForm.twelfth       || "",
+        graduation:    pfForm.graduation    || "",
+        website:       pfForm.website       || "",
+        linkedin:      pfForm.linkedin      || "",
+        github:        pfForm.github        || "",
+        cgpa:          pfForm.cgpa          || "",
+        experience:    pfForm.experience    || "",
+        projects:      pfForm.projects      || "",
+        achievements:  pfForm.achievements  || "",
+        skills:        pfForm.skills        || [],
+        ...(pfForm.certificates  ? { certificates:  pfForm.certificates  } : {}),
+        ...(pfForm.resumes       ? { resumes:       pfForm.resumes       } : {}),
+        ...(pfForm.personalPosts ? { personalPosts: pfForm.personalPosts } : {}),
+      };
+
+      await axios.put(`${BASE}/api/profile/${profile.id}`, payload, { timeout: 20000 });
+
+      setProfile(prev => ({
+        ...prev,
+        name:          payload.name,
+        phone:         payload.phone,
+        address:       payload.address,
+        about:         payload.about,
+        qualification: payload.qualification,
+        tenth:         payload.tenth,
+        twelfth:       payload.twelfth,
+        graduation:    payload.graduation,
+        website:       payload.website,
+        linkedin:      payload.linkedin,
+        github:        payload.github,
+        cgpa:          payload.cgpa,
+        experience:    payload.experience,
+        projects:      payload.projects,
+        achievements:  payload.achievements,
+        skills:        payload.skills,
+        ...(pfForm.certificates  ? { certificates:  pfForm.certificates  } : {}),
+        ...(pfForm.resumes       ? { resumes:       pfForm.resumes       } : {}),
+        ...(pfForm.personalPosts ? { personalPosts: pfForm.personalPosts } : {}),
+      }));
+
       setPfEditing(false);
       showPfToast("✓ Profile updated");
     } catch (err) {
       console.error("savePfForm error:", err?.response?.data || err.message);
-      showPfToast(`✗ ${err?.response?.data?.error || "Could not save"}`, "error");
+      showPfToast(`✗ ${err?.response?.data?.error || "Could not save — check console"}`, "error");
     }
     setPfSaving(false);
   };
