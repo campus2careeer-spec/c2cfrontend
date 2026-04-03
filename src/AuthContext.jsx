@@ -3,32 +3,24 @@ import { supabase } from './supabaseClient';
 
 const AuthContext = createContext(null);
 
-// ─── Clear ALL Supabase-related storage to kill stale refresh tokens ──────────
 function clearSupabaseStorage() {
   try {
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('sb-') || key.includes('supabase')) {
-        localStorage.removeItem(key);
-      }
+      if (key.startsWith('sb-') || key.includes('supabase')) localStorage.removeItem(key);
     });
     Object.keys(sessionStorage || {}).forEach(key => {
-      if (key.startsWith('sb-') || key.includes('supabase')) {
-        sessionStorage.removeItem(key);
-      }
+      if (key.startsWith('sb-') || key.includes('supabase')) sessionStorage.removeItem(key);
     });
   } catch {}
 }
 
 export function AuthProvider({ children }) {
-  const [session, setSession]   = useState(null);
+  const [session,  setSession]  = useState(null);
   const [authUser, setAuthUser] = useState(null);
-  const [loading, setLoading]   = useState(true);
+  const [loading,  setLoading]  = useState(true);
 
-  // Guard: prevents setState after unmount
   const mountedRef    = useRef(true);
-  // Guard: prevents fetchAuthUser running concurrently
   const fetchingRef   = useRef(false);
-  // Guard: tracks last fetched userId so we don't re-fetch for same user
   const lastFetchedId = useRef(null);
 
   useEffect(() => {
@@ -36,20 +28,26 @@ export function AuthProvider({ children }) {
     return () => { mountedRef.current = false; };
   }, []);
 
+  // ── Pull full profile directly from Supabase (no backend) ─────────────────
   const fetchAuthUser = async (userId) => {
     if (!userId) return null;
-    // Don't re-fetch if we already have this user's data
     if (lastFetchedId.current === userId && authUser?.id === userId) return authUser;
-    // Prevent concurrent fetches
     if (fetchingRef.current) return null;
-
     fetchingRef.current = true;
+
     try {
       let data = null;
       for (let attempt = 1; attempt <= 3; attempt++) {
         const { data: row, error } = await supabase
           .from('profiles')
-          .select('id, email, role, full_name')
+          .select(`
+            id, email, role, full_name, username,
+            phone, address, about, skills, photo, cover_photo,
+            tenth, twelfth, graduation, qualification, cgpa,
+            certificates, personal_posts, resumes,
+            linkedin, github, website,
+            experience, projects, achievements
+          `)
           .eq('id', userId)
           .single();
 
@@ -58,21 +56,39 @@ export function AuthProvider({ children }) {
         if (attempt < 3) await new Promise(r => setTimeout(r, 800 * attempt));
       }
 
-      if (!data) {
-        if (mountedRef.current) setAuthUser(null);
-        return null;
-      }
+      if (!data) { if (mountedRef.current) setAuthUser(null); return null; }
 
-      const minimal = {
-        id:       data.id,
-        email:    data.email,
-        role:     data.role ?? null,
-        fullName: data.full_name ?? '',
+      const normalized = {
+        id:            data.id,
+        email:         data.email          || '',
+        role:          data.role           || 'student',
+        fullName:      data.full_name      || '',
+        username:      data.username       || '',
+        phone:         data.phone          || '',
+        address:       data.address        || '',
+        about:         data.about          || '',
+        skills:        Array.isArray(data.skills) ? data.skills : [],
+        photo:         data.photo          || null,
+        coverPhoto:    data.cover_photo    || null,
+        tenth:         data.tenth          || '',
+        twelfth:       data.twelfth        || '',
+        graduation:    data.graduation     || '',
+        qualification: data.qualification  || '',
+        cgpa:          data.cgpa           || '',
+        certificates:  data.certificates   || [],
+        personalPosts: data.personal_posts || [],
+        resumes:       data.resumes        || [],
+        linkedin:      data.linkedin       || '',
+        github:        data.github         || '',
+        website:       data.website        || '',
+        experience:    data.experience     || '',
+        projects:      data.projects       || '',
+        achievements:  data.achievements   || '',
       };
 
       lastFetchedId.current = userId;
-      if (mountedRef.current) setAuthUser(minimal);
-      return minimal;
+      if (mountedRef.current) setAuthUser(normalized);
+      return normalized;
     } catch (err) {
       console.error('fetchAuthUser fatal:', err);
       if (mountedRef.current) setAuthUser(null);
@@ -82,15 +98,63 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // ── Save profile directly to Supabase ────────────────────────────────────
+  const saveProfile = async (userId, updates) => {
+    if (!userId || !updates) throw new Error('Missing userId or updates');
+
+    // Map frontend keys → DB columns
+    const FIELD_MAP = {
+      fullName:      'full_name',
+      coverPhoto:    'cover_photo',
+      personalPosts: 'personal_posts',
+      name:          'full_name',
+      address:       'address',
+    };
+
+    const ALLOWED = new Set([
+      'full_name','username','email','phone','address','about',
+      'skills','photo','cover_photo','tenth','twelfth','graduation',
+      'qualification','cgpa','experience','projects','achievements',
+      'linkedin','github','website','certificates','resumes','personal_posts',
+    ]);
+
+    const mapped = {};
+    for (const [k, v] of Object.entries(updates)) {
+      const dbKey = FIELD_MAP[k] || k;
+      if (!ALLOWED.has(dbKey)) continue;
+
+      // Strip oversized base64 from list items
+      if (Array.isArray(v)) {
+        mapped[dbKey] = v.map(item => {
+          if (typeof item !== 'object' || item === null) return item;
+          return Object.fromEntries(
+            Object.entries(item).filter(([, iv]) => !(typeof iv === 'string' && iv.length > 900_000))
+          );
+        });
+      } else if (typeof v === 'string' && v.length > 5_000_000) {
+        // Too large — skip
+      } else {
+        mapped[dbKey] = v;
+      }
+    }
+
+    if (Object.keys(mapped).length === 0) throw new Error('No valid fields to update');
+
+    const { error } = await supabase.from('profiles').update(mapped).eq('id', userId);
+    if (error) throw error;
+
+    // Re-fetch so authUser stays fresh
+    lastFetchedId.current = null;
+    return fetchAuthUser(userId);
+  };
+
+  // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
 
     const init = async () => {
       try {
         const { data: { session: s }, error } = await supabase.auth.getSession();
-
-        // ── FIX: If Supabase returns an auth error (e.g. bad refresh token),
-        //         clear storage immediately and don't try to use the stale session.
         if (error) {
           console.warn('getSession error — clearing stale tokens:', error.message);
           clearSupabaseStorage();
@@ -98,13 +162,11 @@ export function AuthProvider({ children }) {
           if (mounted) { setSession(null); setAuthUser(null); setLoading(false); }
           return;
         }
-
         if (!mounted) return;
         setSession(s);
         if (s?.user) await fetchAuthUser(s.user.id);
       } catch (err) {
         console.error('Auth init failed:', err);
-        // If init totally fails, clear storage so the next page load is clean
         clearSupabaseStorage();
       } finally {
         if (mounted) setLoading(false);
@@ -113,54 +175,34 @@ export function AuthProvider({ children }) {
 
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, s) => {
-        if (!mounted) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+      if (!mounted) return;
 
-        // ── FIX: Handle token refresh errors — they fire as TOKEN_REFRESHED
-        //         with a null session or as a separate error event.
-        if (event === 'TOKEN_REFRESHED' && !s) {
-          console.warn('Token refresh failed — clearing stale session');
-          clearSupabaseStorage();
-          setSession(null);
-          setAuthUser(null);
-          setLoading(false);
-          return;
-        }
-
-        // ── FIX: SIGNED_OUT cleans everything up
-        if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setAuthUser(null);
-          lastFetchedId.current = null;
-          setLoading(false);
-          return;
-        }
-
-        setSession(s);
-
-        if (s?.user) {
-          // Only fetch if the user actually changed
-          if (s.user.id !== lastFetchedId.current) {
-            await fetchAuthUser(s.user.id);
-          }
-        } else {
-          setAuthUser(null);
-          lastFetchedId.current = null;
-        }
-
-        if (mounted) setLoading(false);
+      if (event === 'TOKEN_REFRESHED' && !s) {
+        clearSupabaseStorage();
+        setSession(null); setAuthUser(null); setLoading(false);
+        return;
       }
-    );
+      if (event === 'SIGNED_OUT') {
+        setSession(null); setAuthUser(null);
+        lastFetchedId.current = null; setLoading(false);
+        return;
+      }
 
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-    };
+      setSession(s);
+      if (s?.user && s.user.id !== lastFetchedId.current) {
+        await fetchAuthUser(s.user.id);
+      } else if (!s?.user) {
+        setAuthUser(null); lastFetchedId.current = null;
+      }
+      if (mounted) setLoading(false);
+    });
+
+    return () => { mounted = false; subscription?.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Auth actions ──────────────────────────────────────────────────────────
+  // ── Auth actions ──────────────────────────────────────────────────────────
   const signUp = async ({ email, password, fullName, role, extra = {} }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -170,32 +212,25 @@ export function AuthProvider({ children }) {
     if (error) throw error;
 
     if (data.user) {
-      const { error: upsertError } = await supabase
-        .from('profiles')
-        .upsert({
-          id:        data.user.id,
-          full_name: fullName,
-          role:      role || 'student',
-          email,
-          ...extra,
-        }, { onConflict: 'id' });
-
+      const { error: upsertError } = await supabase.from('profiles').upsert({
+        id:        data.user.id,
+        full_name: fullName,
+        role:      role || 'student',
+        email,
+        ...extra,
+      }, { onConflict: 'id' });
       if (upsertError) console.warn('Profile upsert failed:', upsertError.message);
     }
     return data;
   };
 
   const signIn = async ({ email, password }) => {
-    // ── FIX: Clear any stale tokens BEFORE signing in so Supabase doesn't
-    //         try to merge a corrupted old session with the new one.
     clearSupabaseStorage();
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
     if (data?.user?.id) {
       setSession(data.session);
-      lastFetchedId.current = null; // force re-fetch
+      lastFetchedId.current = null;
       await fetchAuthUser(data.user.id);
     }
     return data;
@@ -214,8 +249,7 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     try { await supabase.auth.signOut(); } catch {}
     clearSupabaseStorage();
-    setSession(null);
-    setAuthUser(null);
+    setSession(null); setAuthUser(null);
     lastFetchedId.current = null;
   };
 
@@ -228,9 +262,10 @@ export function AuthProvider({ children }) {
     signIn,
     signInWithGoogle,
     signOut,
+    saveProfile,
     refreshAuthUser: () => {
       if (!session?.user) return;
-      lastFetchedId.current = null; // force re-fetch
+      lastFetchedId.current = null;
       return fetchAuthUser(session.user.id);
     },
   };
