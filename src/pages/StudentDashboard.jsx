@@ -44,6 +44,7 @@ const mockJobs = [
   { industry: "StartupHub", job: "Full Stack Developer", desc: "End-to-end feature development.", role: "SDE-2", ug: "Any CS Degree", pg: "Not Required", url: "#", dept: "Product", skills: "React, Node.js, PostgreSQL" },
 ];
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function toBase64(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
@@ -67,7 +68,7 @@ function calcCompletion(p) {
 
 function buildDefaultProfile(supabaseUser, authUser) {
   return {
-    id:            supabaseUser?.id  || authUser?.id  || "",
+    id:            supabaseUser?.id   || authUser?.id   || "",
     name:          authUser?.fullName || supabaseUser?.email?.split("@")[0] || "Student",
     email:         supabaseUser?.email || authUser?.email || "",
     username:      (authUser?.fullName || "student").toLowerCase().replace(/\s+/g, "_"),
@@ -77,6 +78,7 @@ function buildDefaultProfile(supabaseUser, authUser) {
     about:         "",
     skills:        [],
     photo:         null,
+    coverPhoto:    null,
     tenth:         "",
     twelfth:       "",
     graduation:    "",
@@ -89,10 +91,12 @@ function buildDefaultProfile(supabaseUser, authUser) {
     website:       "",
     experience:    "",
     cgpa:          "",
+    projects:      "",
+    achievements:  "",
   };
 }
 
-// ─── CSS ─────────────────────────────────────────────────────────────────────
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
@@ -117,14 +121,7 @@ const CSS = `
 html{scroll-behavior:smooth}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(79,70,229,0.2);border-radius:99px}
-
-/* ── NAV ── */
-.s-nav{
-  height:var(--nav-h);background:var(--surface);backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);display:flex;align-items:center;
-  justify-content:space-between;padding:0 1rem;position:sticky;top:0;
-  z-index:200;box-shadow:var(--shadow-sm);gap:.5rem;
-}
+.s-nav{height:var(--nav-h);background:var(--surface);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;position:sticky;top:0;z-index:200;box-shadow:var(--shadow-sm);gap:.5rem;}
 .brand{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:900;letter-spacing:-0.04em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
 .brand-sub{font-size:0.58rem;font-weight:700;color:var(--subtle);letter-spacing:0.14em;text-transform:uppercase;margin-top:1px}
 .s-search{position:relative;flex:1;max-width:280px;min-width:0}
@@ -143,44 +140,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-w
 .notif-btn:hover{background:rgba(79,70,229,.08)}
 .notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid white}
 .signout-btn{padding:.32rem .75rem;border-radius:99px;background:rgba(244,63,94,.08);border:1.5px solid rgba(244,63,94,.2);color:var(--rose);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
-
-/* ── MOBILE NAV BAR (bottom) ── */
-.mobile-nav{
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  background:var(--surface);backdrop-filter:blur(24px);
-  border-top:1px solid var(--border);z-index:300;
-  padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));
-}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);backdrop-filter:blur(24px);border-top:1px solid var(--border);z-index:300;padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));}
 .mobile-nav-inner{display:flex;justify-content:space-around;align-items:center}
 .mob-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.4rem .6rem;border-radius:12px;cursor:pointer;transition:.18s;border:none;background:none;min-width:52px}
 .mob-tab .mob-icon{font-size:1.1rem;line-height:1}
 .mob-tab .mob-label{font-size:.56rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .mob-tab.active{background:rgba(79,70,229,.1)}
 .mob-tab.active .mob-label{color:var(--indigo)}
-
-/* ── HAMBURGER ── */
 .hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:.3rem;border:none;background:none}
 .hamburger span{display:block;width:20px;height:2px;background:var(--slate);border-radius:99px;transition:.2s}
-
-/* ── LAYOUT ── */
 .s-layout{display:flex;min-height:calc(100vh - var(--nav-h))}
-.s-sidebar{
-  width:var(--sidebar-w);min-width:var(--sidebar-w);
-  background:var(--surface);backdrop-filter:blur(24px);
-  border-right:1px solid var(--border);
-  height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);
-  overflow-y:auto;flex-shrink:0;transition:transform .28s cubic-bezier(.4,0,.2,1);
-}
+.s-sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);backdrop-filter:blur(24px);border-right:1px solid var(--border);height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);overflow-y:auto;flex-shrink:0;transition:transform .28s cubic-bezier(.4,0,.2,1);}
 .s-sidebar.right{border-right:none;border-left:1px solid var(--border)}
 .s-content{flex:1;padding:1.4rem 1.4rem 5rem;min-width:0;overflow-y:auto}
-
-/* Sidebar overlay for mobile */
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);
-  z-index:150;backdrop-filter:blur(4px);
-}
-
-/* ── SIDEBAR HEADER ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:150;backdrop-filter:blur(4px);}
 .sb-top{padding:1.2rem;background:var(--grad);position:relative;overflow:hidden}
 .sb-top::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;background:rgba(255,255,255,.08);border-radius:50%}
 .sb-top::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:rgba(255,255,255,.05);border-radius:50%}
@@ -189,14 +162,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--slate);-w
 .sb-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;color:white;line-height:1.2;position:relative;z-index:1}
 .sb-handle{font-size:.65rem;color:rgba(255,255,255,.6);margin-top:2px;position:relative;z-index:1}
 .sb-badge{display:inline-flex;align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:.18rem .6rem;font-size:.65rem;color:rgba(255,255,255,.9);font-weight:600;position:relative;z-index:1}
-
-/* ── COMPLETION BAR ── */
 .comp-bar-wrap{padding:.9rem 1.2rem;border-bottom:1px solid var(--border)}
 .comp-label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;justify-content:space-between;margin-bottom:.4rem}
 .comp-track{height:5px;background:rgba(79,70,229,.1);border-radius:99px;overflow:hidden}
 .comp-fill{height:100%;border-radius:99px;background:var(--grad);transition:width .8s ease}
-
-/* ── FORM SECTIONS ── */
 .fs{padding:.8rem 1.2rem;border-bottom:1px solid var(--border)}
 .fs-title{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.55rem;opacity:.8}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
@@ -211,8 +180,6 @@ select.fi{cursor:pointer}
 .sb-edit-btn{padding:.26rem .7rem;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:rgba(255,255,255,.92);font-size:.7rem;font-weight:700;cursor:pointer;transition:.2s;flex-shrink:0;font-family:'DM Sans',sans-serif}
 .sb-edit-btn:hover{background:rgba(255,255,255,.25)}
 .sb-save-btn{padding:.26rem .7rem;border-radius:8px;border:none;background:#10b981;color:white;font-size:.7rem;font-weight:700;cursor:pointer;transition:.2s;flex-shrink:0;font-family:'DM Sans',sans-serif}
-
-/* ── SIDEBAR DETAILS ── */
 .details-box{margin-top:.65rem;background:rgba(255,255,255,.7);border:1px solid var(--border2);border-radius:var(--r-sm);overflow:hidden}
 .details-row{display:flex;align-items:center;gap:.5rem;padding:.46rem .85rem;border-bottom:1px solid rgba(255,255,255,.6);font-size:.76rem;color:var(--slate);font-weight:500;word-break:break-all}
 .details-row:last-child{border-bottom:none}
@@ -229,16 +196,12 @@ select.fi{cursor:pointer}
 .resume-del{background:none;border:none;color:var(--rose);cursor:pointer;font-size:.7rem;font-weight:700;flex-shrink:0}
 .know-btn{display:flex;align-items:center;gap:.4rem;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;color:var(--indigo);cursor:pointer;transition:.2s}
 .know-btn:hover{opacity:.65}
-
-/* ── SECTION ── */
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
 .sec-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--navy)}
 .sec-sub{font-size:.73rem;color:var(--muted);margin-left:.35rem;font-weight:500}
 .sec-link{font-size:.76rem;font-weight:700;color:var(--indigo);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.2s}
 .sec-link:hover{opacity:.65}
 .page-sec{margin-bottom:2rem}
-
-/* ── INDUSTRY CARDS ── */
 .ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.85rem}
 .ind-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.1rem;cursor:pointer;transition:.22s;text-align:center;box-shadow:var(--shadow-sm)}
 .ind-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-3px)}
@@ -247,8 +210,6 @@ select.fi{cursor:pointer}
 .ind-domain{font-size:.7rem;font-weight:600;color:var(--indigo);background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.15);padding:.16rem .5rem;border-radius:99px;display:inline-block;margin-bottom:.35rem}
 .ind-loc{font-size:.7rem;color:var(--muted);font-weight:500}
 .ind-tagline{font-size:.7rem;color:var(--subtle);margin-top:.3rem;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-
-/* ── VACANCY FEED ── */
 .feed-grid{display:flex;flex-direction:column;gap:1rem}
 .vac-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm);transition:.22s}
 .vac-card:hover{box-shadow:var(--shadow);border-color:var(--border2)}
@@ -271,8 +232,6 @@ select.fi{cursor:pointer}
 .apply-btn:hover{opacity:.88;transform:translateY(-1px)}
 .apply-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .applied-tag{padding:.46rem 1.1rem;border-radius:99px;background:#dcfce7;color:#166534;font-size:.76rem;font-weight:700;white-space:nowrap}
-
-/* ── JOB CARDS ── */
 .jobs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem}
 .job-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.1rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s}
 .job-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-2px)}
@@ -285,8 +244,6 @@ select.fi{cursor:pointer}
 .job-dept{font-size:.68rem;font-weight:600;color:var(--muted)}
 .job-apply-link{padding:.38rem .9rem;border-radius:99px;border:none;background:var(--grad);color:white;font-size:.7rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:.2s}
 .job-apply-link:hover{opacity:.85}
-
-/* ── AI MATCH CARDS ── */
 .match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem}
 .match-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.2rem;box-shadow:var(--shadow-sm);transition:.22s}
 .match-card:hover{box-shadow:var(--shadow-lg);border-color:var(--border2);transform:translateY(-2px)}
@@ -297,8 +254,6 @@ select.fi{cursor:pointer}
 .miss-chip{display:inline-block;padding:.14rem .5rem;border-radius:6px;font-size:.66rem;font-weight:700;background:rgba(244,63,94,.07);color:var(--rose);border:1px solid rgba(244,63,94,.18);margin:.18rem}
 .course-rec{display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;background:rgba(79,70,229,.04);border:1px solid rgba(79,70,229,.12);border-radius:var(--r-sm);margin-top:.4rem}
 .course-rec-title{font-size:.76rem;font-weight:700;color:var(--slate);flex:1;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-
-/* ── COURSES ── */
 .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.9rem}
 .course-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-sm);transition:.22s;display:flex;flex-direction:column}
 .course-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
@@ -315,8 +270,6 @@ select.fi{cursor:pointer}
 .level-Advanced{background:#fdeef1;color:#b5192d;border:1px solid #f5b3bc}
 .course-enroll{width:100%;padding:.52rem;border-radius:99px;border:none;background:var(--grad);color:white;font-family:'Syne',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.2);transition:.2s}
 .course-enroll:hover{opacity:.88}
-
-/* ── APPLICATIONS ── */
 .app-list{display:flex;flex-direction:column;gap:.85rem}
 .app-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.1rem;box-shadow:var(--shadow-sm)}
 .app-role{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;color:var(--navy)}
@@ -326,8 +279,6 @@ select.fi{cursor:pointer}
 .sp-Shortlisted{background:#e0e7ff;color:#3730a3}
 .sp-Selected{background:#dcfce7;color:#166534}
 .sp-Rejected{background:#fee2e2;color:#b91c1c}
-
-/* ── PROFILE PAGE ── */
 .pf-cover{width:100%;height:160px;border-radius:var(--r);overflow:hidden;cursor:pointer;position:relative;margin-bottom:0}
 .pf-cover img{width:100%;height:100%;object-fit:cover}
 .pf-cover-ov{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:flex-end;justify-content:flex-end;padding:.7rem;transition:.2s}
@@ -370,7 +321,7 @@ textarea.pf-input{resize:vertical;min-height:85px}
 .pf-upload-thumb{aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;position:relative;background:rgba(79,70,229,.05);border:1px solid var(--border2)}
 .pf-upload-thumb img{width:100%;height:100%;object-fit:cover}
 .pf-upload-thumb-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.9);border:none;color:var(--rose);font-size:.55rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.pf-add-thumb{aspect-ratio:1;border-radius:10px;border:1.5px dashed rgba(79,70,229,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;cursor:pointer;color:var(--indigo);font-size:.66rem;font-weight:700;transition:.18s}
+.pf-add-thumb{aspect-ratio:1;border-radius:10px;border:1.5px dashed rgba(79,70,229,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;cursor:pointer;color:var(--indigo);font-size:.66rem;font-weight:700;transition:.18em}
 .pf-add-thumb:hover{background:rgba(79,70,229,.05);border-color:var(--indigo)}
 .pf-resume-item{display:flex;align-items:center;gap:.75rem;padding:.85rem .95rem;background:rgba(79,70,229,.04);border:1px solid var(--border2);border-radius:var(--r-sm);margin-bottom:.55rem}
 .pf-resume-icon{font-size:1.4rem;flex-shrink:0}
@@ -381,8 +332,6 @@ textarea.pf-input{resize:vertical;min-height:85px}
 .pf-toast{position:fixed;bottom:5rem;right:1rem;padding:.8rem 1.3rem;border-radius:var(--r-sm);font-size:.82rem;font-weight:700;box-shadow:var(--shadow-lg);z-index:3000;display:flex;align-items:center;gap:.5rem;max-width:calc(100vw - 2rem)}
 .pf-toast-success{background:#0f172a;color:white}
 .pf-toast-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
-
-/* ── MODALS ── */
 .modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.65);backdrop-filter:blur(12px);display:flex;align-items:flex-end;justify-content:center;z-index:9999;padding:0}
 @media(min-width:640px){.modal-ov{align-items:center;padding:1rem}}
 .modal-box{background:white;border-radius:24px 24px 0 0;padding:1.8rem 1.5rem 2.5rem;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.3)}
@@ -399,8 +348,6 @@ textarea.field-input{resize:vertical;min-height:85px}
 .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
 .btn-secondary{width:100%;padding:.68rem;border-radius:99px;border:1.5px solid #e2e8f0;background:white;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;margin-top:.45rem;transition:.2s}
 .btn-secondary:hover{border-color:var(--indigo);color:var(--indigo)}
-
-/* ── MESSAGES ── */
 .dm-panel{position:fixed;bottom:0;right:0;width:min(360px,100vw);height:480px;background:white;border:1px solid var(--border);border-radius:22px 22px 0 0;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;z-index:500;overflow:hidden}
 .dm-head{padding:.9rem 1.1rem;background:var(--grad);display:flex;align-items:center;justify-content:space-between;color:white}
 .dm-recipient{font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem}
@@ -418,31 +365,17 @@ textarea.field-input{resize:vertical;min-height:85px}
 .send-btn{width:34px;height:34px;border-radius:50%;background:var(--grad);border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0}
 .close-x{padding:.22rem .65rem;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif}
 .close-x:hover{background:rgba(220,38,38,.4)}
-
-/* ── TOAST ── */
 .notif-toast{background:#0f172a;color:white;padding:.8rem 1.3rem;border-radius:14px;box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.55rem;max-width:calc(100vw - 2rem)}
 .notif-dot2{width:7px;height:7px;background:var(--indigo-light);border-radius:50%;flex-shrink:0}
-
-/* ── SPINNER ── */
 .spinner{width:30px;height:30px;border:3px solid rgba(79,70,229,.15);border-top-color:var(--indigo);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── EMPTY ── */
 .empty-block{text-align:center;padding:2.5rem 1rem;color:var(--subtle)}
 .empty-icon{font-size:2.2rem;margin-bottom:.7rem;opacity:.5}
 .empty-title{font-size:.88rem;font-weight:700;color:var(--muted);margin-bottom:.28rem}
 .empty-text{font-size:.76rem;line-height:1.6}
-
-/* ════════════════════════════════════════════════════
-   RESPONSIVE — TABLET (≤ 900px)
-════════════════════════════════════════════════════ */
 @media(max-width:900px){
   :root{--sidebar-w:280px}
-  .s-sidebar{
-    position:fixed;top:var(--nav-h);left:0;z-index:160;
-    transform:translateX(-100%);height:calc(100vh - var(--nav-h));
-    box-shadow:var(--shadow-lg);
-  }
+  .s-sidebar{position:fixed;top:var(--nav-h);left:0;z-index:160;transform:translateX(-100%);height:calc(100vh - var(--nav-h));box-shadow:var(--shadow-lg);}
   .s-sidebar.open{transform:translateX(0)}
   .sidebar-overlay.show{display:block}
   .nav-pills-desktop{display:none}
@@ -451,10 +384,6 @@ textarea.field-input{resize:vertical;min-height:85px}
   .s-content{padding:1rem 1rem 5rem}
   .pf-grid-3{grid-template-columns:1fr 1fr}
 }
-
-/* ════════════════════════════════════════════════════
-   RESPONSIVE — MOBILE (≤ 600px)
-════════════════════════════════════════════════════ */
 @media(max-width:600px){
   :root{--nav-h:56px}
   .s-nav{padding:0 .75rem;gap:.35rem}
@@ -465,39 +394,27 @@ textarea.field-input{resize:vertical;min-height:85px}
   .signout-btn{display:none}
   .notif-btn{width:30px;height:30px}
   .nav-av{width:30px;height:30px;font-size:.78rem}
-
   .s-content{padding:.75rem .75rem 5rem}
-
   .ind-grid{grid-template-columns:repeat(2,1fr);gap:.65rem}
   .ind-card{padding:.9rem}
   .ind-logo{width:42px;height:42px;font-size:.88rem}
-
   .jobs-grid{grid-template-columns:1fr}
   .match-grid{grid-template-columns:1fr}
   .courses-grid{grid-template-columns:1fr}
-
   .vac-foot{flex-direction:column;align-items:flex-start}
   .vac-foot>div:last-child{width:100%;display:flex;justify-content:flex-end}
-
   .pf-cover{height:120px}
   .pf-hero{padding:.9rem 1rem}
   .pf-av{width:68px;height:68px;font-size:1.5rem;margin-top:-44px}
   .pf-name{font-size:1.1rem}
   .pf-grid{grid-template-columns:1fr}
   .pf-grid-3{grid-template-columns:1fr}
-
   .sec-title{font-size:1rem}
   .page-sec{margin-bottom:1.5rem}
-
   .dm-panel{width:100vw;height:70vh;border-radius:20px 20px 0 0}
-
   .modal-box{padding:1.4rem 1rem 2rem}
   .modal-title{font-size:1.1rem}
 }
-
-/* ════════════════════════════════════════════════════
-   RESPONSIVE — VERY SMALL (≤ 380px)
-════════════════════════════════════════════════════ */
 @media(max-width:380px){
   .s-search{display:none}
   .ind-grid{grid-template-columns:1fr}
@@ -506,21 +423,21 @@ textarea.field-input{resize:vertical;min-height:85px}
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
-  const navigate    = useNavigate();
-   const { user, authUser, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user, authUser, signOut, loading } = useAuth();
 
   // UI state
-  const [activeTab,         setActiveTab]         = useState("feed");
-  const [editMode,          setEditMode]           = useState(false);
-  const [showDetails,       setShowDetails]        = useState(false);
-  const [activeChat,        setActiveChat]         = useState(null);
-  const [activeUserProfile, setActiveUserProfile]  = useState(null);
-  const [searchQuery,       setSearchQuery]        = useState("");
-  const [notifications,     setNotifications]      = useState([]);
-  const [applyModal,        setApplyModal]         = useState(null);
-  const [applyForm,         setApplyForm]          = useState({ coverLetter: "" });
-  const [postDetailModal,   setPostDetailModal]    = useState(null);
-  const [sidebarOpen,       setSidebarOpen]        = useState(false);
+  const [activeTab,         setActiveTab]        = useState("feed");
+  const [editMode,          setEditMode]          = useState(false);
+  const [showDetails,       setShowDetails]       = useState(false);
+  const [activeChat,        setActiveChat]        = useState(null);
+  const [activeUserProfile, setActiveUserProfile] = useState(null);
+  const [searchQuery,       setSearchQuery]       = useState("");
+  const [notifications,     setNotifications]     = useState([]);
+  const [applyModal,        setApplyModal]        = useState(null);
+  const [applyForm,         setApplyForm]         = useState({ coverLetter: "" });
+  const [postDetailModal,   setPostDetailModal]   = useState(null);
+  const [sidebarOpen,       setSidebarOpen]       = useState(false);
 
   // Data state
   const [profile,        setProfile]        = useState(null);
@@ -535,24 +452,20 @@ export default function StudentDashboard() {
   const [isFeedLoading,  setIsFeedLoading]  = useState(true);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [bootDone,       setBootDone]       = useState(false);
-  const [bootError,      setBootError]      = useState(null); // "auth" | "timeout" | null
+  const [bootError,      setBootError]      = useState(null);
 
   // Profile page state
-  const [pfTab,      setPfTab]      = useState("overview");
-  const [pfEditing,  setPfEditing]  = useState(false);
-  const [pfForm,     setPfForm]     = useState({});
-  const [pfSaving,   setPfSaving]   = useState(false);
-  const [pfToast,    setPfToast]    = useState(null);
-  const [skillInput, setSkillInput] = useState("");
+  const [pfTab,        setPfTab]        = useState("overview");
+  const [pfEditing,    setPfEditing]    = useState(false);
+  const [pfForm,       setPfForm]       = useState({});
+  const [pfSaving,     setPfSaving]     = useState(false);
+  const [pfToast,      setPfToast]      = useState(null);
+  const [skillInput,   setSkillInput]   = useState("");
   const [coverPreview, setCoverPreview] = useState(null);
 
-  // ── Refs ──────────────────────────────────────────────────────────────────
-  // FIX #1: hasBootedRef — never reset, so boot runs EXACTLY once on mount.
+  // ── Refs ───────────────────────────────────────────────────────────────────
   const hasBootedRef = useRef(false);
-  // FIX #2: mountedRef — prevents setState after unmount (avoids memory leaks
-  //         and ghost re-renders that can re-trigger auth listeners).
   const mountedRef   = useRef(true);
-
   const coverRef     = useRef();
   const avatarRef    = useRef();
   const certRef      = useRef();
@@ -561,63 +474,40 @@ export default function StudentDashboard() {
   const chatEndRef   = useRef();
   const chatInputRef = useRef();
 
-  // FIX #3: Cleanup on unmount — cancel all pending work.
   useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
 
-  // ─── SAFE setState helpers ─────────────────────────────────────────────────
-  // These wrappers silently drop state updates after the component unmounts,
-  // preventing the "Can't perform a React state update on an unmounted component"
-  // warning that can cause re-render cascades.
+  // ── Safe setState helpers ──────────────────────────────────────────────────
   const safeSet = useCallback((setter) => (...args) => {
     if (mountedRef.current) setter(...args);
   }, []);
 
-  const setProfileSafe        = useCallback(safeSet(setProfile),        []);
-  const setIndustriesSafe     = useCallback(safeSet(setIndustries),     []);
-  const setCoursesSafe        = useCallback(safeSet(setCourses),        []);
-  const setAllJobsSafe        = useCallback(safeSet(setAllJobs),        []);
-  const setVacanciesSafe      = useCallback(safeSet(setVacancies),      []);
-  const setMyApplicationsSafe = useCallback(safeSet(setMyApplications), []);
-  const setMatchedJobsSafe    = useCallback(safeSet(setMatchedJobs),    []);
-  const setIsFeedLoadingSafe  = useCallback(safeSet(setIsFeedLoading),  []);
-  const setBootDoneSafe       = useCallback(safeSet(setBootDone),       []);
-  const setBootErrorSafe      = useCallback(safeSet(setBootError),      []);
-  const setIsMatchLoadingSafe = useCallback(safeSet(setIsMatchLoading), []);
+  const setProfileSafe        = useCallback(safeSet(setProfile),        [safeSet]);
+  const setIndustriesSafe     = useCallback(safeSet(setIndustries),     [safeSet]);
+  const setCoursesSafe        = useCallback(safeSet(setCourses),        [safeSet]);
+  const setAllJobsSafe        = useCallback(safeSet(setAllJobs),        [safeSet]);
+  const setVacanciesSafe      = useCallback(safeSet(setVacancies),      [safeSet]);
+  const setMyApplicationsSafe = useCallback(safeSet(setMyApplications), [safeSet]);
+  const setMatchedJobsSafe    = useCallback(safeSet(setMatchedJobs),    [safeSet]);
+  const setIsFeedLoadingSafe  = useCallback(safeSet(setIsFeedLoading),  [safeSet]);
+  const setBootDoneSafe       = useCallback(safeSet(setBootDone),       [safeSet]);
+  const setBootErrorSafe      = useCallback(safeSet(setBootError),      [safeSet]);
+  const setIsMatchLoadingSafe = useCallback(safeSet(setIsMatchLoading), [safeSet]);
 
-  // ─── BOOTSTRAP — runs ONCE on mount only ──────────────────────────────────
-  // FIX #4: Empty dependency array [] — no re-runs when userId/authUser changes.
-  //         hasBootedRef provides the extra guard against React StrictMode's
-  //         double-invoke in development.
-  useEffect(() => {
-  if (hasBootedRef.current) return;
-  hasBootedRef.current = true;
-
-  const boot = async () => {
+  // ── BOOT FUNCTION — defined first so the effect below can call it ──────────
+  // Accepts resolvedUser and resolvedAuthUser as params so it always gets
+  // the live auth values at the moment boot is triggered, not stale closures.
+  const runBoot = useCallback(async (resolvedUser, resolvedAuthUser) => {
     setIsFeedLoadingSafe(true);
 
-    if (!user && !authUser) {
-      await new Promise(r => setTimeout(r, 600));
-      if (!mountedRef.current) return;
-    }
-
-    if (!user && !authUser) {
-      setBootDoneSafe(true);
-      setIsFeedLoadingSafe(false);
-      setBootErrorSafe("auth");
-      try { await signOut(); } catch {}
-      if (mountedRef.current) navigate("/login");
-      return;
-    }
+    const userId = resolvedUser?.id || resolvedAuthUser?.id;
 
     // Seed skeleton immediately so UI is never blank
-    setProfileSafe(buildDefaultProfile(user, authUser));
+    setProfileSafe(buildDefaultProfile(resolvedUser, resolvedAuthUser));
 
     try {
-      const userId = user?.id || authUser?.id;
-
       if (userId) {
         try {
           const res = await axios.get(
@@ -626,37 +516,36 @@ export default function StudentDashboard() {
           );
           const d = res.data;
           if (d?.id && mountedRef.current) {
-           setProfileSafe({
-                id:            d.id,
-                name:          d.name || d.full_name || authUser?.fullName || user?.email?.split("@")[0] || "Student",
-                email:         d.email || user?.email || "",
-                username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
-                qualification: d.qualification || "",
-                phone:         d.phone         || "",
-                address:       d.address       || d.location || "",
-                about:         d.about         || "",
-                skills:        Array.isArray(d.skills) ? d.skills : [],
-                photo:         d.photo         || null,
-                coverPhoto:    d.coverPhoto     || null,      // ← ADD
-                tenth:         d.tenth         || "",
-                twelfth:       d.twelfth       || "",
-                graduation:    d.graduation    || "",
-                certificates:  d.certificates  || [],
-                personalPosts: d.personalPosts || d.personal_posts || [],
-                resumes:       d.resumes       || [],
-                chats:         d.chats         || {},
-                linkedin:      d.linkedin      || "",
-                github:        d.github        || "",
-                website:       d.website       || "",
-                experience:    d.experience    || "",
-                cgpa:          d.cgpa          || "",
-                projects:      d.projects      || "",         // ← ADD
-                achievements:  d.achievements  || "",         // ← ADD
-              });
-            
+            setProfileSafe({
+              id:            d.id,
+              name:          d.name || d.full_name || resolvedAuthUser?.fullName || resolvedUser?.email?.split("@")[0] || "Student",
+              email:         d.email || resolvedUser?.email || "",
+              username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
+              qualification: d.qualification || "",
+              phone:         d.phone         || "",
+              address:       d.address       || d.location || "",
+              about:         d.about         || "",
+              skills:        Array.isArray(d.skills) ? d.skills : [],
+              photo:         d.photo         || null,
+              coverPhoto:    d.coverPhoto    || null,
+              tenth:         d.tenth         || "",
+              twelfth:       d.twelfth       || "",
+              graduation:    d.graduation    || "",
+              certificates:  d.certificates  || [],
+              personalPosts: d.personalPosts || d.personal_posts || [],
+              resumes:       d.resumes       || [],
+              chats:         d.chats         || {},
+              linkedin:      d.linkedin      || "",
+              github:        d.github        || "",
+              website:       d.website       || "",
+              experience:    d.experience    || "",
+              cgpa:          d.cgpa          || "",
+              projects:      d.projects      || "",
+              achievements:  d.achievements  || "",
+            });
           }
         } catch (profileErr) {
-          console.warn("Python profile fetch failed — using auth fallback:", profileErr?.message);
+          console.warn("Profile fetch failed — using skeleton:", profileErr?.message);
         }
       }
 
@@ -721,14 +610,14 @@ export default function StudentDashboard() {
         if (!Array.isArray(raw)) raw = [];
         const jobs = raw.map(j => ({
           industry: j.industry || j.company || j.employer || "Company",
-          job:      j.job || j.title || j.position || "Job Opening",
-          desc:     j.desc || j.description || j.summary || "",
-          role:     j.role || j.role_type || "",
-          ug:       j.ug || j.education_ug || j.education || "",
-          pg:       j.pg || j.education_pg || "",
-          url:      j.url || j.link || j.apply_url || "#",
-          dept:     j.dept || j.department || j.category || "",
-          skills:   j.skills || j.required_skills || "",
+          job:      j.job      || j.title   || j.position || "Job Opening",
+          desc:     j.desc     || j.description || j.summary || "",
+          role:     j.role     || j.role_type   || "",
+          ug:       j.ug       || j.education_ug || j.education || "",
+          pg:       j.pg       || j.education_pg || "",
+          url:      j.url      || j.link || j.apply_url || "#",
+          dept:     j.dept     || j.department || j.category || "",
+          skills:   j.skills   || j.required_skills || "",
         }));
         setAllJobsSafe(jobs.length ? jobs : mockJobs);
       } else {
@@ -748,15 +637,27 @@ export default function StudentDashboard() {
         setBootDoneSafe(true);
       }
     }
-  };
-
-  boot();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []); // ← EMPTY DEPS: boot runs once on mount, never again.
+  }, []);
 
-  // ── AI skill match — stable key prevents unnecessary re-runs ─────────────
-  // FIX #9: skillsKey is derived from sorted skills so array identity changes
-  //         don't cause spurious re-fetches.
+  // ── Wait for AuthContext to resolve, then boot exactly once ───────────────
+  useEffect(() => {
+    if (loading) return;                      // AuthContext still initialising
+
+    if (!user && !authUser) {                 // Auth done, no session → login
+      setBootErrorSafe("auth");
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    if (!hasBootedRef.current) {              // Auth ready → boot once
+      hasBootedRef.current = true;
+      runBoot(user, authUser);               // Pass live values as args
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, authUser]);
+
+  // ── AI skill match ─────────────────────────────────────────────────────────
   const skillsKey = useMemo(
     () => (profile?.skills ?? []).slice().sort().join(","),
     [profile?.skills]
@@ -765,7 +666,6 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (!skillsKey || !bootDone) return;
     let cancelled = false;
-
     const doMatch = async () => {
       setIsMatchLoadingSafe(true);
       try {
@@ -781,7 +681,6 @@ export default function StudentDashboard() {
       }
       if (!cancelled && mountedRef.current) setIsMatchLoadingSafe(false);
     };
-
     doMatch();
     return () => { cancelled = true; };
   }, [skillsKey, bootDone]);
@@ -790,7 +689,6 @@ export default function StudentDashboard() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [profile?.chats, activeChat]);
 
-  // Close sidebar on tab change (mobile)
   useEffect(() => { setSidebarOpen(false); }, [activeTab]);
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -861,6 +759,7 @@ export default function StudentDashboard() {
       return { ...prev, [key]: arr };
     });
   };
+
   const deleteResume = (idx) => {
     setProfile(prev => {
       const arr = [...prev.resumes];
@@ -872,7 +771,7 @@ export default function StudentDashboard() {
   // ── Profile edit helpers ───────────────────────────────────────────────────
   const pffc = (k, v) => setPfForm(p => ({ ...p, [k]: v }));
 
- const startPfEdit = () => {
+  const startPfEdit = () => {
     setPfForm({
       name:          profile.name          || "",
       phone:         profile.phone         || "",
@@ -884,11 +783,11 @@ export default function StudentDashboard() {
       graduation:    profile.graduation    || "",
       website:       profile.website       || "",
       linkedin:      profile.linkedin      || "",
-      github:        profile.github        || "",   // ← ADD THIS
+      github:        profile.github        || "",
       experience:    profile.experience    || "",
       cgpa:          profile.cgpa          || "",
-      projects:      profile.projects      || "",   // ← ADD THIS
-      achievements:  profile.achievements  || "",   // ← ADD THIS
+      projects:      profile.projects      || "",
+      achievements:  profile.achievements  || "",
       skills:        [...(profile.skills        || [])],
       certificates:  [...(profile.certificates  || [])],
       resumes:       [...(profile.resumes       || [])],
@@ -898,7 +797,6 @@ export default function StudentDashboard() {
     setPfTab("overview");
   };
 
-  
   const savePfForm = async () => {
     if (!profile?.id) return;
     setPfSaving(true);
@@ -988,11 +886,13 @@ export default function StudentDashboard() {
     const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
     pffc("certificates", [...(pfForm.certificates || []), ...results]);
   };
+
   const handleResumeUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
     pffc("resumes", [...(pfForm.resumes || []), ...results]);
   };
+
   const handlePostUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     const results = await Promise.all(files.map(async f => ({ url: await toBase64(f), type: f.type, name: f.name })));
@@ -1003,22 +903,25 @@ export default function StudentDashboard() {
   const typeChip = (type) => {
     if (!type) return <span className="type-chip chip-job">Job</span>;
     if (type.toLowerCase().includes("intern")) return <span className="type-chip chip-intern">Internship</span>;
-    if (type.toLowerCase().includes("train")) return <span className="type-chip chip-train">Training</span>;
+    if (type.toLowerCase().includes("train"))  return <span className="type-chip chip-train">Training</span>;
     return <span className="type-chip chip-job">{type}</span>;
   };
 
-  // ── Sidebar panel ─────────────────────────────────────────────────────────
-  const renderPanel = (user, editable = false) => (
+  // ── Sidebar panel ──────────────────────────────────────────────────────────
+  const renderPanel = (panelUser, editable = false) => (
     <div style={{ overflowY: "auto", height: "100%" }}>
       <div className="sb-top">
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
             <div className="sb-av">
-              {user.photo ? <img src={user.photo} alt="" /> : (user.name || "U")[0].toUpperCase()}
+              {panelUser.photo
+                ? <img src={panelUser.photo} alt="" />
+                : (panelUser.name || "U")[0].toUpperCase()
+              }
             </div>
             <div>
-              <div className="sb-name">{user.name || "Student"}</div>
-              <div className="sb-handle">@{user.username || "student"}</div>
+              <div className="sb-name">{panelUser.name || "Student"}</div>
+              <div className="sb-handle">@{panelUser.username || "student"}</div>
             </div>
           </div>
           {editable
@@ -1028,11 +931,15 @@ export default function StudentDashboard() {
                     if (!authUser?.id || !profile) return;
                     try {
                       await axios.put(`${BASE}/api/profile/${authUser.id}`, {
-                        name: profile.name, qualification: profile.qualification,
-                        phone: profile.phone, address: profile.address,
-                        tenth: profile.tenth, twelfth: profile.twelfth,
-                        graduation: profile.graduation, skills: profile.skills,
-                        about: profile.about,
+                        name:        profile.name,
+                        qualification: profile.qualification,
+                        phone:       profile.phone,
+                        address:     profile.address,
+                        tenth:       profile.tenth,
+                        twelfth:     profile.twelfth,
+                        graduation:  profile.graduation,
+                        skills:      profile.skills,
+                        about:       profile.about,
                       });
                       pushNotify("✓ Profile saved");
                     } catch { pushNotify("Changes saved locally."); }
@@ -1047,14 +954,13 @@ export default function StudentDashboard() {
           }
         </div>
         <div style={{ marginTop: ".65rem", display: "flex", flexWrap: "wrap", gap: ".3rem", position: "relative", zIndex: 1 }}>
-          {user.qualification && <span className="sb-badge">🎓 {user.qualification}</span>}
-          {(user.skills || []).slice(0, 3).map((s, i) => (
+          {panelUser.qualification && <span className="sb-badge">🎓 {panelUser.qualification}</span>}
+          {(panelUser.skills || []).slice(0, 3).map((s, i) => (
             <span key={i} className="sb-badge" style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.18)", fontSize: ".6rem" }}>⚡ {s}</span>
           ))}
         </div>
       </div>
 
-      {/* Completion bar */}
       {editable && (() => {
         const comp = calcCompletion(profile);
         return (
@@ -1083,10 +989,10 @@ export default function StudentDashboard() {
             <div className="fs-title">Personal Info</div>
             <div className="fg">
               {[
-                { name: "name", label: "Full Name", placeholder: "Your full name" },
-                { name: "phone", label: "Phone", placeholder: "+91 XXXXXXXXXX" },
-                { name: "address", label: "City", placeholder: "Your city" },
-                { name: "qualification", label: "Qualification", placeholder: "e.g. BCA" },
+                { name: "name",          label: "Full Name",    placeholder: "Your full name" },
+                { name: "phone",         label: "Phone",        placeholder: "+91 XXXXXXXXXX" },
+                { name: "address",       label: "City",         placeholder: "Your city" },
+                { name: "qualification", label: "Qualification",placeholder: "e.g. BCA" },
               ].map(f => (
                 <div className="ff" key={f.name}>
                   <label className="fl">{f.label}</label>
@@ -1101,8 +1007,8 @@ export default function StudentDashboard() {
             <div className="fs-title">Academic</div>
             <div style={{ display: "flex", flexDirection: "column", gap: ".38rem" }}>
               {[
-                { name: "tenth", label: "10th" },
-                { name: "twelfth", label: "12th" },
+                { name: "tenth",      label: "10th" },
+                { name: "twelfth",    label: "12th" },
                 { name: "graduation", label: "Graduation / College" },
               ].map(f => (
                 <div className="ff" key={f.name}>
@@ -1122,7 +1028,7 @@ export default function StudentDashboard() {
                 if (!file) return;
                 setProfile(prev => ({
                   ...prev,
-                  resumes: [...prev.resumes, { url: URL.createObjectURL(file), name: file.name, type: file.type, size: (file.size / 1024).toFixed(0) + " KB" }],
+                  resumes: [...prev.resumes, { url: URL.createObjectURL(file), name: file.name, type: file.type }],
                 }));
                 pushNotify("Resume added!");
               }} />
@@ -1158,7 +1064,6 @@ export default function StudentDashboard() {
         </>
       )}
 
-      {/* Know More / Details */}
       <div style={{ padding: ".8rem 1.2rem", borderBottom: "1px solid var(--border)" }}>
         <button className="know-btn" onClick={() => setShowDetails(d => !d)}>
           <span style={{ fontSize: ".6rem" }}>{showDetails ? "▲" : "▼"}</span>
@@ -1166,24 +1071,24 @@ export default function StudentDashboard() {
         </button>
         {showDetails && (
           <div className="details-box" style={{ marginTop: ".6rem" }}>
-            <div className="details-row">✉ {user.email || "Not provided"}</div>
-            <div className="details-row">📞 {user.phone || "Not provided"}</div>
-            <div className="details-row">📍 {user.address || "Not provided"}</div>
-            {user.linkedin && <div className="details-row">🔗 {user.linkedin}</div>}
+            <div className="details-row">✉ {panelUser.email    || "Not provided"}</div>
+            <div className="details-row">📞 {panelUser.phone   || "Not provided"}</div>
+            <div className="details-row">📍 {panelUser.address || "Not provided"}</div>
+            {panelUser.linkedin && <div className="details-row">🔗 {panelUser.linkedin}</div>}
             <div className="details-sh">Academic</div>
-            <div className="details-row">10th — {user.tenth || "—"}</div>
-            <div className="details-row">12th — {user.twelfth || "—"}</div>
-            <div className="details-row">Grad — {user.graduation || "—"}</div>
-            {user.cgpa && <div className="details-row">CGPA — {user.cgpa}</div>}
+            <div className="details-row">10th — {panelUser.tenth      || "—"}</div>
+            <div className="details-row">12th — {panelUser.twelfth    || "—"}</div>
+            <div className="details-row">Grad — {panelUser.graduation || "—"}</div>
+            {panelUser.cgpa && <div className="details-row">CGPA — {panelUser.cgpa}</div>}
           </div>
         )}
       </div>
 
       <div className="feed-sec">
-        <div className="feed-title">Resumes ({(user.resumes || []).length})</div>
-        {!(user.resumes || []).length
+        <div className="feed-title">Resumes ({(panelUser.resumes || []).length})</div>
+        {!(panelUser.resumes || []).length
           ? <div className="empty-feed">No resumes uploaded.</div>
-          : (user.resumes || []).map((r, i) => (
+          : (panelUser.resumes || []).map((r, i) => (
             <div key={i} className="resume-item">
               <span style={{ fontSize: "1rem" }}>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
               <span className="resume-name">{r.name}</span>
@@ -1194,10 +1099,10 @@ export default function StudentDashboard() {
       </div>
       <div className="feed-sec">
         <div className="feed-title">Certificates</div>
-        {!(user.certificates || []).length
+        {!(panelUser.certificates || []).length
           ? <div className="empty-feed">No certificates.</div>
           : <div className="posts-grid">
-              {(user.certificates || []).map((p, i) => (
+              {(panelUser.certificates || []).map((p, i) => (
                 <div key={i} className="post-cell">
                   {editable && <button className="post-del" onClick={() => deletePost("certificate", i)}>✕</button>}
                   {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
@@ -1208,10 +1113,10 @@ export default function StudentDashboard() {
       </div>
       <div className="feed-sec">
         <div className="feed-title">Activity Posts</div>
-        {!(user.personalPosts || []).length
+        {!(panelUser.personalPosts || []).length
           ? <div className="empty-feed">No posts yet.</div>
           : <div className="posts-grid">
-              {(user.personalPosts || []).map((p, i) => (
+              {(panelUser.personalPosts || []).map((p, i) => (
                 <div key={i} className="post-cell">
                   {editable && <button className="post-del" onClick={() => deletePost("personal", i)}>✕</button>}
                   {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
@@ -1225,11 +1130,11 @@ export default function StudentDashboard() {
 
   // ── Profile Page ───────────────────────────────────────────────────────────
   const renderProfilePage = () => {
-    const data   = pfEditing ? pfForm : profile;
-    const skills  = data?.skills || [];
-    const certs   = data?.certificates || [];
-    const resumes = data?.resumes || [];
-    const posts   = data?.personalPosts || [];
+    const data       = pfEditing ? pfForm : profile;
+    const skills     = data?.skills        || [];
+    const certs      = data?.certificates  || [];
+    const resumes    = data?.resumes       || [];
+    const posts      = data?.personalPosts || [];
     const completion = calcCompletion(profile);
 
     const filteredSugg = SKILL_SUGGESTIONS
@@ -1237,28 +1142,28 @@ export default function StudentDashboard() {
       .slice(0, 8);
 
     const pfTabs = [
-      { id: "overview",   icon: "👤", label: "Overview" },
-      { id: "skills",     icon: "⚡", label: "Skills" },
-      { id: "academic",   icon: "🎓", label: "Academic" },
+      { id: "overview",   icon: "👤", label: "Overview"   },
+      { id: "skills",     icon: "⚡", label: "Skills"     },
+      { id: "academic",   icon: "🎓", label: "Academic"   },
       { id: "experience", icon: "💼", label: "Experience" },
-      { id: "media",      icon: "🖼️", label: "Media" },
-      { id: "resume",     icon: "📄", label: "Resume" },
+      { id: "media",      icon: "🖼️", label: "Media"      },
+      { id: "resume",     icon: "📄", label: "Resume"     },
     ];
 
     return (
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <input ref={coverRef}  type="file" accept="image/*" style={{ display: "none" }} onChange={handleCoverUpload} />
-        <input ref={avatarRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarUpload} />
-        <input ref={certRef}   type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload} />
+        <input ref={coverRef}  type="file" accept="image/*"                    style={{ display: "none" }} onChange={handleCoverUpload}  />
+        <input ref={avatarRef} type="file" accept="image/*"                    style={{ display: "none" }} onChange={handleAvatarUpload} />
+        <input ref={certRef}   type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload}   />
         <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: "none" }} onChange={handleResumeUpload} />
-        <input ref={postRef}   type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handlePostUpload} />
+        <input ref={postRef}   type="file" accept="image/*,video/*"         multiple style={{ display: "none" }} onChange={handlePostUpload}   />
 
         {/* Cover */}
         <div className="pf-cover" onClick={() => coverRef.current?.click()}>
           {(coverPreview || profile.coverPhoto)
             ? <img src={coverPreview || profile.coverPhoto} alt="cover" />
             : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0ea5e9 100%)", position: "relative" }}>
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%), radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)" }} />
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)" }} />
               </div>
           }
           <div className="pf-cover-ov"><span className="pf-cover-lbl">📸 Change Cover</span></div>
@@ -1324,13 +1229,12 @@ export default function StudentDashboard() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* OVERVIEW */}
           {pfTab === "overview" && (
             <motion.div key="ov" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
                 <div className="pf-card-title">✍️ About Me</div>
                 {pfEditing
-                  ? <textarea className="pf-input" style={{ width: "100%" }} placeholder="Write about yourself, your interests, goals…"
+                  ? <textarea className="pf-input" style={{ width: "100%" }} placeholder="Write about yourself…"
                       value={pfForm.about || ""} onChange={e => pffc("about", e.target.value)} />
                   : <p style={{ color: "var(--muted)", lineHeight: 1.7, fontSize: ".87rem" }}>
                       {profile.about || <em style={{ color: "var(--subtle)" }}>No bio yet. Click Edit Profile to add one.</em>}
@@ -1342,13 +1246,14 @@ export default function StudentDashboard() {
                 {pfEditing
                   ? <div className="pf-grid">
                       {[
-                        { k: "name",       l: "Full Name",          p: "Your full name" },
-                        { k: "phone",      l: "Phone",              p: "+91 XXXXXXXXXX" },
-                        { k: "address",    l: "City / Location",    p: "Your city" },
-                        { k: "cgpa",       l: "CGPA / Percentage",  p: "e.g. 8.5 or 85%" },
-                        { k: "experience", l: "Experience Summary", p: "e.g. 1 yr internship at XYZ" },
-                        { k: "website",    l: "Portfolio / Website",p: "https://..." },
-                        { k: "linkedin",   l: "LinkedIn URL",       p: "linkedin.com/in/..." },
+                        { k: "name",       l: "Full Name",           p: "Your full name" },
+                        { k: "phone",      l: "Phone",               p: "+91 XXXXXXXXXX" },
+                        { k: "address",    l: "City / Location",     p: "Your city" },
+                        { k: "cgpa",       l: "CGPA / Percentage",   p: "e.g. 8.5 or 85%" },
+                        { k: "experience", l: "Experience Summary",  p: "e.g. 1 yr internship at XYZ" },
+                        { k: "website",    l: "Portfolio / Website", p: "https://..." },
+                        { k: "linkedin",   l: "LinkedIn URL",        p: "linkedin.com/in/..." },
+                        { k: "github",     l: "GitHub URL",          p: "github.com/username" },
                       ].map(f => (
                         <div className="pf-field" key={f.k}>
                           <label className="pf-label">{f.l}</label>
@@ -1380,6 +1285,7 @@ export default function StudentDashboard() {
                         ["Experience",   profile.experience],
                         ["Portfolio",    profile.website],
                         ["LinkedIn",     profile.linkedin],
+                        ["GitHub",       profile.github],
                       ].map(([l, v]) => (
                         <div key={l}>
                           <div className="pf-label" style={{ marginBottom: ".18rem" }}>{l}</div>
@@ -1399,7 +1305,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* SKILLS */}
           {pfTab === "skills" && (
             <motion.div key="sk" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1423,7 +1328,7 @@ export default function StudentDashboard() {
                     <div className="pf-skill-add-row">
                       <input className="pf-input" style={{ flex: 1 }} placeholder="Type skill name…" value={skillInput}
                         onChange={e => setSkillInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === "Enter") addSkill(skillInput); }} />
+                        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInput); } }} />
                       <button className="pf-save-btn" style={{ padding: ".55rem 1.1rem" }} onClick={() => addSkill(skillInput)}>+ Add</button>
                     </div>
                     {skillInput.length > 0 && filteredSugg.length > 0 && (
@@ -1451,7 +1356,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* ACADEMIC */}
           {pfTab === "academic" && (
             <motion.div key="ac" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1488,7 +1392,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* EXPERIENCE */}
           {pfTab === "experience" && (
             <motion.div key="ex" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1525,7 +1428,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* MEDIA */}
           {pfTab === "media" && (
             <motion.div key="md" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1544,7 +1446,8 @@ export default function StudentDashboard() {
                           </div>
                       }
                       {pfEditing && (
-                        <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("certificates", pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>
+                        <button className="pf-upload-thumb-del"
+                          onClick={e => { e.stopPropagation(); pffc("certificates", pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>
                       )}
                     </div>
                   ))}
@@ -1565,7 +1468,8 @@ export default function StudentDashboard() {
                         : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: "1.6rem" }}>🎬</span></div>
                       }
                       {pfEditing && (
-                        <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("personalPosts", pfForm.personalPosts.filter((_, j) => j !== i)); }}>✕</button>
+                        <button className="pf-upload-thumb-del"
+                          onClick={e => { e.stopPropagation(); pffc("personalPosts", pfForm.personalPosts.filter((_, j) => j !== i)); }}>✕</button>
                       )}
                     </div>
                   ))}
@@ -1581,7 +1485,6 @@ export default function StudentDashboard() {
             </motion.div>
           )}
 
-          {/* RESUME */}
           {pfTab === "resume" && (
             <motion.div key="rv" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               <div className="pf-card">
@@ -1606,7 +1509,7 @@ export default function StudentDashboard() {
                         <div className="pf-resume-name">{r.name || `Resume ${i + 1}`}</div>
                         <div style={{ fontSize: ".66rem", color: "var(--subtle)", fontWeight: 600 }}>{r.type}</div>
                       </div>
-                      <div style={{ display: "flex", gap: ".45rem", flex_shrink: 0 }}>
+                      <div style={{ display: "flex", gap: ".45rem", flexShrink: 0 }}>
                         <a href={r.url} target="_blank" rel="noreferrer">
                           <button style={{ padding: ".35rem .8rem", background: "rgba(79,70,229,.08)", border: "none", borderRadius: 8, fontSize: ".7rem", fontWeight: 700, color: "var(--indigo)", cursor: "pointer" }}>View</button>
                         </a>
@@ -1643,22 +1546,24 @@ export default function StudentDashboard() {
     );
   };
 
-  // ── Loading screen ────────────────────────────────────────────────────────
+  // ── Loading / error screen ─────────────────────────────────────────────────
   if (!profile) return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", flexDirection: "column", gap: "1.1rem" }}>
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", flexDirection: "column", gap: "1.1rem" }}>
       <style>{CSS}</style>
-      <div style={{ fontFamily: "Syne,sans-serif", fontSize: "1.8rem", fontWeight: 800, background: "var(--grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Campus2Career</div>
-      {bootDone
+      <div style={{ fontFamily: "Syne,sans-serif", fontSize: "1.8rem", fontWeight: 800, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        Campus2Career
+      </div>
+      {bootDone && bootError
         ? <>
-            <div style={{ color: "var(--rose)", fontSize: ".88rem", fontWeight: 700 }}>
-              {bootError === "auth" ? "Session expired — please log in again" : "Something went wrong. Please try again."}
+            <div style={{ color: "#f43f5e", fontSize: ".88rem", fontWeight: 700 }}>
+              Session expired — please log in again
             </div>
             <button style={{ marginTop: ".45rem", padding: ".55rem 1.3rem", borderRadius: "99px", border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: ".83rem" }}
               onClick={() => navigate("/login")}>Go to Login</button>
           </>
         : <>
             <div className="spinner" />
-            <div style={{ color: "var(--muted)", fontSize: ".82rem" }}>Loading your dashboard…</div>
+            <div style={{ color: "#94a3b8", fontSize: ".82rem" }}>Loading your dashboard…</div>
           </>
       }
     </div>
@@ -1666,36 +1571,31 @@ export default function StudentDashboard() {
 
   // ── Main render ────────────────────────────────────────────────────────────
   const NAV_TABS = [
-    { id: "feed",         icon: "🏠", label: "Feed" },
-    { id: "jobs",         icon: "💼", label: "Jobs" },
-    { id: "courses",      icon: "📚", label: "Courses" },
-    { id: "applications", icon: "📋", label: "My Apps" },
-    { id: "profile",      icon: "👤", label: "Profile" },
+    { id: "feed",         icon: "🏠", label: "Feed"     },
+    { id: "jobs",         icon: "💼", label: "Jobs"     },
+    { id: "courses",      icon: "📚", label: "Courses"  },
+    { id: "applications", icon: "📋", label: "My Apps"  },
+    { id: "profile",      icon: "👤", label: "Profile"  },
   ];
 
   return (
     <>
       <style>{CSS}</style>
 
-      {/* ── NAV ── */}
+      {/* NAV */}
       <nav className="s-nav">
-        {/* Hamburger (tablet/mobile — shows sidebar) */}
         <button className="hamburger" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">
           <span /><span /><span />
         </button>
-
         <div style={{ flexShrink: 0 }}>
           <div className="brand">Campus2Career</div>
           <div className="brand-sub">Student Portal</div>
         </div>
-
         <div className="s-search">
           <span className="ico">🔍</span>
           <input placeholder="Search jobs, courses…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-
         <div className="nav-right">
-          {/* Desktop nav pills */}
           <div className="nav-pills-desktop">
             {NAV_TABS.map(t => (
               <button key={t.id} className={`nav-pill ${activeTab === t.id ? "active" : ""}`} onClick={() => setActiveTab(t.id)}>
@@ -1703,7 +1603,6 @@ export default function StudentDashboard() {
               </button>
             ))}
           </div>
-
           <div className="notif-btn"><span>🔔</span><span className="notif-dot" /></div>
           <div className="nav-av" title={profile.name}>
             {profile.photo ? <img src={profile.photo} alt="" /> : (profile.name || "S")[0].toUpperCase()}
@@ -1712,7 +1611,7 @@ export default function StudentDashboard() {
         </div>
       </nav>
 
-      {/* ── MOBILE BOTTOM NAV ── */}
+      {/* MOBILE BOTTOM NAV */}
       <div className="mobile-nav">
         <div className="mobile-nav-inner">
           {NAV_TABS.map(t => (
@@ -1725,22 +1624,18 @@ export default function StudentDashboard() {
       </div>
 
       <div className="s-layout">
-        {/* ── SIDEBAR OVERLAY (mobile/tablet) ── */}
-        <div
-          className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`} onClick={() => setSidebarOpen(false)} />
 
-        {/* ── LEFT SIDEBAR ── */}
+        {/* LEFT SIDEBAR */}
         <aside className={`s-sidebar ${sidebarOpen ? "open" : ""}`}>
           {renderPanel(profile, true)}
         </aside>
 
-        {/* ── MAIN CONTENT ── */}
+        {/* MAIN CONTENT */}
         <main className="s-content">
           <AnimatePresence mode="wait">
 
-            {/* ══ FEED ══ */}
+            {/* FEED */}
             {activeTab === "feed" && (
               <motion.div key="feed" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="page-sec">
@@ -1777,7 +1672,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                   {isFeedLoading
-                    ? <div style={{ textAlign: "center", padding: "2.5rem", color: "var(--subtle)" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
+                    ? <div style={{ textAlign: "center", padding: "2.5rem" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
                     : <div className="feed-grid">
                         {vacancies.map((v, i) => (
                           <motion.div key={v.id || i} className="vac-card"
@@ -1823,7 +1718,7 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ JOBS ══ */}
+            {/* JOBS */}
             {activeTab === "jobs" && (
               <motion.div key="jobs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="page-sec">
@@ -1844,7 +1739,7 @@ export default function StudentDashboard() {
                     )}
                   </div>
                   {isMatchLoading
-                    ? <div style={{ textAlign: "center", padding: "2rem", color: "var(--subtle)" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
+                    ? <div style={{ textAlign: "center", padding: "2rem" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
                     : !profile.skills?.length
                       ? <div className="empty-block">
                           <div className="empty-icon">⚡</div>
@@ -1933,7 +1828,7 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ COURSES ══ */}
+            {/* COURSES */}
             {activeTab === "courses" && (
               <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
@@ -1951,9 +1846,9 @@ export default function StudentDashboard() {
                       <div className="course-body">
                         <div>
                           <div className="course-meta">
-                            {c.duration  && <span className="cmeta">⏱ {c.duration}</span>}
-                            {c.rating    && <span className="cmeta">⭐ {c.rating}</span>}
-                            {c.students  && <span className="cmeta">👥 {c.students}</span>}
+                            {c.duration && <span className="cmeta">⏱ {c.duration}</span>}
+                            {c.rating   && <span className="cmeta">⭐ {c.rating}</span>}
+                            {c.students && <span className="cmeta">👥 {c.students}</span>}
                           </div>
                           {c.level && <div style={{ marginBottom: ".7rem" }}><span className={`level-pill level-${c.level}`}>{c.level}</span></div>}
                           {(c.skills || []).length > 0 && (
@@ -1970,7 +1865,7 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ APPLICATIONS ══ */}
+            {/* APPLICATIONS */}
             {activeTab === "applications" && (
               <motion.div key="apps" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
@@ -2005,7 +1900,7 @@ export default function StudentDashboard() {
               </motion.div>
             )}
 
-            {/* ══ PROFILE PAGE ══ */}
+            {/* PROFILE */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {renderProfilePage()}
@@ -2015,7 +1910,7 @@ export default function StudentDashboard() {
           </AnimatePresence>
         </main>
 
-        {/* ── RIGHT SIDEBAR: other user profile ── */}
+        {/* RIGHT SIDEBAR */}
         <AnimatePresence>
           {activeUserProfile && (
             <motion.aside className="s-sidebar right"
@@ -2028,7 +1923,7 @@ export default function StudentDashboard() {
         </AnimatePresence>
       </div>
 
-      {/* ── DM PANEL ── */}
+      {/* DM PANEL */}
       <AnimatePresence>
         {activeChat && (
           <motion.div className="dm-panel"
@@ -2054,7 +1949,6 @@ export default function StudentDashboard() {
               <div ref={chatEndRef} />
             </div>
             <div className="dm-foot">
-              {/* FIX #10: null-safe chatInputRef.current check */}
               <input ref={chatInputRef} className="dm-input" placeholder="Type a message…"
                 onKeyDown={e => {
                   if (e.key === "Enter" && e.target.value.trim()) {
@@ -2073,7 +1967,7 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── POST DETAIL MODAL ── */}
+      {/* POST DETAIL MODAL */}
       <AnimatePresence>
         {postDetailModal && (
           <motion.div className="modal-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -2091,8 +1985,8 @@ export default function StudentDashboard() {
               </div>
               <div style={{ marginBottom: "1rem", lineHeight: 1.65, color: "var(--muted)", fontSize: ".86rem" }}>{postDetailModal.desc}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".7rem", marginBottom: "1.1rem", fontSize: ".84rem" }}>
-                {postDetailModal.duration && <div><strong>Duration:</strong> {postDetailModal.duration}</div>}
-                {postDetailModal.skills   && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
+                {postDetailModal.duration  && <div><strong>Duration:</strong> {postDetailModal.duration}</div>}
+                {postDetailModal.skills    && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
                 {postDetailModal.offerings && <div style={{ gridColumn: "1 / -1" }}><strong>Offerings:</strong> {postDetailModal.offerings}</div>}
               </div>
               {alreadyApplied(postDetailModal.id)
@@ -2104,7 +1998,7 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── APPLY MODAL ── */}
+      {/* APPLY MODAL */}
       <AnimatePresence>
         {applyModal && (
           <motion.div className="modal-ov" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -2144,7 +2038,7 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── TOAST NOTIFICATIONS ── */}
+      {/* TOAST NOTIFICATIONS */}
       <div style={{ position: "fixed", bottom: "5rem", right: "1rem", zIndex: 2000, display: "flex", flexDirection: "column", gap: "8px" }}>
         <AnimatePresence>
           {notifications.map(n => (
