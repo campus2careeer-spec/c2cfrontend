@@ -4,70 +4,50 @@ import { supabase } from './supabaseClient';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession]   = useState(null);
+  const [authUser, setAuthUser] = useState(null);   // { id, email, role }
+  const [loading, setLoading]   = useState(true);
 
-  const applyProfile = (p) => {
-    const updatedProfile = {
-      ...p,
-      name: p.full_name || p.name || '',
-      username: p.username || (p.full_name || 'user').toLowerCase().replace(/\s+/g, '_'),
-      address: p.address || p.location || '',
-      skills: p.skills || [],
-      photo: p.photo || null,
-      certificates: p.certificates || [],
-      personalPosts: p.personal_posts || p.personalPosts || [],
-      resumes: p.resumes || [],
-      chats: p.chats || {},
-      // ✅ FIX 1: Never default role to 'student' — keep whatever is in DB.
-      // Only fall back if the field is genuinely missing (null/undefined).
-      role: p.role ?? null,
-    };
-    setProfile(updatedProfile);
-    return updatedProfile;
-  };
-
-  // ✅ FIX 2: Increased timeout & removed hardcoded 'student' fallback.
-  // Returns the profile so callers can await it.
-  const fetchProfile = async (userId) => {
+  // ─── Fetch ONLY id + email + role from Supabase ───────────────────────────
+  // Everything else (name, skills, photo, etc.) is fetched by the dashboard
+  // directly from the Python backend. Keeping these two fetches separate
+  // prevents the auth context and dashboard from fighting over profile state.
+  const fetchAuthUser = async (userId) => {
     try {
-      // Retry up to 3 times — newly created rows may not be visible immediately
       let data = null;
-      let error = null;
       for (let attempt = 1; attempt <= 3; attempt++) {
-       // Inside fetchProfile in AuthContext.jsx
-          const result = await Promise.race([
-            supabase.from('profiles').select('*').eq('id', userId).single(),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Profile fetch timed out')), 15000) // Changed from 5000 to 15000
-            ),
-          ]);
-        data = result.data;
-        error = result.error;
+        const { data: row, error } = await supabase
+          .from('profiles')
+          .select('id, email, role, full_name')   // minimal — role is all we need here
+          .eq('id', userId)
+          .single();
 
-        if (data) break; // success
-
-        // Row might not exist yet right after signup — wait and retry
-        if (attempt < 3) await new Promise((r) => setTimeout(r, 800 * attempt));
+        if (row) { data = row; break; }
+        if (error) console.warn(`fetchAuthUser attempt ${attempt}:`, error.message);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 800 * attempt));
       }
 
-      if (error || !data) {
-        console.warn('Profile not found after retries:', error?.message);
-        // ✅ DO NOT fall back to role:'student' — set profile to null so
-        // ProtectedRoute keeps the user in the loading state until we have real data.
-        setProfile(null);
+      if (!data) {
+        setAuthUser(null);
         return null;
       }
 
-      return applyProfile(data);
+      const minimal = {
+        id:       data.id,
+        email:    data.email,
+        role:     data.role ?? null,
+        fullName: data.full_name ?? '',
+      };
+      setAuthUser(minimal);
+      return minimal;
     } catch (err) {
-      console.error('Fatal error fetching profile:', err);
-      setProfile(null);
+      console.error('fetchAuthUser fatal:', err);
+      setAuthUser(null);
       return null;
     }
   };
 
+  // ─── Init ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     let mounted = true;
 
@@ -75,16 +55,10 @@ export function AuthProvider({ children }) {
       try {
         const { data: { session: s } } = await supabase.auth.getSession();
         if (!mounted) return;
-
         setSession(s);
-
-        if (s?.user) {
-          // ✅ FIX 3: Await fetchProfile BEFORE calling setLoading(false)
-          // so ProtectedRoute never sees loading=false + profile=null at same time.
-          await fetchProfile(s.user.id);
-        }
+        if (s?.user) await fetchAuthUser(s.user.id);
       } catch (err) {
-        console.error('Session initialize failed:', err);
+        console.error('Auth init failed:', err);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -92,19 +66,15 @@ export function AuthProvider({ children }) {
 
     init();
 
-    // Auth state listener (handles login/logout events after initial load)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, s) => {
         if (!mounted) return;
         setSession(s);
-
         if (s?.user) {
-          // ✅ FIX 3 (same): await before clearing loading
-          await fetchProfile(s.user.id);
+          await fetchAuthUser(s.user.id);
         } else {
-          setProfile(null);
+          setAuthUser(null);
         }
-
         if (mounted) setLoading(false);
       }
     );
@@ -115,60 +85,45 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // ─── Auth actions ──────────────────────────────────────────────────────────
   const signUp = async ({ email, password, fullName, role, extra = {} }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName, role },
-      },
+      options: { data: { full_name: fullName, role } },
     });
     if (error) throw error;
 
     if (data.user) {
-      const updates = {
-        id: data.user.id,
-        full_name: fullName,
-        role: role || 'student',
-        email: email,
-        ...extra,
-      };
-
-      // ✅ FIX 4: Use upsert instead of update.
-      // update() silently does nothing if the row doesn't exist yet.
-      // upsert() creates it if missing, updates it if present.
       const { error: upsertError } = await supabase
         .from('profiles')
-        .upsert(updates, { onConflict: 'id' });
+        .upsert({
+          id:        data.user.id,
+          full_name: fullName,
+          role:      role || 'student',
+          email,
+          ...extra,
+        }, { onConflict: 'id' });
 
-      if (upsertError) {
-        console.warn('Profile upsert failed:', upsertError.message);
-      }
+      if (upsertError) console.warn('Profile upsert failed:', upsertError.message);
     }
     return data;
   };
 
   const signIn = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
     if (data?.user?.id) {
       setSession(data.session);
-      await fetchProfile(data.user.id);
+      await fetchAuthUser(data.user.id);
     }
-
     return data;
   };
 
   const signInWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/login',
-      },
+      options: { redirectTo: window.location.origin + '/login' },
     });
     if (error) throw error;
     return data;
@@ -177,30 +132,20 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setSession(null);
-    setProfile(null);
-  };
-
-  const updateProfile = async (updates) => {
-    if (!session?.user) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', session.user.id);
-    if (error) throw error;
-    await fetchProfile(session.user.id);
+    setAuthUser(null);
   };
 
   const value = {
     session,
-    user: session?.user || null,
-    profile,
+    user:    session?.user || null,  // raw Supabase user (has .id, .email)
+    authUser,                         // { id, email, role, fullName } from profiles table
     loading,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
-    updateProfile,
-    refreshProfile: () => session?.user && fetchProfile(session.user.id),
+    // Expose refetch so dashboard can call after profile creation if needed
+    refreshAuthUser: () => session?.user && fetchAuthUser(session.user.id),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
