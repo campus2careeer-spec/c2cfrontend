@@ -438,7 +438,7 @@ export default function Login() {
       // Just sign in — let the useEffect below handle navigation
       // once BOTH user + authUser are fully loaded from Supabase.
       await signIn({ email, password });
-      
+
       // Safety release for the button if navigation somehow fails to trigger within 4s
       setTimeout(() => setIsLoading(false), 4000);
     } catch (err) {
@@ -475,16 +475,10 @@ export default function Login() {
   return (
     <>
       <style>{CSS}</style>
-      
-      {/* TEMPORARY DEBUG OVERLAY - REMOVE AFTER FIX */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '10px', background: 'rgba(0,0,0,0.85)', color: '#0f0', zIndex: 99999, fontFamily: 'monospace', fontSize: '14px', pointerEvents: 'none' }}>
-        DEBUG Auth State | loading: {String(loading)} | user: {user ? 'YES ('+user.email+')' : 'NO'} | authUser: {authUser ? 'YES (role: '+authUser.role+')' : 'NO'}
-      </div>
+
 
       <div className="login-page">
         {/* Ambient orbs */}
-        <div className="login-orb" style={{ width: 400, height: 400, background: 'rgba(79,70,229,0.12)', top: '-10%', left: '-5%' }} />
-        <div className="login-orb" style={{ width: 300, height: 300, background: 'rgba(124,58,237,0.10)', bottom: '-5%', right: '10%' }} />
 
         <motion.div
           className="login-card"
