@@ -414,17 +414,14 @@ export default function Login() {
   const { signIn, signInWithGoogle, signUp, user, authUser, loading } = useAuth();
 
   // Role slider positions: student=0, industry=1, admin=2
-  const roleIndex = { student: 0, industry: 1, admin: 2 };
+  // Role slider positions: student=0, industry=1
+  const roleIndex = { student: 0, industry: 1 };
 
-  // Redirect aggressively as soon as the base user session exists.
-  // We don't wait for authUser because ProtectedRoute can handle the loading spinner.
-  // This prevents the user from being stuck staring at a non-responsive login form!
   useEffect(() => {
     if (user) {
       const resolvedRole = authUser?.role || user.user_metadata?.role || 'student';
       const routes = {
         industry: '/industry',
-        admin: '/admin',
         student: '/student'
       };
       navigate(routes[resolvedRole] || '/student', { replace: true });
@@ -531,10 +528,11 @@ export default function Login() {
 
                   {/* Role tabs */}
                   <div className="role-tabs">
-                    <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(33.33% - 2.67px)' }} />
-                    {['student', 'industry', 'admin'].map(r => (
+                    {/* Width changed to 50% for two tabs */}
+                    <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(50% - 4px)' }} />
+                    {['student', 'industry'].map(r => (
                       <button key={r} className={`role-tab ${role === r ? 'active' : ''}`} onClick={() => setRole(r)}>
-                        {r === 'student' ? '🎓' : r === 'industry' ? '🏢' : '⚙️'} {r.charAt(0).toUpperCase() + r.slice(1)}
+                        {r === 'student' ? '🎓' : '🏢'} {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
                     ))}
                   </div>
@@ -585,10 +583,10 @@ export default function Login() {
 
                   {/* Role tabs */}
                   <div className="role-tabs">
-                    <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(33.33% - 2.67px)' }} />
-                    {['student', 'industry', 'admin'].map(r => (
+                    <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(50% - 4px)' }} />
+                    {['student', 'industry'].map(r => (
                       <button key={r} className={`role-tab ${role === r ? 'active' : ''}`} onClick={() => setRole(r)}>
-                        {r === 'student' ? '🎓' : r === 'industry' ? '🏢' : '⚙️'} {r.charAt(0).toUpperCase() + r.slice(1)}
+                        {r === 'student' ? '🎓' : '🏢'} {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
                     ))}
                   </div>
