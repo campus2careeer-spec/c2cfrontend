@@ -349,10 +349,10 @@ const CSS = `
 // ─── Forgot Password mini-form ────────────────────────────────────────────────
 function ForgotPassword({ onBack }) {
   const { supabase: sb } = useSupabaseClient();
-  const [email,   setEmail]   = useState('');
-  const [sent,    setSent]    = useState(false);
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
 
   // We call supabase directly here — import it from supabaseClient
   const handleReset = async (e) => {
@@ -399,16 +399,16 @@ function ForgotPassword({ onBack }) {
 
 // ─── Main Login Component ─────────────────────────────────────────────────────
 export default function Login() {
-  const [role,       setRole]       = useState('student');
-  const [mode,       setMode]       = useState('login');   // 'login' | 'register' | 'forgot'
-  const [email,      setEmail]      = useState('');
-  const [password,   setPassword]   = useState('');
-  const [fullName,   setFullName]   = useState('');
-  const [confirmPw,  setConfirmPw]  = useState('');
-  const [showPw,     setShowPw]     = useState(false);
-  const [error,      setError]      = useState('');
-  const [success,    setSuccess]    = useState('');
-  const [isLoading,  setIsLoading]  = useState(false);
+  const [role, setRole] = useState('student');
+  const [mode, setMode] = useState('login');   // 'login' | 'register' | 'forgot'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, signUp, user, authUser, loading } = useAuth();
@@ -416,33 +416,42 @@ export default function Login() {
   // Role slider positions: student=0, industry=1, admin=2
   const roleIndex = { student: 0, industry: 1, admin: 2 };
 
-  // Redirect if already logged in
+  // Redirect aggressively as soon as the base user session exists.
+  // We don't wait for authUser because ProtectedRoute can handle the loading spinner.
+  // This prevents the user from being stuck staring at a non-responsive login form!
   useEffect(() => {
-    if (!loading && user && authUser) {
-      const routes = { industry: '/industry', admin: '/admin', student: '/student' };
-      navigate(routes[authUser.role] || '/student', { replace: true });
+    if (user) {
+      const resolvedRole = authUser?.role || user.user_metadata?.role || 'student';
+      const routes = {
+        industry: '/industry',
+        admin: '/admin',
+        student: '/student'
+      };
+      navigate(routes[resolvedRole] || '/student', { replace: true });
     }
-  }, [user, authUser, loading, navigate]);
+  }, [user, authUser, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(''); setIsLoading(true);
     try {
-      const data = await signIn({ email, password });
-      const r = data?.user?.user_metadata?.role;
-      const routes = { industry: '/industry', admin: '/admin', student: '/student' };
-      navigate(routes[r] || '/student', { replace: true });
+      // Just sign in — let the useEffect below handle navigation
+      // once BOTH user + authUser are fully loaded from Supabase.
+      await signIn({ email, password });
+      
+      // Safety release for the button if navigation somehow fails to trigger within 4s
+      setTimeout(() => setIsLoading(false), 4000);
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError(''); setSuccess('');
     if (password !== confirmPw) { setError('Passwords do not match.'); return; }
-    if (password.length < 6)    { setError('Password must be at least 6 characters.'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setIsLoading(true);
     try {
       await signUp({ email, password, fullName, role });
@@ -466,6 +475,12 @@ export default function Login() {
   return (
     <>
       <style>{CSS}</style>
+      
+      {/* TEMPORARY DEBUG OVERLAY - REMOVE AFTER FIX */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '10px', background: 'rgba(0,0,0,0.85)', color: '#0f0', zIndex: 99999, fontFamily: 'monospace', fontSize: '14px', pointerEvents: 'none' }}>
+        DEBUG Auth State | loading: {String(loading)} | user: {user ? 'YES ('+user.email+')' : 'NO'} | authUser: {authUser ? 'YES (role: '+authUser.role+')' : 'NO'}
+      </div>
+
       <div className="login-page">
         {/* Ambient orbs */}
         <div className="login-orb" style={{ width: 400, height: 400, background: 'rgba(79,70,229,0.12)', top: '-10%', left: '-5%' }} />
@@ -523,7 +538,7 @@ export default function Login() {
                   {/* Role tabs */}
                   <div className="role-tabs">
                     <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(33.33% - 2.67px)' }} />
-                    {['student','industry','admin'].map(r => (
+                    {['student', 'industry', 'admin'].map(r => (
                       <button key={r} className={`role-tab ${role === r ? 'active' : ''}`} onClick={() => setRole(r)}>
                         {r === 'student' ? '🎓' : r === 'industry' ? '🏢' : '⚙️'} {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
@@ -531,7 +546,7 @@ export default function Login() {
                   </div>
 
                   <AnimatePresence>
-                    {error   && <motion.div className="login-error"   initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>⚠️ {error}</motion.div>}
+                    {error && <motion.div className="login-error" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>⚠️ {error}</motion.div>}
                     {success && <motion.div className="login-success" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>✅ {success}</motion.div>}
                   </AnimatePresence>
 
@@ -577,7 +592,7 @@ export default function Login() {
                   {/* Role tabs */}
                   <div className="role-tabs">
                     <div className="role-slider" style={{ transform: `translateX(${sliderX})`, width: 'calc(33.33% - 2.67px)' }} />
-                    {['student','industry','admin'].map(r => (
+                    {['student', 'industry', 'admin'].map(r => (
                       <button key={r} className={`role-tab ${role === r ? 'active' : ''}`} onClick={() => setRole(r)}>
                         {r === 'student' ? '🎓' : r === 'industry' ? '🏢' : '⚙️'} {r.charAt(0).toUpperCase() + r.slice(1)}
                       </button>
@@ -638,10 +653,10 @@ export default function Login() {
 
 // ─── Forgot Password inline (no dynamic import needed) ────────────────────────
 function ForgotPasswordInline({ onBack }) {
-  const [email,   setEmail]   = useState('');
-  const [sent,    setSent]    = useState(false);
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
+  const [error, setError] = useState('');
 
   const handleReset = async (e) => {
     e.preventDefault();

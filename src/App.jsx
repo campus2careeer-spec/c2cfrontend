@@ -1,92 +1,87 @@
-import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./AuthContext";
-import Landing              from "./pages/Landing";
-import Login                from "./pages/Login";
-import Register             from "./pages/Register";
-import StudentDashboard     from "./pages/StudentDashboard";
-import IndustryDashboard    from "./pages/IndustryDashboard";
-import AdminDashboard       from "./pages/AdminDashboard";
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import StudentDashboard from "./pages/StudentDashboard";
+import IndustryDashboard from "./pages/IndustryDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // ─── Loading spinner ──────────────────────────────────────────────────────────
 const LoadingSpinner = () => (
-  <div style={{
-    height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-    background: "#0a0c14", flexDirection: "column", gap: "1rem",
-    fontFamily: "'DM Sans', sans-serif",
-  }}>
     <div style={{
-      fontSize: "1.8rem", fontWeight: 800, letterSpacing: "-0.04em",
-      background: "linear-gradient(135deg, #6c63ff, #a78bfa)",
-      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+        height: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+        background: "#0a0c14", flexDirection: "column", gap: "1rem",
+        fontFamily: "'DM Sans', sans-serif",
     }}>
-      Campus2Career
+        <div style={{
+            fontSize: "1.8rem", fontWeight: 800, letterSpacing: "-0.04em",
+            background: "linear-gradient(135deg, #6c63ff, #a78bfa)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+        }}>
+            Campus2Career
+        </div>
+        <div style={{
+            width: 36, height: 36, border: "3px solid rgba(108,99,255,0.15)",
+            borderTopColor: "#6c63ff", borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
-    <div style={{
-      width: 36, height: 36, border: "3px solid rgba(108,99,255,0.15)",
-      borderTopColor: "#6c63ff", borderRadius: "50%",
-      animation: "spin 0.8s linear infinite",
-    }} />
-    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-  </div>
 );
 
 // ─── Protected Route ──────────────────────────────────────────────────────────
 // Auth and profile are both resolved in AuthContext via direct Supabase calls.
 // No backend involved for identity/role checking.
 function ProtectedRoute({ children, allowedRoles }) {
-  const { user, authUser, loading } = useAuth();
- const [timedOut, setTimedOut] = useState(false);
+    const { user, authUser, loading } = useAuth();
 
-  useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 7000);
-    return () => clearTimeout(t);
-  }, []);
-  if (loading && !timedOut) return <LoadingSpinner />;
-  if (!user || (timedOut && !authUser)) return <Navigate to="/login" replace />;
-  if (!authUser) return <LoadingSpinner />;  
+    // If completely logged out and finished checking local storage, reject.
+    if (!loading && !user) return <Navigate to="/login" replace />;
+    
+    // If we're still checking local storage (and have NO user at all yet), spin.
+    if (loading && !user) return <LoadingSpinner />;
 
-  if (!authUser.role) {
-    console.warn("authUser has no role assigned:", authUser);
-    return <Navigate to="/login" replace />;
-  }
+    // We HAVE a user. Get the role from authUser if it finished, or try the JWT metadata.
+    const currentRole = authUser?.role || user?.user_metadata?.role || "student";
 
-  if (allowedRoles && !allowedRoles.includes(authUser.role)) {
-    const roleRoutes = { industry: "/industry", admin: "/admin", student: "/student" };
-    return <Navigate to={roleRoutes[authUser.role] || "/student"} replace />;
-  }
+    if (allowedRoles && !allowedRoles.includes(currentRole)) {
+        const roleRoutes = { industry: "/industry", admin: "/admin", student: "/student" };
+        return <Navigate to={roleRoutes[currentRole] || "/student"} replace />;
+    }
 
-  return children;
+    return children;
 }
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/"         element={<Landing />} />
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-          <Route path="/student"  element={
-            <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/industry" element={
-            <ProtectedRoute allowedRoles={["industry"]}>
-              <IndustryDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin"    element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+                    <Route path="/student" element={
+                        <ProtectedRoute allowedRoles={["student"]}>
+                            <StudentDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/industry" element={
+                        <ProtectedRoute allowedRoles={["industry"]}>
+                            <IndustryDashboard />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin" element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                            <AdminDashboard />
+                        </ProtectedRoute>
+                    } />
+                </Routes>
+            </AuthProvider>
+        </BrowserRouter>
+    );
 }
 
 export default App;
