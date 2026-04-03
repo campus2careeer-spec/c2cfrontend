@@ -35,10 +35,16 @@ const LoadingSpinner = () => (
 // No backend involved for identity/role checking.
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, authUser, loading } = useAuth();
+  const [timedOut, setTimedOut] = React.useState(false);
 
-  if (loading)   return <LoadingSpinner />;
-  if (!user)     return <Navigate to="/login" replace />;
-  if (!authUser) return <LoadingSpinner />;    // brief race — spinner, not redirect
+  React.useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 7000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (loading && !timedOut) return <LoadingSpinner />;
+  if (!user || (timedOut && !authUser)) return <Navigate to="/login" replace />;
+  if (!authUser) return <LoadingSpinner />;  
 
   if (!authUser.role) {
     console.warn("authUser has no role assigned:", authUser);
