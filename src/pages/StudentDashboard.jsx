@@ -65,30 +65,30 @@ function calcCompletion(p) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
-function buildDefaultProfile(authUser, authProfile) {
+function buildDefaultProfile(supabaseUser, authUser) {
   return {
-    id:            authUser?.id || "",
-    name:          authProfile?.name || authProfile?.full_name || authUser?.email?.split("@")[0] || "Student",
-    email:         authProfile?.email || authUser?.email || "",
-    username:      authProfile?.username || (authProfile?.name || "student").toLowerCase().replace(/\s+/g, "_"),
-    qualification: authProfile?.qualification || "",
-    phone:         authProfile?.phone || "",
-    address:       authProfile?.address || authProfile?.location || "",
-    about:         authProfile?.about || "",
-    skills:        Array.isArray(authProfile?.skills) ? authProfile.skills : [],
-    photo:         authProfile?.photo || null,
-    tenth:         authProfile?.tenth || "",
-    twelfth:       authProfile?.twelfth || "",
-    graduation:    authProfile?.graduation || "",
-    certificates:  authProfile?.certificates || [],
-    personalPosts: authProfile?.personalPosts || [],
-    resumes:       authProfile?.resumes || [],
+    id:            supabaseUser?.id  || authUser?.id  || "",
+    name:          authUser?.fullName || supabaseUser?.email?.split("@")[0] || "Student",
+    email:         supabaseUser?.email || authUser?.email || "",
+    username:      (authUser?.fullName || "student").toLowerCase().replace(/\s+/g, "_"),
+    qualification: "",
+    phone:         "",
+    address:       "",
+    about:         "",
+    skills:        [],
+    photo:         null,
+    tenth:         "",
+    twelfth:       "",
+    graduation:    "",
+    certificates:  [],
+    personalPosts: [],
+    resumes:       [],
     chats:         {},
-    linkedin:      authProfile?.linkedin || "",
-    github:        authProfile?.github || "",
-    website:       authProfile?.website || "",
-    experience:    authProfile?.experience || "",
-    cgpa:          authProfile?.cgpa || "",
+    linkedin:      "",
+    github:        "",
+    website:       "",
+    experience:    "",
+    cgpa:          "",
   };
 }
 
@@ -507,7 +507,7 @@ textarea.field-input{resize:vertical;min-height:85px}
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
   const navigate    = useNavigate();
-  const { user: authUser, profile: authProfile, signOut } = useAuth();
+   const { user, authUser, signOut } = useAuth();
 
   // UI state
   const [activeTab,         setActiveTab]         = useState("feed");
@@ -592,182 +592,166 @@ export default function StudentDashboard() {
   //         hasBootedRef provides the extra guard against React StrictMode's
   //         double-invoke in development.
   useEffect(() => {
-    if (hasBootedRef.current) return;
-    hasBootedRef.current = true;
+  if (hasBootedRef.current) return;
+  hasBootedRef.current = true;
 
-    const boot = async () => {
-      setIsFeedLoadingSafe(true);
+  const boot = async () => {
+    setIsFeedLoadingSafe(true);
 
-      // FIX #5: Wait up to 3 s for auth context to populate, polling every
-      //         200 ms. Previously the 1500 ms fixed delay could expire BEFORE
-      //         authUser arrived, causing a false "not authenticated" failure.
-      let resolvedUser    = authUser;
-      let resolvedProfile = authProfile;
-
-      if (!resolvedUser) {
-        for (let i = 0; i < 15; i++) {
-          await new Promise(r => setTimeout(r, 200));
-          if (!mountedRef.current) return; // unmounted — bail out entirely
-          // Re-read from module scope isn't possible for hook values,
-          // so we break and let the block below handle the null case.
-          break;
-        }
+    if (!user && !authUser) {
+      for (let i = 0; i < 15; i++) {
+        await new Promise(r => setTimeout(r, 200));
+        if (!mountedRef.current) return;
+        break;
       }
+    }
 
-      // FIX #6: If still no user after waiting, redirect immediately — don't
-      //         set authFailed state (which would trigger another useEffect and
-      //         potentially cause re-renders / re-runs).
-      if (!authUser && !authProfile) {
-        setBootDoneSafe(true);
-        setIsFeedLoadingSafe(false);
-        setBootErrorSafe("auth");
-        try { await signOut(); } catch {}
-        if (mountedRef.current) navigate("/login");
-        return;
-      }
+    if (!user && !authUser) {
+      setBootDoneSafe(true);
+      setIsFeedLoadingSafe(false);
+      setBootErrorSafe("auth");
+      try { await signOut(); } catch {}
+      if (mountedRef.current) navigate("/login");
+      return;
+    }
 
-      // Seed profile immediately from AuthContext so UI is never blank
-      setProfileSafe(buildDefaultProfile(authUser, authProfile));
+    // Seed skeleton immediately so UI is never blank
+    setProfileSafe(buildDefaultProfile(user, authUser));
 
-      try {
-        // 1. Full profile from backend — only if we have a valid user id
-        if (authUser?.id) {
-          try {
-            const res = await axios.get(
-              `${BASE}/api/get-profile?user_id=${authUser.id}`,
-              { timeout: 10000 }
-            );
-            const d = res.data;
-            if (d?.id && mountedRef.current) {
-              setProfileSafe({
-                id:            d.id,
-                name:          d.name || d.full_name || authProfile?.name || authUser?.email?.split("@")[0] || "Student",
-                email:         d.email || authUser?.email || "",
-                username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
-                qualification: d.qualification || authProfile?.qualification || "",
-                phone:         d.phone || "",
-                address:       d.address || d.location || "",
-                about:         d.about || "",
-                skills:        Array.isArray(d.skills) ? d.skills : [],
-                photo:         d.photo || null,
-                tenth:         d.tenth || "",
-                twelfth:       d.twelfth || "",
-                graduation:    d.graduation || "",
-                certificates:  d.certificates || [],
-                personalPosts: d.personalPosts || d.personal_posts || [],
-                resumes:       d.resumes || [],
-                chats:         d.chats || {},
-                linkedin:      d.linkedin || "",
-                github:        d.github || "",
-                website:       d.website || "",
-                experience:    d.experience || "",
-                cgpa:          d.cgpa || "",
-              });
-            }
-          } catch (profileErr) {
-            // FIX #7: Profile fetch failing is a WARNING, not a fatal error.
-            // We already seeded from AuthContext, so the user sees the dashboard.
-            console.warn("Profile fetch failed — using cached session data:", profileErr?.message);
+    try {
+      const userId = user?.id || authUser?.id;
+
+      if (userId) {
+        try {
+          const res = await axios.get(
+            `${BASE}/api/get-profile?user_id=${userId}`,
+            { timeout: 10000 }
+          );
+          const d = res.data;
+          if (d?.id && mountedRef.current) {
+            setProfileSafe({
+              id:            d.id,
+              name:          d.name || d.full_name || authUser?.fullName || user?.email?.split("@")[0] || "Student",
+              email:         d.email || user?.email || "",
+              username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
+              qualification: d.qualification || "",
+              phone:         d.phone || "",
+              address:       d.address || d.location || "",
+              about:         d.about || "",
+              skills:        Array.isArray(d.skills) ? d.skills : [],
+              photo:         d.photo || null,
+              tenth:         d.tenth || "",
+              twelfth:       d.twelfth || "",
+              graduation:    d.graduation || "",
+              certificates:  d.certificates || [],
+              personalPosts: d.personalPosts || d.personal_posts || [],
+              resumes:       d.resumes || [],
+              chats:         d.chats || {},
+              linkedin:      d.linkedin || "",
+              github:        d.github || "",
+              website:       d.website || "",
+              experience:    d.experience || "",
+              cgpa:          d.cgpa || "",
+            });
           }
-        }
-
-        // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
-        const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
-          axios.get(`${BASE}/api/industries`,                                              { timeout: 8000 }),
-          axios.get(`${BASE}/api/courses`,                                                 { timeout: 8000 }),
-          axios.get(`${BASE}/api/vacancies`,                                               { timeout: 8000 }),
-          authUser?.id
-            ? axios.get(`${BASE}/api/applications/student/${authUser.id}`,                 { timeout: 8000 })
-            : Promise.resolve({ data: [] }),
-          axios.get(`${BASE}/api/all-jobs`,                                                { timeout: 8000 }),
-        ]);
-
-        if (!mountedRef.current) return;
-
-        setIndustriesSafe(
-          indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
-            ? indRes.value.data : mockIndustries
-        );
-        setCoursesSafe(
-          coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
-            ? coursesRes.value.data : mockCourses
-        );
-
-        const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
-          ? indRes.value.data : mockIndustries;
-
-        if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
-          setVacanciesSafe(vacRes.value.data.map(v => ({
-            id:        v.id,
-            ownerId:   v.owner_id || v.ownerId,
-            ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
-            ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
-            type:      v.type || "Job Vacancy",
-            title:     v.title,
-            desc:      v.description || v.desc || "",
-            skills:    v.skills || "",
-            duration:  v.duration || "Full-Time",
-            offerings: v.offerings || "",
-            date:      v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
-            likes:     v.likes || 0,
-          })));
-        } else {
-          setVacanciesSafe(mockVacancies);
-        }
-
-        if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
-          setMyApplicationsSafe(appsRes.value.data.map(a => ({
-            id:          a.id,
-            postId:      a.vacancy_id,
-            role:        a.vacancies?.title || "Role",
-            company:     a.vacancies?.owner_name || "Company",
-            appliedOn:   new Date(a.created_at).toLocaleDateString(),
-            status:      a.status || "Pending",
-            coverLetter: a.cover_letter,
-          })));
-        }
-
-        if (jobsRes.status === "fulfilled") {
-          let raw = jobsRes.value?.data || [];
-          if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
-          if (!Array.isArray(raw)) raw = [];
-          const jobs = raw.map(j => ({
-            industry: j.industry || j.company || j.employer || "Company",
-            job:      j.job || j.title || j.position || "Job Opening",
-            desc:     j.desc || j.description || j.summary || "",
-            role:     j.role || j.role_type || "",
-            ug:       j.ug || j.education_ug || j.education || "",
-            pg:       j.pg || j.education_pg || "",
-            url:      j.url || j.link || j.apply_url || "#",
-            dept:     j.dept || j.department || j.category || "",
-            skills:   j.skills || j.required_skills || "",
-          }));
-          setAllJobsSafe(jobs.length ? jobs : mockJobs);
-        } else {
-          setAllJobsSafe(mockJobs);
-        }
-
-      } catch (err) {
-        console.error("Boot error:", err);
-        if (!mountedRef.current) return;
-        // Fall back to mock data — dashboard is never completely blank
-        setIndustriesSafe(mockIndustries);
-        setCoursesSafe(mockCourses);
-        setVacanciesSafe(mockVacancies);
-        setAllJobsSafe(mockJobs);
-      } finally {
-        if (mountedRef.current) {
-          setIsFeedLoadingSafe(false);
-          setBootDoneSafe(true);
-          // FIX #8: We intentionally do NOT reset hasBootedRef here — it must
-          // stay true forever so userId changes never re-trigger the boot.
+        } catch (profileErr) {
+          console.warn("Python profile fetch failed — using auth fallback:", profileErr?.message);
         }
       }
-    };
 
-    boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ← EMPTY DEPS: boot runs once on mount, never again.
+      const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
+        axios.get(`${BASE}/api/industries`,  { timeout: 8000 }),
+        axios.get(`${BASE}/api/courses`,     { timeout: 8000 }),
+        axios.get(`${BASE}/api/vacancies`,   { timeout: 8000 }),
+        userId
+          ? axios.get(`${BASE}/api/applications/student/${userId}`, { timeout: 8000 })
+          : Promise.resolve({ data: [] }),
+        axios.get(`${BASE}/api/all-jobs`,    { timeout: 8000 }),
+      ]);
+
+      if (!mountedRef.current) return;
+
+      setIndustriesSafe(
+        indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
+          ? indRes.value.data : mockIndustries
+      );
+      setCoursesSafe(
+        coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
+          ? coursesRes.value.data : mockCourses
+      );
+
+      const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
+        ? indRes.value.data : mockIndustries;
+
+      if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
+        setVacanciesSafe(vacRes.value.data.map(v => ({
+          id:        v.id,
+          ownerId:   v.owner_id || v.ownerId,
+          ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
+          ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
+          type:      v.type || "Job Vacancy",
+          title:     v.title,
+          desc:      v.description || v.desc || "",
+          skills:    v.skills || "",
+          duration:  v.duration || "Full-Time",
+          offerings: v.offerings || "",
+          date:      v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
+          likes:     v.likes || 0,
+        })));
+      } else {
+        setVacanciesSafe(mockVacancies);
+      }
+
+      if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
+        setMyApplicationsSafe(appsRes.value.data.map(a => ({
+          id:          a.id,
+          postId:      a.vacancy_id,
+          role:        a.vacancies?.title || "Role",
+          company:     a.vacancies?.owner_name || "Company",
+          appliedOn:   new Date(a.created_at).toLocaleDateString(),
+          status:      a.status || "Pending",
+          coverLetter: a.cover_letter,
+        })));
+      }
+
+      if (jobsRes.status === "fulfilled") {
+        let raw = jobsRes.value?.data || [];
+        if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
+        if (!Array.isArray(raw)) raw = [];
+        const jobs = raw.map(j => ({
+          industry: j.industry || j.company || j.employer || "Company",
+          job:      j.job || j.title || j.position || "Job Opening",
+          desc:     j.desc || j.description || j.summary || "",
+          role:     j.role || j.role_type || "",
+          ug:       j.ug || j.education_ug || j.education || "",
+          pg:       j.pg || j.education_pg || "",
+          url:      j.url || j.link || j.apply_url || "#",
+          dept:     j.dept || j.department || j.category || "",
+          skills:   j.skills || j.required_skills || "",
+        }));
+        setAllJobsSafe(jobs.length ? jobs : mockJobs);
+      } else {
+        setAllJobsSafe(mockJobs);
+      }
+
+    } catch (err) {
+      console.error("Boot error:", err);
+      if (!mountedRef.current) return;
+      setIndustriesSafe(mockIndustries);
+      setCoursesSafe(mockCourses);
+      setVacanciesSafe(mockVacancies);
+      setAllJobsSafe(mockJobs);
+    } finally {
+      if (mountedRef.current) {
+        setIsFeedLoadingSafe(false);
+        setBootDoneSafe(true);
+      }
+    }
+  };
+
+  boot();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []); // ← EMPTY DEPS: boot runs once on mount, never again.
 
   // ── AI skill match — stable key prevents unnecessary re-runs ─────────────
   // FIX #9: skillsKey is derived from sorted skills so array identity changes
