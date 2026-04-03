@@ -419,6 +419,25 @@ textarea.field-input{resize:vertical;min-height:85px}
 .close-x{padding:.22rem .65rem;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif}
 .close-x:hover{background:rgba(220,38,38,.4)}
 
+/* ── MESSAGES TAB ── */
+.msg-layout{display:grid;grid-template-columns:260px 1fr;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;height:calc(100vh - var(--nav-h) - 6rem)}
+.conv-list{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.conv-list-head{padding:.9rem 1.1rem;font-weight:800;font-size:.85rem;border-bottom:1px solid var(--border);flex-shrink:0;font-family:'Syne',sans-serif;color:var(--navy)}
+.conv-list-body{flex:1;overflow-y:auto}
+.conv-row{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:.12s}
+.conv-row:hover{background:rgba(79,70,229,.05)}
+.conv-row.active{background:rgba(79,70,229,.09)}
+.conv-av2{width:36px;height:36px;border-radius:10px;background:var(--grad);color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.conv-name2{font-size:.8rem;font-weight:700;color:var(--navy)}
+.conv-preview2{font-size:.67rem;color:var(--subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.chat-area2{display:flex;flex-direction:column;overflow:hidden}
+.chat-head2{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;background:var(--surface2)}
+.chat-body2{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.4rem}
+.chat-foot2{padding:.65rem .9rem;border-top:1px solid var(--border);display:flex;gap:.45rem}
+.chat-inp2{flex:1;padding:.5rem .85rem;border-radius:99px;border:1.5px solid var(--border2);font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--slate);outline:none;transition:.2s;background:var(--surface2)}
+.chat-inp2:focus{border-color:var(--indigo);background:white}
+@media(max-width:600px){.msg-layout{grid-template-columns:1fr;height:auto}.conv-list{height:220px;border-right:none;border-bottom:1px solid var(--border)}}
+
 /* ── TOAST ── */
 .notif-toast{background:#0f172a;color:white;padding:.8rem 1.3rem;border-radius:14px;box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.55rem;max-width:calc(100vw - 2rem)}
 .notif-dot2{width:7px;height:7px;background:var(--indigo-light);border-radius:50%;flex-shrink:0}
@@ -546,6 +565,9 @@ export default function StudentDashboard() {
   const [skillInput, setSkillInput] = useState("");
   const [coverPreview, setCoverPreview] = useState(null);
 
+  // ADD this new state
+  const [chatMessages, setChatMessages] = useState({});
+
   // ── Refs ──────────────────────────────────────────────────────────────────
   // FIX #1: hasBootedRef — never reset, so boot runs EXACTLY once on mount.
   const hasBootedRef = useRef(false);
@@ -586,6 +608,8 @@ export default function StudentDashboard() {
   const setBootDoneSafe = useCallback(safeSet(setBootDone), []);
   const setBootErrorSafe = useCallback(safeSet(setBootError), []);
   const setIsMatchLoadingSafe = useCallback(safeSet(setIsMatchLoading), []);
+
+  const setChatMessagesSafe = useCallback(safeSet(setChatMessages), []);
 
   // ─── BOOTSTRAP — runs ONCE on mount only ──────────────────────────────────
   // FIX #4: Empty dependency array [] — no re-runs when userId/authUser changes.
@@ -672,7 +696,7 @@ export default function StudentDashboard() {
         }
 
         // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
-        const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
+        const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] = await Promise.allSettled([
           axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
           axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
           axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
@@ -680,6 +704,9 @@ export default function StudentDashboard() {
             ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
             : Promise.resolve({ data: [] }),
           axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
+          authUser?.id
+            ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
+            : Promise.resolve({ data: [] }),
         ]);
 
         if (!mountedRef.current) return;
@@ -763,6 +790,21 @@ export default function StudentDashboard() {
           // stay true forever so userId changes never re-trigger the boot.
         }
       }
+
+      // Load messages from backend and group by conversation partner
+      if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
+        const msgs = {};
+        msgsRes.value.data.forEach(m => {
+          const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+          if (!msgs[partnerId]) msgs[partnerId] = [];
+          msgs[partnerId].push({
+            sender: m.sender_id === authUser.id ? "me" : "them",
+            message: m.text,
+            time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          });
+        });
+        if (mountedRef.current) setChatMessages(msgs);
+      }
     };
 
     boot();
@@ -803,10 +845,44 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [profile?.chats, activeChat]);
+  }, [chatMessages, activeChat]);
+
+  // ── Re-fetch messages when authUser becomes available (e.g. after refresh) ──
+  // Boot runs once on mount but authUser.id may be null at that time.
+  // This effect ensures messages are always loaded once the user is confirmed.
+  useEffect(() => {
+    if (!authUser?.id) return;
+    let cancelled = false;
+
+    const fetchMsgs = async () => {
+      try {
+        const res = await axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 });
+        if (cancelled || !mountedRef.current) return;
+        if (!Array.isArray(res.data)) return;
+
+        const msgs = {};
+        res.data.forEach(m => {
+          const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+          if (!msgs[partnerId]) msgs[partnerId] = [];
+          msgs[partnerId].push({
+            sender: m.sender_id === authUser.id ? "me" : "them",
+            message: m.text,
+            time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          });
+        });
+        setChatMessagesSafe(msgs);
+      } catch (_) {
+        // silently ignore — chat will be empty but app still works
+      }
+    };
+
+    fetchMsgs();
+    return () => { cancelled = true; };
+  }, [authUser?.id]);
 
   // Close sidebar on tab change (mobile)
   useEffect(() => { setSidebarOpen(false); }, [activeTab]);
+
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const pushNotify = useCallback((msg) => {
@@ -825,6 +901,7 @@ export default function StudentDashboard() {
 
   const alreadyApplied = (postId) => myApplications.some(a => a.postId === postId);
 
+  // AFTER
   const sendMessage = async (toId, message) => {
     if (!authUser?.id) return;
     try {
@@ -832,12 +909,9 @@ export default function StudentDashboard() {
         sender_id: authUser.id, receiver_id: toId, text: message,
       });
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      setProfile(prev => ({
+      setChatMessages(prev => ({
         ...prev,
-        chats: {
-          ...prev.chats,
-          [toId]: [...(prev.chats?.[toId] || []), { sender: prev.name, message, time }],
-        },
+        [toId]: [...(prev[toId] || []), { sender: "me", message, time }],
       }));
     } catch { pushNotify("Failed to send message."); }
   };
@@ -1637,6 +1711,7 @@ export default function StudentDashboard() {
     { id: "jobs", icon: "💼", label: "Jobs" },
     { id: "courses", icon: "📚", label: "Courses" },
     { id: "applications", icon: "📋", label: "My Apps" },
+    { id: "messages", icon: "💬", label: "Messages" },
     { id: "profile", icon: "👤", label: "Profile" },
   ];
 
@@ -1729,7 +1804,7 @@ export default function StudentDashboard() {
                         {ind.tagline && <div className="ind-tagline">"{ind.tagline}"</div>}
                         <div style={{ marginTop: ".75rem" }}>
                           <button className="apply-btn" style={{ padding: ".38rem .85rem", fontSize: ".7rem", width: "auto" }}
-                            onClick={e => { e.stopPropagation(); setActiveChat(ind.id); }}>💬 Message</button>
+                            onClick={e => { e.stopPropagation(); setActiveChat(ind.id); setActiveTab("messages"); }}>💬 Message</button>
                         </div>
                       </motion.div>
                     ))}
@@ -1971,7 +2046,121 @@ export default function StudentDashboard() {
                 }
               </motion.div>
             )}
+            {/* ══ MESSAGES ══ */}
+            {activeTab === "messages" && (
+              <motion.div key="messages" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
+                  <div>
+                    <span className="sec-title">Messages</span>
+                    <span className="sec-sub">· Chat with partner industries</span>
+                  </div>
+                </div>
+                <div className="msg-layout">
+                  {/* Conversation list */}
+                  <div className="conv-list">
+                    <div className="conv-list-head">💬 Conversations</div>
+                    <div className="conv-list-body">
+                      {industries.length === 0 ? (
+                        <div style={{ padding: "1.5rem 1rem", textAlign: "center", color: "var(--subtle)", fontSize: ".78rem" }}>
+                          No industries loaded yet.
+                        </div>
+                      ) : (
+                        industries.map(ind => {
+                          const msgs = chatMessages[ind.id] || [];
+                          const lastMsg = msgs[msgs.length - 1];
+                          return (
+                            <div
+                              key={ind.id}
+                              className={`conv-row ${activeChat === ind.id ? "active" : ""}`}
+                              onClick={() => setActiveChat(ind.id)}
+                            >
+                              <div className="conv-av2">
+                                {(ind.logo || (ind.name || "CO").substring(0, 2)).toUpperCase()}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div className="conv-name2">{ind.name}</div>
+                                <div className="conv-preview2">
+                                  {lastMsg ? lastMsg.message : "Start a conversation…"}
+                                </div>
+                              </div>
+                              {msgs.length > 0 && (
+                                <div style={{ width: 7, height: 7, background: "var(--indigo)", borderRadius: "50%", flexShrink: 0 }} />
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
 
+                  {/* Chat area */}
+                  <div className="chat-area2">
+                    {!activeChat ? (
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--subtle)", gap: ".5rem" }}>
+                        <span style={{ fontSize: "2rem" }}>💬</span>
+                        <div style={{ fontWeight: 700, color: "var(--muted)" }}>Select a company to chat</div>
+                        <div style={{ fontSize: ".76rem" }}>Choose a partner industry from the left panel.</div>
+                      </div>
+                    ) : (() => {
+                      const ind = industries.find(i => i.id === activeChat);
+                      const msgs = chatMessages[activeChat] || [];
+                      return (
+                        <>
+                          <div className="chat-head2">
+                            <div className="conv-av2">{(ind?.logo || "CO").substring(0, 2).toUpperCase()}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 800, fontSize: ".88rem", color: "var(--navy)", fontFamily: "Syne,sans-serif" }}>{ind?.name || "Company"}</div>
+                              <div style={{ fontSize: ".67rem", color: "var(--subtle)", display: "flex", alignItems: "center", gap: ".3rem" }}>
+                                <span style={{ width: 6, height: 6, background: "#34d399", borderRadius: "50%", display: "inline-block" }} />
+                                Active
+                              </div>
+                            </div>
+                            <div style={{ fontSize: ".7rem", color: "var(--muted)", fontWeight: 600 }}>{ind?.domain}</div>
+                          </div>
+
+                          <div className="chat-body2">
+                            {msgs.length === 0 ? (
+                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "var(--subtle)", gap: ".4rem", marginTop: "2rem" }}>
+                                <span style={{ fontSize: "1.5rem" }}>👋</span>
+                                <div style={{ fontSize: ".8rem" }}>No messages yet. Say hello!</div>
+                              </div>
+                            ) : (
+                              msgs.map((msg, i) => (
+                                <div key={i} className={`bubble ${msg.sender === "me" ? "sent" : "recv"}`}>
+                                  <div>{msg.message}</div>
+                                  <div className="bubble-time">{msg.time}</div>
+                                </div>
+                              ))
+                            )}
+                            <div ref={chatEndRef} />
+                          </div>
+
+                          <div className="chat-foot2">
+                            <input
+                              ref={chatInputRef}
+                              className="chat-inp2"
+                              placeholder="Type a message…"
+                              onKeyDown={e => {
+                                if (e.key === "Enter" && e.target.value.trim()) {
+                                  sendMessage(activeChat, e.target.value.trim());
+                                  e.target.value = "";
+                                }
+                              }}
+                            />
+                            <button className="send-btn" onClick={() => {
+                              const inp = chatInputRef.current;
+                              if (!inp?.value?.trim()) return;
+                              sendMessage(activeChat, inp.value.trim());
+                              inp.value = "";
+                            }}>➤</button>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </motion.div>
+            )}
             {/* ══ PROFILE PAGE ══ */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -1995,50 +2184,7 @@ export default function StudentDashboard() {
         </AnimatePresence>
       </div>
 
-      {/* ── DM PANEL ── */}
-      <AnimatePresence>
-        {activeChat && (
-          <motion.div className="dm-panel"
-            initial={{ x: 360, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 360, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 28 }}>
-            <div className="dm-head">
-              <div>
-                <div className="dm-recipient">{industries.find(i => i.id === activeChat)?.name ?? "Company"}</div>
-                <div className="dm-status"><span className="online-dot" />Active</div>
-              </div>
-              <button className="close-x" onClick={() => setActiveChat(null)}>✕</button>
-            </div>
-            <div className="dm-body">
-              {!(profile.chats?.[activeChat] || []).length
-                ? <div className="dm-empty"><span style={{ fontSize: "1.7rem" }}>💬</span><span>No messages yet. Say hello!</span></div>
-                : (profile.chats?.[activeChat] || []).map((msg, i) => (
-                  <div key={i} className={`bubble ${msg.sender === profile.name ? "sent" : "recv"}`}>
-                    <div>{msg.message}</div>
-                    <div className="bubble-time">{msg.time}</div>
-                  </div>
-                ))
-              }
-              <div ref={chatEndRef} />
-            </div>
-            <div className="dm-foot">
-              {/* FIX #10: null-safe chatInputRef.current check */}
-              <input ref={chatInputRef} className="dm-input" placeholder="Type a message…"
-                onKeyDown={e => {
-                  if (e.key === "Enter" && e.target.value.trim()) {
-                    sendMessage(activeChat, e.target.value.trim());
-                    e.target.value = "";
-                  }
-                }} />
-              <button className="send-btn" onClick={() => {
-                const inp = chatInputRef.current;
-                if (!inp?.value?.trim()) return;
-                sendMessage(activeChat, inp.value.trim());
-                inp.value = "";
-              }}>➤</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* ── POST DETAIL MODAL ── */}
       <AnimatePresence>
