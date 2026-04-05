@@ -9,11 +9,11 @@ const BASE = API_BASE_URL;
 
 // ─── SKILL SUGGESTIONS ────────────────────────────────────────────────────────
 const SKILL_SUGGESTIONS = [
-  "Python", "JavaScript", "React", "Node.js", "Django", "Flask", "Java", "C++", "TypeScript",
-  "SQL", "MongoDB", "PostgreSQL", "AWS", "Docker", "Kubernetes", "Git", "Machine Learning",
-  "Deep Learning", "TensorFlow", "PyTorch", "Figma", "UI/UX", "HTML", "CSS", "Spring Boot",
-  "GraphQL", "DevOps", "REST APIs", "Data Science", "Excel", "Power BI", "Tableau",
-  "Android", "Flutter", "Swift", "Kotlin", "PHP", "Laravel", "Vue.js", "Angular",
+  "Python","JavaScript","React","Node.js","Django","Flask","Java","C++","TypeScript",
+  "SQL","MongoDB","PostgreSQL","AWS","Docker","Kubernetes","Git","Machine Learning",
+  "Deep Learning","TensorFlow","PyTorch","Figma","UI/UX","HTML","CSS","Spring Boot",
+  "GraphQL","DevOps","REST APIs","Data Science","Excel","Power BI","Tableau",
+  "Android","Flutter","Swift","Kotlin","PHP","Laravel","Vue.js","Angular",
 ];
 
 // ─── MOCK DATA ────────────────────────────────────────────────────────────────
@@ -24,11 +24,11 @@ const mockIndustries = [
   { id: 4, name: "GreenEnergy Co", logo: "GE", domain: "Sustainability", location: "Pune", tagline: "Sustainable Power" },
 ];
 const mockCourses = [
-  { id: 1, title: "React.js Complete Guide", provider: "Udemy", duration: "40 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "BCA", skills: ["React", "JSX", "Hooks"] },
-  { id: 2, title: "Data Structures & Algorithms", provider: "Coursera", duration: "60 hrs", level: "Advanced", link: "#", rating: 4.9, field: "BCA", skills: ["DSA", "C++"] },
-  { id: 3, title: "Machine Learning A-Z", provider: "Udemy", duration: "55 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "MCA", skills: ["Python", "sklearn"] },
-  { id: 4, title: "System Design Fundamentals", provider: "Coursera", duration: "45 hrs", level: "Advanced", link: "#", rating: 4.9, field: "B.Tech", skills: ["Architecture", "SQL"] },
-  { id: 5, title: "Python for Data Science", provider: "edX", duration: "35 hrs", level: "Beginner", link: "#", rating: 4.7, field: "MCA", skills: ["Python", "Pandas"] },
+  { id: 1, title: "React.js Complete Guide", provider: "Udemy", duration: "40 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "BCA", skills: ["React","JSX","Hooks"] },
+  { id: 2, title: "Data Structures & Algorithms", provider: "Coursera", duration: "60 hrs", level: "Advanced", link: "#", rating: 4.9, field: "BCA", skills: ["DSA","C++"] },
+  { id: 3, title: "Machine Learning A-Z", provider: "Udemy", duration: "55 hrs", level: "Intermediate", link: "#", rating: 4.8, field: "MCA", skills: ["Python","sklearn"] },
+  { id: 4, title: "System Design Fundamentals", provider: "Coursera", duration: "45 hrs", level: "Advanced", link: "#", rating: 4.9, field: "B.Tech", skills: ["Architecture","SQL"] },
+  { id: 5, title: "Python for Data Science", provider: "edX", duration: "35 hrs", level: "Beginner", link: "#", rating: 4.7, field: "MCA", skills: ["Python","Pandas"] },
 ];
 const mockVacancies = [
   { id: 101, ownerId: 1, ownerName: "TechNova Solutions", ownerLogo: "TN", type: "Internship", title: "MERN Stack Intern", desc: "Seeking proactive students with React and Node.js expertise for our Bangalore office.", skills: "React, Node.js, Express, MongoDB", duration: "6 Months", offerings: "Stipend ₹20,000/month, Pre-placement offer", date: "2 hours ago", likes: 24 },
@@ -67,28 +67,28 @@ function calcCompletion(p) {
 
 function buildDefaultProfile(authUser, authProfile) {
   return {
-    id: authUser?.id || "",
-    name: authProfile?.name || authProfile?.full_name || authUser?.email?.split("@")[0] || "Student",
-    email: authProfile?.email || authUser?.email || "",
-    username: authProfile?.username || (authProfile?.name || "student").toLowerCase().replace(/\s+/g, "_"),
+    id:            authUser?.id || "",
+    name:          authProfile?.name || authProfile?.full_name || authUser?.email?.split("@")[0] || "Student",
+    email:         authProfile?.email || authUser?.email || "",
+    username:      authProfile?.username || (authProfile?.name || "student").toLowerCase().replace(/\s+/g, "_"),
     qualification: authProfile?.qualification || "",
-    phone: authProfile?.phone || "",
-    address: authProfile?.address || authProfile?.location || "",
-    about: authProfile?.about || "",
-    skills: Array.isArray(authProfile?.skills) ? authProfile.skills : [],
-    photo: authProfile?.photo || null,
-    tenth: authProfile?.tenth || "",
-    twelfth: authProfile?.twelfth || "",
-    graduation: authProfile?.graduation || "",
-    certificates: authProfile?.certificates || [],
+    phone:         authProfile?.phone || "",
+    address:       authProfile?.address || authProfile?.location || "",
+    about:         authProfile?.about || "",
+    skills:        Array.isArray(authProfile?.skills) ? authProfile.skills : [],
+    photo:         authProfile?.photo || null,
+    tenth:         authProfile?.tenth || "",
+    twelfth:       authProfile?.twelfth || "",
+    graduation:    authProfile?.graduation || "",
+    certificates:  authProfile?.certificates || [],
     personalPosts: authProfile?.personalPosts || [],
-    resumes: authProfile?.resumes || [],
-    chats: {},
-    linkedin: authProfile?.linkedin || "",
-    github: authProfile?.github || "",
-    website: authProfile?.website || "",
-    experience: authProfile?.experience || "",
-    cgpa: authProfile?.cgpa || "",
+    resumes:       authProfile?.resumes || [],
+    chats:         {},
+    linkedin:      authProfile?.linkedin || "",
+    github:        authProfile?.github || "",
+    website:       authProfile?.website || "",
+    experience:    authProfile?.experience || "",
+    cgpa:          authProfile?.cgpa || "",
   };
 }
 
@@ -419,25 +419,6 @@ textarea.field-input{resize:vertical;min-height:85px}
 .close-x{padding:.22rem .65rem;border-radius:8px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font-size:.68rem;cursor:pointer;font-family:'DM Sans',sans-serif}
 .close-x:hover{background:rgba(220,38,38,.4)}
 
-/* ── MESSAGES TAB ── */
-.msg-layout{display:grid;grid-template-columns:260px 1fr;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;height:calc(100vh - var(--nav-h) - 6rem)}
-.conv-list{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.conv-list-head{padding:.9rem 1.1rem;font-weight:800;font-size:.85rem;border-bottom:1px solid var(--border);flex-shrink:0;font-family:'Syne',sans-serif;color:var(--navy)}
-.conv-list-body{flex:1;overflow-y:auto}
-.conv-row{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:.12s}
-.conv-row:hover{background:rgba(79,70,229,.05)}
-.conv-row.active{background:rgba(79,70,229,.09)}
-.conv-av2{width:36px;height:36px;border-radius:10px;background:var(--grad);color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.conv-name2{font-size:.8rem;font-weight:700;color:var(--navy)}
-.conv-preview2{font-size:.67rem;color:var(--subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
-.chat-area2{display:flex;flex-direction:column;overflow:hidden}
-.chat-head2{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;background:var(--surface2)}
-.chat-body2{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.4rem}
-.chat-foot2{padding:.65rem .9rem;border-top:1px solid var(--border);display:flex;gap:.45rem}
-.chat-inp2{flex:1;padding:.5rem .85rem;border-radius:99px;border:1.5px solid var(--border2);font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--slate);outline:none;transition:.2s;background:var(--surface2)}
-.chat-inp2:focus{border-color:var(--indigo);background:white}
-@media(max-width:600px){.msg-layout{grid-template-columns:1fr;height:auto}.conv-list{height:220px;border-right:none;border-bottom:1px solid var(--border)}}
-
 /* ── TOAST ── */
 .notif-toast{background:#0f172a;color:white;padding:.8rem 1.3rem;border-radius:14px;box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.55rem;max-width:calc(100vw - 2rem)}
 .notif-dot2{width:7px;height:7px;background:var(--indigo-light);border-radius:50%;flex-shrink:0}
@@ -525,62 +506,59 @@ textarea.field-input{resize:vertical;min-height:85px}
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 export default function StudentDashboard() {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
   const { user: authUser, profile: authProfile, signOut } = useAuth();
 
   // UI state
-  const [activeTab, setActiveTab] = useState("feed");
-  const [editMode, setEditMode] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [activeChat, setActiveChat] = useState(null);
-  const [activeUserProfile, setActiveUserProfile] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [notifications, setNotifications] = useState([]);
-  const [applyModal, setApplyModal] = useState(null);
-  const [applyForm, setApplyForm] = useState({ coverLetter: "" });
-  const [postDetailModal, setPostDetailModal] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab,         setActiveTab]         = useState("feed");
+  const [editMode,          setEditMode]           = useState(false);
+  const [showDetails,       setShowDetails]        = useState(false);
+  const [activeChat,        setActiveChat]         = useState(null);
+  const [activeUserProfile, setActiveUserProfile]  = useState(null);
+  const [searchQuery,       setSearchQuery]        = useState("");
+  const [notifications,     setNotifications]      = useState([]);
+  const [applyModal,        setApplyModal]         = useState(null);
+  const [applyForm,         setApplyForm]          = useState({ coverLetter: "" });
+  const [postDetailModal,   setPostDetailModal]    = useState(null);
+  const [sidebarOpen,       setSidebarOpen]        = useState(false);
 
   // Data state
-  const [profile, setProfile] = useState(null);
-  const [industries, setIndustries] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [allJobs, setAllJobs] = useState([]);
-  const [matchedJobs, setMatchedJobs] = useState([]);
-  const [vacancies, setVacancies] = useState([]);
+  const [profile,        setProfile]        = useState(null);
+  const [industries,     setIndustries]     = useState([]);
+  const [courses,        setCourses]        = useState([]);
+  const [allJobs,        setAllJobs]        = useState([]);
+  const [matchedJobs,    setMatchedJobs]    = useState([]);
+  const [vacancies,      setVacancies]      = useState([]);
   const [myApplications, setMyApplications] = useState([]);
 
   // Loading / boot state
-  const [isFeedLoading, setIsFeedLoading] = useState(true);
+  const [isFeedLoading,  setIsFeedLoading]  = useState(true);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
-  const [bootDone, setBootDone] = useState(false);
-  const [bootError, setBootError] = useState(null); // "auth" | "timeout" | null
+  const [bootDone,       setBootDone]       = useState(false);
+  const [bootError,      setBootError]      = useState(null); // "auth" | "timeout" | null
 
   // Profile page state
-  const [pfTab, setPfTab] = useState("overview");
-  const [pfEditing, setPfEditing] = useState(false);
-  const [pfForm, setPfForm] = useState({});
-  const [pfSaving, setPfSaving] = useState(false);
-  const [pfToast, setPfToast] = useState(null);
+  const [pfTab,      setPfTab]      = useState("overview");
+  const [pfEditing,  setPfEditing]  = useState(false);
+  const [pfForm,     setPfForm]     = useState({});
+  const [pfSaving,   setPfSaving]   = useState(false);
+  const [pfToast,    setPfToast]    = useState(null);
   const [skillInput, setSkillInput] = useState("");
   const [coverPreview, setCoverPreview] = useState(null);
-
-  // ADD this new state
-  const [chatMessages, setChatMessages] = useState({});
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   // FIX #1: hasBootedRef — never reset, so boot runs EXACTLY once on mount.
   const hasBootedRef = useRef(false);
   // FIX #2: mountedRef — prevents setState after unmount (avoids memory leaks
   //         and ghost re-renders that can re-trigger auth listeners).
-  const mountedRef = useRef(true);
+  const mountedRef   = useRef(true);
 
-  const coverRef = useRef();
-  const avatarRef = useRef();
-  const certRef = useRef();
-  const resumeRef = useRef();
-  const postRef = useRef();
-  const chatEndRef = useRef();
+  const coverRef     = useRef();
+  const avatarRef    = useRef();
+  const certRef      = useRef();
+  const resumeRef    = useRef();
+  const postRef      = useRef();
+  const chatEndRef   = useRef();
   const chatInputRef = useRef();
 
   // FIX #3: Cleanup on unmount — cancel all pending work.
@@ -597,19 +575,17 @@ export default function StudentDashboard() {
     if (mountedRef.current) setter(...args);
   }, []);
 
-  const setProfileSafe = useCallback(safeSet(setProfile), []);
-  const setIndustriesSafe = useCallback(safeSet(setIndustries), []);
-  const setCoursesSafe = useCallback(safeSet(setCourses), []);
-  const setAllJobsSafe = useCallback(safeSet(setAllJobs), []);
-  const setVacanciesSafe = useCallback(safeSet(setVacancies), []);
+  const setProfileSafe        = useCallback(safeSet(setProfile),        []);
+  const setIndustriesSafe     = useCallback(safeSet(setIndustries),     []);
+  const setCoursesSafe        = useCallback(safeSet(setCourses),        []);
+  const setAllJobsSafe        = useCallback(safeSet(setAllJobs),        []);
+  const setVacanciesSafe      = useCallback(safeSet(setVacancies),      []);
   const setMyApplicationsSafe = useCallback(safeSet(setMyApplications), []);
-  const setMatchedJobsSafe = useCallback(safeSet(setMatchedJobs), []);
-  const setIsFeedLoadingSafe = useCallback(safeSet(setIsFeedLoading), []);
-  const setBootDoneSafe = useCallback(safeSet(setBootDone), []);
-  const setBootErrorSafe = useCallback(safeSet(setBootError), []);
+  const setMatchedJobsSafe    = useCallback(safeSet(setMatchedJobs),    []);
+  const setIsFeedLoadingSafe  = useCallback(safeSet(setIsFeedLoading),  []);
+  const setBootDoneSafe       = useCallback(safeSet(setBootDone),       []);
+  const setBootErrorSafe      = useCallback(safeSet(setBootError),      []);
   const setIsMatchLoadingSafe = useCallback(safeSet(setIsMatchLoading), []);
-
-  const setChatMessagesSafe = useCallback(safeSet(setChatMessages), []);
 
   // ─── BOOTSTRAP — runs ONCE on mount only ──────────────────────────────────
   // FIX #4: Empty dependency array [] — no re-runs when userId/authUser changes.
@@ -619,223 +595,42 @@ export default function StudentDashboard() {
     if (hasBootedRef.current) return;
     hasBootedRef.current = true;
 
-
-    // const boot = async () => {
-    //   setIsFeedLoadingSafe(true);
-
-    //   // FIX #5: Wait up to 3 s for auth context to populate, polling every
-    //   //         200 ms. Previously the 1500 ms fixed delay could expire BEFORE
-    //   //         authUser arrived, causing a false "not authenticated" failure.
-    //   let resolvedUser = authUser;
-    //   let resolvedProfile = authProfile;
-
-    //   if (!resolvedUser) {
-    //     for (let i = 0; i < 15; i++) {
-    //       await new Promise(r => setTimeout(r, 200));
-    //       if (!mountedRef.current) return; // unmounted — bail out entirely
-    //       // Re-read from module scope isn't possible for hook values,
-    //       // so we break and let the block below handle the null case.
-    //       break;
-    //     }
-    //   }
-
-    //   // FIX #6: If still no user after waiting, redirect immediately — don't
-    //   //         set authFailed state (which would trigger another useEffect and
-    //   //         potentially cause re-renders / re-runs).
-    //   if (!authUser && !authProfile) {
-    //     setBootDoneSafe(true);
-    //     setIsFeedLoadingSafe(false);
-    //     setBootErrorSafe("auth");
-    //     try { await signOut(); } catch { }
-    //     if (mountedRef.current) navigate("/login");
-    //     return;
-    //   }
-
-    //   // Seed profile immediately from AuthContext so UI is never blank
-    //   setProfileSafe(buildDefaultProfile(authUser, authProfile));
-
-    //   try {
-    //     // 1. Full profile from backend — only if we have a valid user id
-    //     if (authUser?.id) {
-    //       try {
-    //         const res = await axios.get(
-    //           `${BASE}/api/get-profile?user_id=${authUser.id}`,
-    //           { timeout: 10000 }
-    //         );
-    //         const d = res.data;
-    //         if (d?.id && mountedRef.current) {
-    //           setProfileSafe({
-    //             id: d.id,
-    //             name: d.name || d.full_name || authProfile?.name || authUser?.email?.split("@")[0] || "Student",
-    //             email: d.email || authUser?.email || "",
-    //             username: d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
-    //             qualification: d.qualification || authProfile?.qualification || "",
-    //             phone: d.phone || "",
-    //             address: d.address || d.location || "",
-    //             about: d.about || "",
-    //             skills: Array.isArray(d.skills) ? d.skills : [],
-    //             photo: d.photo || null,
-    //             tenth: d.tenth || "",
-    //             twelfth: d.twelfth || "",
-    //             graduation: d.graduation || "",
-    //             certificates: d.certificates || [],
-    //             personalPosts: d.personalPosts || d.personal_posts || [],
-    //             resumes: d.resumes || [],
-    //             chats: d.chats || {},
-    //             linkedin: d.linkedin || "",
-    //             github: d.github || "",
-    //             website: d.website || "",
-    //             experience: d.experience || "",
-    //             cgpa: d.cgpa || "",
-    //           });
-    //         }
-    //       } catch (profileErr) {
-    //         // FIX #7: Profile fetch failing is a WARNING, not a fatal error.
-    //         // We already seeded from AuthContext, so the user sees the dashboard.
-    //         console.warn("Profile fetch failed — using cached session data:", profileErr?.message);
-    //       }
-    //     }
-
-    //     // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
-    //     const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] = await Promise.allSettled([
-    //       axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
-    //       axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
-    //       axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
-    //       authUser?.id
-    //         ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
-    //         : Promise.resolve({ data: [] }),
-    //       axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
-    //       authUser?.id
-    //         ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
-    //         : Promise.resolve({ data: [] }),
-    //     ]);
-
-    //     if (!mountedRef.current) return;
-
-    //     setIndustriesSafe(
-    //       indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
-    //         ? indRes.value.data : mockIndustries
-    //     );
-    //     setCoursesSafe(
-    //       coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
-    //         ? coursesRes.value.data : mockCourses
-    //     );
-
-    //     const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
-    //       ? indRes.value.data : mockIndustries;
-
-    //     if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
-    //       setVacanciesSafe(vacRes.value.data.map(v => ({
-    //         id: v.id,
-    //         ownerId: v.owner_id || v.ownerId,
-    //         ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
-    //         ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
-    //         type: v.type || "Job Vacancy",
-    //         title: v.title,
-    //         desc: v.description || v.desc || "",
-    //         skills: v.skills || "",
-    //         duration: v.duration || "Full-Time",
-    //         offerings: v.offerings || "",
-    //         date: v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
-    //         likes: v.likes || 0,
-    //       })));
-    //     } else {
-    //       setVacanciesSafe(mockVacancies);
-    //     }
-
-    //     if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
-    //       setMyApplicationsSafe(appsRes.value.data.map(a => ({
-    //         id: a.id,
-    //         postId: a.vacancy_id,
-    //         role: a.vacancies?.title || "Role",
-    //         company: a.vacancies?.owner_name || "Company",
-    //         appliedOn: new Date(a.created_at).toLocaleDateString(),
-    //         status: a.status || "Pending",
-    //         coverLetter: a.cover_letter,
-    //       })));
-    //     }
-
-    //     if (jobsRes.status === "fulfilled") {
-    //       let raw = jobsRes.value?.data || [];
-    //       if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
-    //       if (!Array.isArray(raw)) raw = [];
-    //       const jobs = raw.map(j => ({
-    //         industry: j.industry || j.company || j.employer || "Company",
-    //         job: j.job || j.title || j.position || "Job Opening",
-    //         desc: j.desc || j.description || j.summary || "",
-    //         role: j.role || j.role_type || "",
-    //         ug: j.ug || j.education_ug || j.education || "",
-    //         pg: j.pg || j.education_pg || "",
-    //         url: j.url || j.link || j.apply_url || "#",
-    //         dept: j.dept || j.department || j.category || "",
-    //         skills: j.skills || j.required_skills || "",
-    //       }));
-    //       setAllJobsSafe(jobs.length ? jobs : mockJobs);
-    //     } else {
-    //       setAllJobsSafe(mockJobs);
-    //     }
-
-    //   } catch (err) {
-    //     console.error("Boot error:", err);
-    //     if (!mountedRef.current) return;
-    //     // Fall back to mock data — dashboard is never completely blank
-    //     setIndustriesSafe(mockIndustries);
-    //     setCoursesSafe(mockCourses);
-    //     setVacanciesSafe(mockVacancies);
-    //     setAllJobsSafe(mockJobs);
-    //   } finally {
-    //     if (mountedRef.current) {
-    //       setIsFeedLoadingSafe(false);
-    //       setBootDoneSafe(true);
-    //       // FIX #8: We intentionally do NOT reset hasBootedRef here — it must
-    //       // stay true forever so userId changes never re-trigger the boot.
-    //     }
-    //   }
-
-    //   // Load messages from backend and group by conversation partner
-
-    //   if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
-    //     const msgs = {};
-    //     msgsRes.value.data.forEach(m => {
-    //       const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
-    //       if (!msgs[partnerId]) msgs[partnerId] = [];
-    //       msgs[partnerId].push({
-    //         sender: m.sender_id === authUser.id ? "me" : "them",
-    //         message: m.text,
-    //         time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    //       });
-    //     });
-    //     if (mountedRef.current) setChatMessages(msgs);
-    //   }
-    // };
-
     const boot = async () => {
       setIsFeedLoadingSafe(true);
 
-      let resolvedUser = authUser;
+      // FIX #5: Wait up to 3 s for auth context to populate, polling every
+      //         200 ms. Previously the 1500 ms fixed delay could expire BEFORE
+      //         authUser arrived, causing a false "not authenticated" failure.
+      let resolvedUser    = authUser;
       let resolvedProfile = authProfile;
 
       if (!resolvedUser) {
         for (let i = 0; i < 15; i++) {
           await new Promise(r => setTimeout(r, 200));
-          if (!mountedRef.current) return;
+          if (!mountedRef.current) return; // unmounted — bail out entirely
+          // Re-read from module scope isn't possible for hook values,
+          // so we break and let the block below handle the null case.
           break;
         }
       }
 
+      // FIX #6: If still no user after waiting, redirect immediately — don't
+      //         set authFailed state (which would trigger another useEffect and
+      //         potentially cause re-renders / re-runs).
       if (!authUser && !authProfile) {
         setBootDoneSafe(true);
         setIsFeedLoadingSafe(false);
         setBootErrorSafe("auth");
-        try { await signOut(); } catch { }
+        try { await signOut(); } catch {}
         if (mountedRef.current) navigate("/login");
         return;
       }
 
+      // Seed profile immediately from AuthContext so UI is never blank
       setProfileSafe(buildDefaultProfile(authUser, authProfile));
 
       try {
-        // 1. Profile fetch
+        // 1. Full profile from backend — only if we have a valid user id
         if (authUser?.id) {
           try {
             const res = await axios.get(
@@ -843,139 +638,135 @@ export default function StudentDashboard() {
               { timeout: 10000 }
             );
             const d = res.data;
-
             if (d?.id && mountedRef.current) {
               setProfileSafe({
-                id: d.id,
-                name: d.name || d.full_name || authProfile?.name || authUser?.email?.split("@")[0] || "Student",
-                email: d.email || authUser?.email || "",
-                username: d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
+                id:            d.id,
+                name:          d.name || d.full_name || authProfile?.name || authUser?.email?.split("@")[0] || "Student",
+                email:         d.email || authUser?.email || "",
+                username:      d.username || (d.name || "student").toLowerCase().replace(/\s+/g, "_"),
                 qualification: d.qualification || authProfile?.qualification || "",
-                phone: d.phone || "",
-                address: d.address || d.location || "",
-                about: d.about || "",
-                skills: Array.isArray(d.skills) ? d.skills : [],
-                photo: d.photo || null,
-                tenth: d.tenth || "",
-                twelfth: d.twelfth || "",
-                graduation: d.graduation || "",
-                certificates: d.certificates || [],
+                phone:         d.phone || "",
+                address:       d.address || d.location || "",
+                about:         d.about || "",
+                skills:        Array.isArray(d.skills) ? d.skills : [],
+                photo:         d.photo || null,
+                tenth:         d.tenth || "",
+                twelfth:       d.twelfth || "",
+                graduation:    d.graduation || "",
+                certificates:  d.certificates || [],
                 personalPosts: d.personalPosts || d.personal_posts || [],
-                resumes: d.resumes || [],
-                chats: d.chats || {},
-                linkedin: d.linkedin || "",
-                github: d.github || "",
-                website: d.website || "",
-                experience: d.experience || "",
-                cgpa: d.cgpa || "",
+                resumes:       d.resumes || [],
+                chats:         d.chats || {},
+                linkedin:      d.linkedin || "",
+                github:        d.github || "",
+                website:       d.website || "",
+                experience:    d.experience || "",
+                cgpa:          d.cgpa || "",
               });
             }
-          } catch (e) {
-            console.warn("Profile fetch failed:", e?.message);
+          } catch (profileErr) {
+            // FIX #7: Profile fetch failing is a WARNING, not a fatal error.
+            // We already seeded from AuthContext, so the user sees the dashboard.
+            console.warn("Profile fetch failed — using cached session data:", profileErr?.message);
           }
         }
 
-        // 2. Parallel fetch
-        const [indRes, coursesRes, vacRes, appsRes, jobsRes, msgsRes] =
-          await Promise.allSettled([
-            axios.get(`${BASE}/api/industries`, { timeout: 8000 }),
-            axios.get(`${BASE}/api/courses`, { timeout: 8000 }),
-            axios.get(`${BASE}/api/vacancies`, { timeout: 8000 }),
-            authUser?.id
-              ? axios.get(`${BASE}/api/applications/student/${authUser.id}`, { timeout: 8000 })
-              : Promise.resolve({ data: [] }),
-            axios.get(`${BASE}/api/all-jobs`, { timeout: 8000 }),
-            authUser?.id
-              ? axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 })
-              : Promise.resolve({ data: [] }),
-          ]);
+        // 2. Parallel data fetches — Promise.allSettled so one failure never blocks the rest
+        const [indRes, coursesRes, vacRes, appsRes, jobsRes] = await Promise.allSettled([
+          axios.get(`${BASE}/api/industries`,                                              { timeout: 8000 }),
+          axios.get(`${BASE}/api/courses`,                                                 { timeout: 8000 }),
+          axios.get(`${BASE}/api/vacancies`,                                               { timeout: 8000 }),
+          authUser?.id
+            ? axios.get(`${BASE}/api/applications/student/${authUser.id}`,                 { timeout: 8000 })
+            : Promise.resolve({ data: [] }),
+          axios.get(`${BASE}/api/all-jobs`,                                                { timeout: 8000 }),
+        ]);
 
         if (!mountedRef.current) return;
 
-        // industries
         setIndustriesSafe(
-          indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
-            ? indRes.value.data
-            : mockIndustries
+          indRes.status === "fulfilled" && Array.isArray(indRes.value?.data) && indRes.value.data.length
+            ? indRes.value.data : mockIndustries
         );
-
-        // courses
         setCoursesSafe(
-          coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data)
-            ? coursesRes.value.data
-            : mockCourses
+          coursesRes.status === "fulfilled" && Array.isArray(coursesRes.value?.data) && coursesRes.value.data.length
+            ? coursesRes.value.data : mockCourses
         );
 
-        // vacancies
+        const loadedInd = indRes.status === "fulfilled" && Array.isArray(indRes.value?.data)
+          ? indRes.value.data : mockIndustries;
+
         if (vacRes.status === "fulfilled" && Array.isArray(vacRes.value?.data)) {
-          setVacanciesSafe(vacRes.value.data);
+          setVacanciesSafe(vacRes.value.data.map(v => ({
+            id:        v.id,
+            ownerId:   v.owner_id || v.ownerId,
+            ownerName: v.owner_name || v.ownerName || loadedInd.find(i => i.id === v.owner_id)?.name || "Company",
+            ownerLogo: (v.owner_name || "CO").substring(0, 2).toUpperCase(),
+            type:      v.type || "Job Vacancy",
+            title:     v.title,
+            desc:      v.description || v.desc || "",
+            skills:    v.skills || "",
+            duration:  v.duration || "Full-Time",
+            offerings: v.offerings || "",
+            date:      v.created_at ? new Date(v.created_at).toLocaleDateString() : "Recent",
+            likes:     v.likes || 0,
+          })));
         } else {
           setVacanciesSafe(mockVacancies);
         }
 
-        // applications
         if (appsRes.status === "fulfilled" && Array.isArray(appsRes.value?.data)) {
-          setMyApplicationsSafe(appsRes.value.data);
+          setMyApplicationsSafe(appsRes.value.data.map(a => ({
+            id:          a.id,
+            postId:      a.vacancy_id,
+            role:        a.vacancies?.title || "Role",
+            company:     a.vacancies?.owner_name || "Company",
+            appliedOn:   new Date(a.created_at).toLocaleDateString(),
+            status:      a.status || "Pending",
+            coverLetter: a.cover_letter,
+          })));
         }
 
-        // jobs
         if (jobsRes.status === "fulfilled") {
-          const jobs = jobsRes.value?.data || [];
+          let raw = jobsRes.value?.data || [];
+          if (typeof raw === "string") { try { raw = JSON.parse(raw); } catch { raw = []; } }
+          if (!Array.isArray(raw)) raw = [];
+          const jobs = raw.map(j => ({
+            industry: j.industry || j.company || j.employer || "Company",
+            job:      j.job || j.title || j.position || "Job Opening",
+            desc:     j.desc || j.description || j.summary || "",
+            role:     j.role || j.role_type || "",
+            ug:       j.ug || j.education_ug || j.education || "",
+            pg:       j.pg || j.education_pg || "",
+            url:      j.url || j.link || j.apply_url || "#",
+            dept:     j.dept || j.department || j.category || "",
+            skills:   j.skills || j.required_skills || "",
+          }));
           setAllJobsSafe(jobs.length ? jobs : mockJobs);
         } else {
           setAllJobsSafe(mockJobs);
         }
 
-        // ✅ FIXED: MESSAGES LOGIC INSIDE TRY
-        if (
-          msgsRes.status === "fulfilled" &&
-          Array.isArray(msgsRes.value?.data) &&
-          authUser?.id
-        ) {
-          const msgs = {};
-
-          msgsRes.value.data.forEach(m => {
-            const partnerId =
-              m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
-
-            if (!msgs[partnerId]) msgs[partnerId] = [];
-
-            msgs[partnerId].push({
-              sender: m.sender_id === authUser.id ? "me" : "them",
-              message: m.text,
-              time: new Date(m.created_at).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            });
-          });
-
-          setChatMessagesSafe(msgs); // ✅ correct setter
-        }
-
       } catch (err) {
         console.error("Boot error:", err);
-
         if (!mountedRef.current) return;
-
+        // Fall back to mock data — dashboard is never completely blank
         setIndustriesSafe(mockIndustries);
         setCoursesSafe(mockCourses);
         setVacanciesSafe(mockVacancies);
         setAllJobsSafe(mockJobs);
-
       } finally {
         if (mountedRef.current) {
           setIsFeedLoadingSafe(false);
           setBootDoneSafe(true);
+          // FIX #8: We intentionally do NOT reset hasBootedRef here — it must
+          // stay true forever so userId changes never re-trigger the boot.
         }
       }
     };
 
-
-
-
     boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps   
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ← EMPTY DEPS: boot runs once on mount, never again.
 
   // ── AI skill match — stable key prevents unnecessary re-runs ─────────────
@@ -1012,44 +803,10 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages, activeChat]);
-
-  // ── Re-fetch messages when authUser becomes available (e.g. after refresh) ──
-  // Boot runs once on mount but authUser.id may be null at that time.
-  // This effect ensures messages are always loaded once the user is confirmed.
-  useEffect(() => {
-    if (!authUser?.id) return;
-    let cancelled = false;
-
-    const fetchMsgs = async () => {
-      try {
-        const res = await axios.get(`${BASE}/api/messages/${authUser.id}`, { timeout: 8000 });
-        if (cancelled || !mountedRef.current) return;
-        if (!Array.isArray(res.data)) return;
-
-        const msgs = {};
-        res.data.forEach(m => {
-          const partnerId = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
-          if (!msgs[partnerId]) msgs[partnerId] = [];
-          msgs[partnerId].push({
-            sender: m.sender_id === authUser.id ? "me" : "them",
-            message: m.text,
-            time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          });
-        });
-        setChatMessagesSafe(msgs);
-      } catch (_) {
-        // silently ignore — chat will be empty but app still works
-      }
-    };
-
-    fetchMsgs();
-    return () => { cancelled = true; };
-  }, [authUser?.id]);
+  }, [profile?.chats, activeChat]);
 
   // Close sidebar on tab change (mobile)
   useEffect(() => { setSidebarOpen(false); }, [activeTab]);
-
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   const pushNotify = useCallback((msg) => {
@@ -1068,7 +825,6 @@ export default function StudentDashboard() {
 
   const alreadyApplied = (postId) => myApplications.some(a => a.postId === postId);
 
-  // AFTER
   const sendMessage = async (toId, message) => {
     if (!authUser?.id) return;
     try {
@@ -1076,9 +832,12 @@ export default function StudentDashboard() {
         sender_id: authUser.id, receiver_id: toId, text: message,
       });
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      setChatMessages(prev => ({
+      setProfile(prev => ({
         ...prev,
-        [toId]: [...(prev[toId] || []), { sender: "me", message, time }],
+        chats: {
+          ...prev.chats,
+          [toId]: [...(prev.chats?.[toId] || []), { sender: prev.name, message, time }],
+        },
       }));
     } catch { pushNotify("Failed to send message."); }
   };
@@ -1088,8 +847,8 @@ export default function StudentDashboard() {
     if (!applyModal || !authUser?.id) return;
     try {
       const res = await axios.post(`${BASE}/api/applications`, {
-        vacancy_id: applyModal.id,
-        student_id: authUser.id,
+        vacancy_id:   applyModal.id,
+        student_id:   authUser.id,
         cover_letter: applyForm.coverLetter,
       });
       setMyApplications(prev => [...prev, {
@@ -1105,24 +864,8 @@ export default function StudentDashboard() {
   };
 
   const handleLogout = async () => {
-    setProfile(null);
-
-    const forceRedirect = setTimeout(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.replace("/");
-    }, 1000);
-
-    try {
-      if (signOut) await signOut();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      clearTimeout(forceRedirect);
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.replace("/");
-    }
+    try { await signOut(); } catch {}
+    navigate("/login");
   };
 
   const deletePost = (type, idx) => {
@@ -1146,21 +889,21 @@ export default function StudentDashboard() {
 
   const startPfEdit = () => {
     setPfForm({
-      name: profile.name || "",
-      phone: profile.phone || "",
-      address: profile.address || "",
-      about: profile.about || "",
+      name:          profile.name || "",
+      phone:         profile.phone || "",
+      address:       profile.address || "",
+      about:         profile.about || "",
       qualification: profile.qualification || "",
-      tenth: profile.tenth || "",
-      twelfth: profile.twelfth || "",
-      graduation: profile.graduation || "",
-      website: profile.website || "",
-      linkedin: profile.linkedin || "",
-      experience: profile.experience || "",
-      cgpa: profile.cgpa || "",
-      skills: [...(profile.skills || [])],
-      certificates: [...(profile.certificates || [])],
-      resumes: [...(profile.resumes || [])],
+      tenth:         profile.tenth || "",
+      twelfth:       profile.twelfth || "",
+      graduation:    profile.graduation || "",
+      website:       profile.website || "",
+      linkedin:      profile.linkedin || "",
+      experience:    profile.experience || "",
+      cgpa:          profile.cgpa || "",
+      skills:        [...(profile.skills || [])],
+      certificates:  [...(profile.certificates || [])],
+      resumes:       [...(profile.resumes || [])],
       personalPosts: [...(profile.personalPosts || [])],
     });
     setPfEditing(true);
@@ -1204,7 +947,7 @@ export default function StudentDashboard() {
     const file = e.target.files?.[0]; if (!file) return;
     const b64 = await toBase64(file);
     setCoverPreview(b64);
-    try { await axios.put(`${BASE}/api/profile/${profile.id}`, { coverPhoto: b64 }); } catch { }
+    try { await axios.put(`${BASE}/api/profile/${profile.id}`, { coverPhoto: b64 }); } catch {}
   };
 
   const handleCertUpload = async (e) => {
@@ -1247,26 +990,26 @@ export default function StudentDashboard() {
           </div>
           {editable
             ? <div style={{ display: "flex", gap: 5 }}>
-              {editMode && (
-                <button className="sb-save-btn" onClick={async () => {
-                  if (!authUser?.id || !profile) return;
-                  try {
-                    await axios.put(`${BASE}/api/profile/${authUser.id}`, {
-                      name: profile.name, qualification: profile.qualification,
-                      phone: profile.phone, address: profile.address,
-                      tenth: profile.tenth, twelfth: profile.twelfth,
-                      graduation: profile.graduation, skills: profile.skills,
-                      about: profile.about,
-                    });
-                    pushNotify("✓ Profile saved");
-                  } catch { pushNotify("Changes saved locally."); }
-                  setEditMode(false);
-                }}>✓ Save</button>
-              )}
-              <button className="sb-edit-btn" onClick={() => setEditMode(m => !m)}>
-                {editMode ? "✕" : "✎ Edit"}
-              </button>
-            </div>
+                {editMode && (
+                  <button className="sb-save-btn" onClick={async () => {
+                    if (!authUser?.id || !profile) return;
+                    try {
+                      await axios.put(`${BASE}/api/profile/${authUser.id}`, {
+                        name: profile.name, qualification: profile.qualification,
+                        phone: profile.phone, address: profile.address,
+                        tenth: profile.tenth, twelfth: profile.twelfth,
+                        graduation: profile.graduation, skills: profile.skills,
+                        about: profile.about,
+                      });
+                      pushNotify("✓ Profile saved");
+                    } catch { pushNotify("Changes saved locally."); }
+                    setEditMode(false);
+                  }}>✓ Save</button>
+                )}
+                <button className="sb-edit-btn" onClick={() => setEditMode(m => !m)}>
+                  {editMode ? "✕" : "✎ Edit"}
+                </button>
+              </div>
             : <button className="close-x" onClick={() => setActiveUserProfile(null)}>✕</button>
           }
         </div>
@@ -1421,13 +1164,13 @@ export default function StudentDashboard() {
         {!(user.certificates || []).length
           ? <div className="empty-feed">No certificates.</div>
           : <div className="posts-grid">
-            {(user.certificates || []).map((p, i) => (
-              <div key={i} className="post-cell">
-                {editable && <button className="post-del" onClick={() => deletePost("certificate", i)}>✕</button>}
-                {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
-              </div>
-            ))}
-          </div>
+              {(user.certificates || []).map((p, i) => (
+                <div key={i} className="post-cell">
+                  {editable && <button className="post-del" onClick={() => deletePost("certificate", i)}>✕</button>}
+                  {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
+                </div>
+              ))}
+            </div>
         }
       </div>
       <div className="feed-sec">
@@ -1435,63 +1178,25 @@ export default function StudentDashboard() {
         {!(user.personalPosts || []).length
           ? <div className="empty-feed">No posts yet.</div>
           : <div className="posts-grid">
-            {(user.personalPosts || []).map((p, i) => (
-              <div key={i} className="post-cell">
-                {editable && <button className="post-del" onClick={() => deletePost("personal", i)}>✕</button>}
-                {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
-              </div>
-            ))}
-          </div>
+              {(user.personalPosts || []).map((p, i) => (
+                <div key={i} className="post-cell">
+                  {editable && <button className="post-del" onClick={() => deletePost("personal", i)}>✕</button>}
+                  {p.type?.startsWith("video") ? <video src={p.url} /> : <img src={p.url} alt="" />}
+                </div>
+              ))}
+            </div>
         }
       </div>
-
-      {/* ── LOGOUT (Mobile Sidebar) ── */}
-      {editable && (
-        <div style={{
-          padding: "1.5rem 1.2rem",
-          marginTop: "auto",
-          borderTop: "1px solid var(--border)",
-          background: "var(--surface)",
-          position: "relative",
-          zIndex: 9999
-        }}>
-          <button
-            type="button"
-            style={{
-              width: "100%",
-              padding: "1rem",
-              background: "var(--rose)",
-              color: "white",
-              border: "none",
-              borderRadius: "12px",
-              fontWeight: "700",
-              cursor: "pointer",
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(244, 63, 94, 0.2)"
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleLogout();
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      )}
     </div>
   );
 
   // ── Profile Page ───────────────────────────────────────────────────────────
   const renderProfilePage = () => {
-    const data = pfEditing ? pfForm : profile;
-    const skills = data?.skills || [];
-    const certs = data?.certificates || [];
+    const data   = pfEditing ? pfForm : profile;
+    const skills  = data?.skills || [];
+    const certs   = data?.certificates || [];
     const resumes = data?.resumes || [];
-    const posts = data?.personalPosts || [];
+    const posts   = data?.personalPosts || [];
     const completion = calcCompletion(profile);
 
     const filteredSugg = SKILL_SUGGESTIONS
@@ -1499,29 +1204,29 @@ export default function StudentDashboard() {
       .slice(0, 8);
 
     const pfTabs = [
-      { id: "overview", icon: "👤", label: "Overview" },
-      { id: "skills", icon: "⚡", label: "Skills" },
-      { id: "academic", icon: "🎓", label: "Academic" },
+      { id: "overview",   icon: "👤", label: "Overview" },
+      { id: "skills",     icon: "⚡", label: "Skills" },
+      { id: "academic",   icon: "🎓", label: "Academic" },
       { id: "experience", icon: "💼", label: "Experience" },
-      { id: "media", icon: "🖼️", label: "Media" },
-      { id: "resume", icon: "📄", label: "Resume" },
+      { id: "media",      icon: "🖼️", label: "Media" },
+      { id: "resume",     icon: "📄", label: "Resume" },
     ];
 
     return (
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <input ref={coverRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleCoverUpload} />
+        <input ref={coverRef}  type="file" accept="image/*" style={{ display: "none" }} onChange={handleCoverUpload} />
         <input ref={avatarRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarUpload} />
-        <input ref={certRef} type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload} />
+        <input ref={certRef}   type="file" accept="image/*,application/pdf" multiple style={{ display: "none" }} onChange={handleCertUpload} />
         <input ref={resumeRef} type="file" accept="application/pdf,image/*" multiple style={{ display: "none" }} onChange={handleResumeUpload} />
-        <input ref={postRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handlePostUpload} />
+        <input ref={postRef}   type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handlePostUpload} />
 
         {/* Cover */}
         <div className="pf-cover" onClick={() => coverRef.current?.click()}>
           {(coverPreview || profile.coverPhoto)
             ? <img src={coverPreview || profile.coverPhoto} alt="cover" />
             : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#0ea5e9 100%)", position: "relative" }}>
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%), radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)" }} />
-            </div>
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 80%,rgba(255,255,255,.08) 0%,transparent 50%), radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%)" }} />
+              </div>
           }
           <div className="pf-cover-ov"><span className="pf-cover-lbl">📸 Change Cover</span></div>
         </div>
@@ -1545,9 +1250,9 @@ export default function StudentDashboard() {
             <div style={{ display: "flex", gap: ".45rem", paddingBottom: ".2rem", marginLeft: "auto" }}>
               {pfEditing
                 ? <>
-                  <button className="pf-edit-btn" onClick={() => setPfEditing(false)}>Cancel</button>
-                  <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
-                </>
+                    <button className="pf-edit-btn" onClick={() => setPfEditing(false)}>Cancel</button>
+                    <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
+                  </>
                 : <button className="pf-save-btn" onClick={startPfEdit}>✏️ Edit Profile</button>
               }
             </div>
@@ -1556,9 +1261,9 @@ export default function StudentDashboard() {
           <div className="pf-name">{profile.name || "Your Name"}</div>
           <div className="pf-qual">{profile.qualification || "Add your qualification"}</div>
           <div className="pf-meta">
-            {profile.email && <span>✉ {profile.email}</span>}
-            {profile.phone && <span>📞 {profile.phone}</span>}
-            {profile.address && <span>📍 {profile.address}</span>}
+            {profile.email    && <span>✉ {profile.email}</span>}
+            {profile.phone    && <span>📞 {profile.phone}</span>}
+            {profile.address  && <span>📍 {profile.address}</span>}
             {profile.linkedin && <a href={profile.linkedin} target="_blank" rel="noreferrer" style={{ color: "var(--indigo)", textDecoration: "none" }}>🔗 LinkedIn</a>}
           </div>
           {profile.about && <div className="pf-about">{profile.about}</div>}
@@ -1593,64 +1298,64 @@ export default function StudentDashboard() {
                 <div className="pf-card-title">✍️ About Me</div>
                 {pfEditing
                   ? <textarea className="pf-input" style={{ width: "100%" }} placeholder="Write about yourself, your interests, goals…"
-                    value={pfForm.about || ""} onChange={e => pffc("about", e.target.value)} />
+                      value={pfForm.about || ""} onChange={e => pffc("about", e.target.value)} />
                   : <p style={{ color: "var(--muted)", lineHeight: 1.7, fontSize: ".87rem" }}>
-                    {profile.about || <em style={{ color: "var(--subtle)" }}>No bio yet. Click Edit Profile to add one.</em>}
-                  </p>
+                      {profile.about || <em style={{ color: "var(--subtle)" }}>No bio yet. Click Edit Profile to add one.</em>}
+                    </p>
                 }
               </div>
               <div className="pf-card">
                 <div className="pf-card-title">📋 Personal Information</div>
                 {pfEditing
                   ? <div className="pf-grid">
-                    {[
-                      { k: "name", l: "Full Name", p: "Your full name" },
-                      { k: "phone", l: "Phone", p: "+91 XXXXXXXXXX" },
-                      { k: "address", l: "City / Location", p: "Your city" },
-                      { k: "cgpa", l: "CGPA / Percentage", p: "e.g. 8.5 or 85%" },
-                      { k: "experience", l: "Experience Summary", p: "e.g. 1 yr internship at XYZ" },
-                      { k: "website", l: "Portfolio / Website", p: "https://..." },
-                      { k: "linkedin", l: "LinkedIn URL", p: "linkedin.com/in/..." },
-                    ].map(f => (
-                      <div className="pf-field" key={f.k}>
-                        <label className="pf-label">{f.l}</label>
-                        <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
-                      </div>
-                    ))}
-                    <div className="pf-field">
-                      <label className="pf-label">Qualification</label>
-                      <select className="pf-input" value={pfForm.qualification || ""} onChange={e => pffc("qualification", e.target.value)}>
-                        <option value="">Select…</option>
-                        {["10th", "12th", "Diploma", "ITI", "BCA", "B.Tech", "B.Sc", "B.Com", "BA", "MCA", "M.Tech", "M.Sc", "MBA", "PhD", "Other"].map(q => (
-                          <option key={q} value={q}>{q}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="pf-field">
-                      <label className="pf-label">Email (read-only)</label>
-                      <input className="pf-input" value={profile.email || ""} readOnly style={{ background: "#f8fafc", cursor: "not-allowed", opacity: .7 }} />
-                    </div>
-                  </div>
-                  : <div className="pf-grid">
-                    {[
-                      ["Full Name", profile.name],
-                      ["Email", profile.email],
-                      ["Phone", profile.phone],
-                      ["Location", profile.address],
-                      ["Qualification", profile.qualification],
-                      ["CGPA / %", profile.cgpa],
-                      ["Experience", profile.experience],
-                      ["Portfolio", profile.website],
-                      ["LinkedIn", profile.linkedin],
-                    ].map(([l, v]) => (
-                      <div key={l}>
-                        <div className="pf-label" style={{ marginBottom: ".18rem" }}>{l}</div>
-                        <div style={{ fontWeight: 600, color: v ? "var(--navy)" : "var(--subtle)", fontStyle: v ? "normal" : "italic", fontSize: ".85rem", wordBreak: "break-all" }}>
-                          {v || "Not provided"}
+                      {[
+                        { k: "name",       l: "Full Name",          p: "Your full name" },
+                        { k: "phone",      l: "Phone",              p: "+91 XXXXXXXXXX" },
+                        { k: "address",    l: "City / Location",    p: "Your city" },
+                        { k: "cgpa",       l: "CGPA / Percentage",  p: "e.g. 8.5 or 85%" },
+                        { k: "experience", l: "Experience Summary", p: "e.g. 1 yr internship at XYZ" },
+                        { k: "website",    l: "Portfolio / Website",p: "https://..." },
+                        { k: "linkedin",   l: "LinkedIn URL",       p: "linkedin.com/in/..." },
+                      ].map(f => (
+                        <div className="pf-field" key={f.k}>
+                          <label className="pf-label">{f.l}</label>
+                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
                         </div>
+                      ))}
+                      <div className="pf-field">
+                        <label className="pf-label">Qualification</label>
+                        <select className="pf-input" value={pfForm.qualification || ""} onChange={e => pffc("qualification", e.target.value)}>
+                          <option value="">Select…</option>
+                          {["10th","12th","Diploma","ITI","BCA","B.Tech","B.Sc","B.Com","BA","MCA","M.Tech","M.Sc","MBA","PhD","Other"].map(q => (
+                            <option key={q} value={q}>{q}</option>
+                          ))}
+                        </select>
                       </div>
-                    ))}
-                  </div>
+                      <div className="pf-field">
+                        <label className="pf-label">Email (read-only)</label>
+                        <input className="pf-input" value={profile.email || ""} readOnly style={{ background: "#f8fafc", cursor: "not-allowed", opacity: .7 }} />
+                      </div>
+                    </div>
+                  : <div className="pf-grid">
+                      {[
+                        ["Full Name",    profile.name],
+                        ["Email",        profile.email],
+                        ["Phone",        profile.phone],
+                        ["Location",     profile.address],
+                        ["Qualification",profile.qualification],
+                        ["CGPA / %",     profile.cgpa],
+                        ["Experience",   profile.experience],
+                        ["Portfolio",    profile.website],
+                        ["LinkedIn",     profile.linkedin],
+                      ].map(([l, v]) => (
+                        <div key={l}>
+                          <div className="pf-label" style={{ marginBottom: ".18rem" }}>{l}</div>
+                          <div style={{ fontWeight: 600, color: v ? "var(--navy)" : "var(--subtle)", fontStyle: v ? "normal" : "italic", fontSize: ".85rem", wordBreak: "break-all" }}>
+                            {v || "Not provided"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                 }
                 {pfEditing && (
                   <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
@@ -1720,25 +1425,25 @@ export default function StudentDashboard() {
                 <div className="pf-card-title">🎓 Academic Background</div>
                 {pfEditing
                   ? <div className="pf-grid-3">
-                    {[
-                      { k: "tenth", l: "10th — School / Board / %", p: "e.g. CBSE – 92%" },
-                      { k: "twelfth", l: "12th — School / Board / %", p: "e.g. BSEB – 85%" },
-                      { k: "graduation", l: "College / Degree / CGPA", p: "e.g. MIT Patna – 8.4 CGPA" },
-                    ].map(f => (
-                      <div className="pf-field" key={f.k}>
-                        <label className="pf-label">{f.l}</label>
-                        <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
-                      </div>
-                    ))}
-                  </div>
+                      {[
+                        { k: "tenth",      l: "10th — School / Board / %", p: "e.g. CBSE – 92%" },
+                        { k: "twelfth",    l: "12th — School / Board / %", p: "e.g. BSEB – 85%" },
+                        { k: "graduation", l: "College / Degree / CGPA",   p: "e.g. MIT Patna – 8.4 CGPA" },
+                      ].map(f => (
+                        <div className="pf-field" key={f.k}>
+                          <label className="pf-label">{f.l}</label>
+                          <input className="pf-input" placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                        </div>
+                      ))}
+                    </div>
                   : <div className="pf-grid-3">
-                    {[["10th Standard", profile.tenth], ["12th Standard", profile.twelfth], ["Graduation", profile.graduation]].map(([l, v]) => (
-                      <div className="pf-acad-card" key={l}>
-                        <div className="pf-acad-level">{l}</div>
-                        <div className="pf-acad-name">{v || <em style={{ color: "var(--subtle)", fontStyle: "italic" }}>Not added</em>}</div>
-                      </div>
-                    ))}
-                  </div>
+                      {[["10th Standard", profile.tenth], ["12th Standard", profile.twelfth], ["Graduation", profile.graduation]].map(([l, v]) => (
+                        <div className="pf-acad-card" key={l}>
+                          <div className="pf-acad-level">{l}</div>
+                          <div className="pf-acad-name">{v || <em style={{ color: "var(--subtle)", fontStyle: "italic" }}>Not added</em>}</div>
+                        </div>
+                      ))}
+                    </div>
                 }
                 {pfEditing && (
                   <div style={{ marginTop: "1.1rem", display: "flex", justifyContent: "flex-end" }}>
@@ -1757,31 +1462,31 @@ export default function StudentDashboard() {
                 <div className="pf-card-title">💼 Experience & Projects</div>
                 {pfEditing
                   ? <div style={{ display: "flex", flexDirection: "column", gap: ".85rem" }}>
-                    {[
-                      { k: "experience", l: "Work / Internship Experience", p: "e.g. 6-month intern at TechCorp as React Developer." },
-                      { k: "projects", l: "Projects", p: "Describe your key projects, tech stack, outcomes…" },
-                      { k: "achievements", l: "Achievements / Awards", p: "Hackathon wins, certifications, recognitions…" },
-                    ].map(f => (
-                      <div className="pf-field" key={f.k}>
-                        <label className="pf-label">{f.l}</label>
-                        <textarea className="pf-input" rows={3} placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                      {[
+                        { k: "experience",   l: "Work / Internship Experience", p: "e.g. 6-month intern at TechCorp as React Developer." },
+                        { k: "projects",     l: "Projects",                     p: "Describe your key projects, tech stack, outcomes…" },
+                        { k: "achievements", l: "Achievements / Awards",        p: "Hackathon wins, certifications, recognitions…" },
+                      ].map(f => (
+                        <div className="pf-field" key={f.k}>
+                          <label className="pf-label">{f.l}</label>
+                          <textarea className="pf-input" rows={3} placeholder={f.p} value={pfForm[f.k] || ""} onChange={e => pffc(f.k, e.target.value)} />
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
                       </div>
-                    ))}
-                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <button className="pf-save-btn" onClick={savePfForm} disabled={pfSaving}>{pfSaving ? "Saving…" : "💾 Save"}</button>
                     </div>
-                  </div>
                   : <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
-                    {[["Work / Internship Experience", profile.experience], ["Projects", profile.projects], ["Achievements / Awards", profile.achievements]].map(([l, v]) => (
-                      <div key={l}>
-                        <div className="pf-label" style={{ marginBottom: ".35rem" }}>{l}</div>
-                        <p style={{ fontSize: ".85rem", color: v ? "var(--slate)" : "var(--subtle)", lineHeight: 1.65, fontStyle: v ? "normal" : "italic" }}>
-                          {v || `No ${l.toLowerCase()} added yet.`}
-                        </p>
-                      </div>
-                    ))}
-                    <button className="pf-edit-btn" onClick={startPfEdit}>✏️ Add Experience</button>
-                  </div>
+                      {[["Work / Internship Experience", profile.experience], ["Projects", profile.projects], ["Achievements / Awards", profile.achievements]].map(([l, v]) => (
+                        <div key={l}>
+                          <div className="pf-label" style={{ marginBottom: ".35rem" }}>{l}</div>
+                          <p style={{ fontSize: ".85rem", color: v ? "var(--slate)" : "var(--subtle)", lineHeight: 1.65, fontStyle: v ? "normal" : "italic" }}>
+                            {v || `No ${l.toLowerCase()} added yet.`}
+                          </p>
+                        </div>
+                      ))}
+                      <button className="pf-edit-btn" onClick={startPfEdit}>✏️ Add Experience</button>
+                    </div>
                 }
               </div>
             </motion.div>
@@ -1801,9 +1506,9 @@ export default function StudentDashboard() {
                       {c.type?.startsWith("image/")
                         ? <img src={c.url} alt="" />
                         : <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(79,70,229,.05)" }}>
-                          <span style={{ fontSize: "1.6rem" }}>📑</span>
-                          <span style={{ fontSize: ".58rem", fontWeight: 700, color: "var(--muted)" }}>PDF</span>
-                        </div>
+                            <span style={{ fontSize: "1.6rem" }}>📑</span>
+                            <span style={{ fontSize: ".58rem", fontWeight: 700, color: "var(--muted)" }}>PDF</span>
+                          </div>
                       }
                       {pfEditing && (
                         <button className="pf-upload-thumb-del" onClick={e => { e.stopPropagation(); pffc("certificates", pfForm.certificates.filter((_, j) => j !== i)); }}>✕</button>
@@ -1853,14 +1558,14 @@ export default function StudentDashboard() {
                 </div>
                 {resumes.length === 0
                   ? <div style={{ textAlign: "center", padding: "1.8rem 1rem", color: "var(--subtle)" }}>
-                    <div style={{ fontSize: "2rem", marginBottom: ".45rem" }}>📄</div>
-                    <div style={{ fontWeight: 700, color: "var(--muted)" }}>No Resumes Yet</div>
-                    <div style={{ fontSize: ".76rem", marginTop: ".28rem" }}>Upload a resume to attach it to applications.</div>
-                    {pfEditing
-                      ? <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => resumeRef.current?.click()}>+ Upload Resume</button>
-                      : <button className="pf-edit-btn" style={{ marginTop: ".9rem" }} onClick={startPfEdit}>Go to Edit Mode</button>
-                    }
-                  </div>
+                      <div style={{ fontSize: "2rem", marginBottom: ".45rem" }}>📄</div>
+                      <div style={{ fontWeight: 700, color: "var(--muted)" }}>No Resumes Yet</div>
+                      <div style={{ fontSize: ".76rem", marginTop: ".28rem" }}>Upload a resume to attach it to applications.</div>
+                      {pfEditing
+                        ? <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => resumeRef.current?.click()}>+ Upload Resume</button>
+                        : <button className="pf-edit-btn" style={{ marginTop: ".9rem" }} onClick={startPfEdit}>Go to Edit Mode</button>
+                      }
+                    </div>
                   : resumes.map((r, i) => (
                     <div className="pf-resume-item" key={i}>
                       <div className="pf-resume-icon">{r.type === "application/pdf" ? "📑" : "🖼️"}</div>
@@ -1912,28 +1617,27 @@ export default function StudentDashboard() {
       <div style={{ fontFamily: "Syne,sans-serif", fontSize: "1.8rem", fontWeight: 800, background: "var(--grad)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Campus2Career</div>
       {bootDone
         ? <>
-          <div style={{ color: "var(--rose)", fontSize: ".88rem", fontWeight: 700 }}>
-            {bootError === "auth" ? "Session expired — please log in again" : "Something went wrong. Please try again."}
-          </div>
-          <button style={{ marginTop: ".45rem", padding: ".55rem 1.3rem", borderRadius: "99px", border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: ".83rem" }}
-            onClick={() => navigate("/login")}>Go to Login</button>
-        </>
+            <div style={{ color: "var(--rose)", fontSize: ".88rem", fontWeight: 700 }}>
+              {bootError === "auth" ? "Session expired — please log in again" : "Something went wrong. Please try again."}
+            </div>
+            <button style={{ marginTop: ".45rem", padding: ".55rem 1.3rem", borderRadius: "99px", border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: ".83rem" }}
+              onClick={() => navigate("/login")}>Go to Login</button>
+          </>
         : <>
-          <div className="spinner" />
-          <div style={{ color: "var(--muted)", fontSize: ".82rem" }}>Loading your dashboard…</div>
-        </>
+            <div className="spinner" />
+            <div style={{ color: "var(--muted)", fontSize: ".82rem" }}>Loading your dashboard…</div>
+          </>
       }
     </div>
   );
 
   // ── Main render ────────────────────────────────────────────────────────────
   const NAV_TABS = [
-    { id: "feed", icon: "🏠", label: "Feed" },
-    { id: "jobs", icon: "💼", label: "Jobs" },
-    { id: "courses", icon: "📚", label: "Courses" },
+    { id: "feed",         icon: "🏠", label: "Feed" },
+    { id: "jobs",         icon: "💼", label: "Jobs" },
+    { id: "courses",      icon: "📚", label: "Courses" },
     { id: "applications", icon: "📋", label: "My Apps" },
-    { id: "messages", icon: "💬", label: "Messages" },
-    { id: "profile", icon: "👤", label: "Profile" },
+    { id: "profile",      icon: "👤", label: "Profile" },
   ];
 
   return (
@@ -1971,9 +1675,7 @@ export default function StudentDashboard() {
           <div className="nav-av" title={profile.name}>
             {profile.photo ? <img src={profile.photo} alt="" /> : (profile.name || "S")[0].toUpperCase()}
           </div>
-          <button className="signout-btn" onClick={handleLogout}>
-            Sign Out
-          </button>
+          <button className="signout-btn" onClick={handleLogout}>Sign Out</button>
         </div>
       </nav>
 
@@ -2027,7 +1729,7 @@ export default function StudentDashboard() {
                         {ind.tagline && <div className="ind-tagline">"{ind.tagline}"</div>}
                         <div style={{ marginTop: ".75rem" }}>
                           <button className="apply-btn" style={{ padding: ".38rem .85rem", fontSize: ".7rem", width: "auto" }}
-                            onClick={e => { e.stopPropagation(); setActiveChat(ind.id); setActiveTab("messages"); }}>💬 Message</button>
+                            onClick={e => { e.stopPropagation(); setActiveChat(ind.id); }}>💬 Message</button>
                         </div>
                       </motion.div>
                     ))}
@@ -2044,45 +1746,45 @@ export default function StudentDashboard() {
                   {isFeedLoading
                     ? <div style={{ textAlign: "center", padding: "2.5rem", color: "var(--subtle)" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
                     : <div className="feed-grid">
-                      {vacancies.map((v, i) => (
-                        <motion.div key={v.id || i} className="vac-card"
-                          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                          <div className="vac-body">
-                            <div className="vac-top">
-                              <div style={{ display: "flex", alignItems: "center", gap: ".65rem" }}>
-                                <div className="vac-logo">{v.ownerLogo || "CO"}</div>
-                                <div>
-                                  <div className="vac-owner-name">{v.ownerName}</div>
-                                  <div className="vac-date">{v.date}</div>
+                        {vacancies.map((v, i) => (
+                          <motion.div key={v.id || i} className="vac-card"
+                            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                            <div className="vac-body">
+                              <div className="vac-top">
+                                <div style={{ display: "flex", alignItems: "center", gap: ".65rem" }}>
+                                  <div className="vac-logo">{v.ownerLogo || "CO"}</div>
+                                  <div>
+                                    <div className="vac-owner-name">{v.ownerName}</div>
+                                    <div className="vac-date">{v.date}</div>
+                                  </div>
                                 </div>
+                                {typeChip(v.type)}
                               </div>
-                              {typeChip(v.type)}
+                              <div className="vac-title">{v.title}</div>
+                              <div className="vac-desc">{v.desc}</div>
+                              <div className="skill-pills">
+                                {(v.skills || "").split(",").filter(Boolean).slice(0, 5).map((sk, j) => (
+                                  <span key={j} className="spill">{sk.trim()}</span>
+                                ))}
+                              </div>
                             </div>
-                            <div className="vac-title">{v.title}</div>
-                            <div className="vac-desc">{v.desc}</div>
-                            <div className="skill-pills">
-                              {(v.skills || "").split(",").filter(Boolean).slice(0, 5).map((sk, j) => (
-                                <span key={j} className="spill">{sk.trim()}</span>
-                              ))}
+                            <div className="vac-foot">
+                              <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
+                                {v.duration  && <div className="vac-meta-item">⏱ {v.duration}</div>}
+                                {v.offerings && <div className="vac-meta-item">💰 {v.offerings.slice(0, 26)}{v.offerings.length > 26 ? "…" : ""}</div>}
+                              </div>
+                              <div style={{ display: "flex", gap: ".45rem" }}>
+                                <button style={{ padding: ".38rem .8rem", borderRadius: 99, background: "rgba(79,70,229,.08)", border: "1.5px solid var(--border2)", color: "var(--indigo)", fontSize: ".7rem", fontWeight: 700, cursor: "pointer" }}
+                                  onClick={() => setPostDetailModal(v)}>Details</button>
+                                {alreadyApplied(v.id)
+                                  ? <span className="applied-tag">✓ Applied</span>
+                                  : <button className="apply-btn" onClick={() => setApplyModal(v)}>Apply Now</button>
+                                }
+                              </div>
                             </div>
-                          </div>
-                          <div className="vac-foot">
-                            <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
-                              {v.duration && <div className="vac-meta-item">⏱ {v.duration}</div>}
-                              {v.offerings && <div className="vac-meta-item">💰 {v.offerings.slice(0, 26)}{v.offerings.length > 26 ? "…" : ""}</div>}
-                            </div>
-                            <div style={{ display: "flex", gap: ".45rem" }}>
-                              <button style={{ padding: ".38rem .8rem", borderRadius: 99, background: "rgba(79,70,229,.08)", border: "1.5px solid var(--border2)", color: "var(--indigo)", fontSize: ".7rem", fontWeight: 700, cursor: "pointer" }}
-                                onClick={() => setPostDetailModal(v)}>Details</button>
-                              {alreadyApplied(v.id)
-                                ? <span className="applied-tag">✓ Applied</span>
-                                : <button className="apply-btn" onClick={() => setApplyModal(v)}>Apply Now</button>
-                              }
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
+                          </motion.div>
+                        ))}
+                      </div>
                   }
                 </div>
               </motion.div>
@@ -2103,7 +1805,7 @@ export default function StudentDashboard() {
                         try {
                           const res = await axios.post(`${BASE}/api/analyze-skills`, { skills: profile.skills.join(", ") }, { timeout: 12000 });
                           setMatchedJobs(Array.isArray(res.data) ? res.data : []);
-                        } catch { }
+                        } catch {}
                         setIsMatchLoading(false);
                       }}>↺ Refresh</button>
                     )}
@@ -2112,47 +1814,47 @@ export default function StudentDashboard() {
                     ? <div style={{ textAlign: "center", padding: "2rem", color: "var(--subtle)" }}><div className="spinner" style={{ margin: "0 auto" }} /></div>
                     : !profile.skills?.length
                       ? <div className="empty-block">
-                        <div className="empty-icon">⚡</div>
-                        <div className="empty-title">No skills added yet</div>
-                        <div className="empty-text">Add skills in your profile to get AI-powered job matches.</div>
-                        <button className="pf-save-btn" style={{ marginTop: ".9rem" }}
-                          onClick={() => { setActiveTab("profile"); setTimeout(() => setPfTab("skills"), 100); }}>Add Skills →</button>
-                      </div>
+                          <div className="empty-icon">⚡</div>
+                          <div className="empty-title">No skills added yet</div>
+                          <div className="empty-text">Add skills in your profile to get AI-powered job matches.</div>
+                          <button className="pf-save-btn" style={{ marginTop: ".9rem" }}
+                            onClick={() => { setActiveTab("profile"); setTimeout(() => setPfTab("skills"), 100); }}>Add Skills →</button>
+                        </div>
                       : matchedJobs.length === 0
                         ? <div className="empty-block"><div className="empty-icon">🔍</div><div className="empty-title">No matches yet</div><div className="empty-text">Click Refresh to run the AI analysis.</div></div>
                         : <div className="match-grid">
-                          {matchedJobs.map((m, i) => (
-                            <motion.div key={i} className="match-card"
-                              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
-                              <div className="match-conf">{m.match_confidence ?? m.accuracy ?? 0}%</div>
-                              <div className="match-label">Match Confidence</div>
-                              <div className="match-bar"><div className="match-fill" style={{ width: `${m.match_confidence ?? m.accuracy ?? 0}%` }} /></div>
-                              <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: ".92rem", color: "var(--navy)", marginBottom: ".28rem" }}>{m.job || m.matched_job}</div>
-                              {m.industry && <div style={{ fontSize: ".7rem", color: "var(--muted)", fontWeight: 600, marginBottom: ".65rem" }}>📍 {m.industry}</div>}
-                              {m.missing_skills?.length > 0 && (
-                                <div style={{ marginBottom: ".65rem" }}>
-                                  <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--rose)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Skills to Learn</div>
-                                  <div>{m.missing_skills.map((s, j) => <span key={j} className="miss-chip">{s}</span>)}</div>
-                                </div>
-                              )}
-                              {m.courses?.length > 0 && (
-                                <div>
-                                  <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--emerald)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Recommended Courses</div>
-                                  {m.courses.map((c, j) => (
-                                    <a key={j} href={c.link || c.url || "#"} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
-                                      <div className="course-rec">
-                                        <span style={{ fontSize: ".95rem" }}>📚</span>
-                                        <div className="course-rec-title">{c.title}</div>
-                                        <span style={{ fontSize: ".63rem", color: "var(--indigo)", fontWeight: 700, flexShrink: 0 }}>→</span>
-                                      </div>
-                                    </a>
-                                  ))}
-                                </div>
-                              )}
-                              {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="apply-btn" style={{ width: "100%", marginTop: ".65rem" }}>View Job →</button></a>}
-                            </motion.div>
-                          ))}
-                        </div>
+                            {matchedJobs.map((m, i) => (
+                              <motion.div key={i} className="match-card"
+                                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}>
+                                <div className="match-conf">{m.match_confidence ?? m.accuracy ?? 0}%</div>
+                                <div className="match-label">Match Confidence</div>
+                                <div className="match-bar"><div className="match-fill" style={{ width: `${m.match_confidence ?? m.accuracy ?? 0}%` }} /></div>
+                                <div style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: ".92rem", color: "var(--navy)", marginBottom: ".28rem" }}>{m.job || m.matched_job}</div>
+                                {m.industry && <div style={{ fontSize: ".7rem", color: "var(--muted)", fontWeight: 600, marginBottom: ".65rem" }}>📍 {m.industry}</div>}
+                                {m.missing_skills?.length > 0 && (
+                                  <div style={{ marginBottom: ".65rem" }}>
+                                    <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--rose)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Skills to Learn</div>
+                                    <div>{m.missing_skills.map((s, j) => <span key={j} className="miss-chip">{s}</span>)}</div>
+                                  </div>
+                                )}
+                                {m.courses?.length > 0 && (
+                                  <div>
+                                    <div style={{ fontSize: ".63rem", fontWeight: 800, textTransform: "uppercase", color: "var(--emerald)", letterSpacing: ".06em", marginBottom: ".3rem" }}>Recommended Courses</div>
+                                    {m.courses.map((c, j) => (
+                                      <a key={j} href={c.link || c.url || "#"} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+                                        <div className="course-rec">
+                                          <span style={{ fontSize: ".95rem" }}>📚</span>
+                                          <div className="course-rec-title">{c.title}</div>
+                                          <span style={{ fontSize: ".63rem", color: "var(--indigo)", fontWeight: 700, flexShrink: 0 }}>→</span>
+                                        </div>
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                                {m.url && <a href={m.url} target="_blank" rel="noreferrer"><button className="apply-btn" style={{ width: "100%", marginTop: ".65rem" }}>View Job →</button></a>}
+                              </motion.div>
+                            ))}
+                          </div>
                   }
                 </div>
 
@@ -2179,7 +1881,7 @@ export default function StudentDashboard() {
                           <div className="job-tags">
                             {j.dept && <span className="jtag" style={{ background: "#e0f2fe", color: "#0369a1", borderColor: "#bae6fd" }}>{j.dept}</span>}
                             {j.role && <span className="jtag" style={{ background: "#ede9fe", color: "#5b21b6", borderColor: "#ddd6fe" }}>{j.role}</span>}
-                            {j.ug && <span className="jtag" style={{ background: "#dcfce7", color: "#166534", borderColor: "#bbf7d0" }}>{j.ug}</span>}
+                            {j.ug   && <span className="jtag" style={{ background: "#dcfce7", color: "#166534", borderColor: "#bbf7d0" }}>{j.ug}</span>}
                           </div>
                           <div className="skill-pills" style={{ marginBottom: ".65rem" }}>
                             {(j.skills || "").split(",").filter(Boolean).slice(0, 4).map((sk, k) => (
@@ -2216,9 +1918,9 @@ export default function StudentDashboard() {
                       <div className="course-body">
                         <div>
                           <div className="course-meta">
-                            {c.duration && <span className="cmeta">⏱ {c.duration}</span>}
-                            {c.rating && <span className="cmeta">⭐ {c.rating}</span>}
-                            {c.students && <span className="cmeta">👥 {c.students}</span>}
+                            {c.duration  && <span className="cmeta">⏱ {c.duration}</span>}
+                            {c.rating    && <span className="cmeta">⭐ {c.rating}</span>}
+                            {c.students  && <span className="cmeta">👥 {c.students}</span>}
                           </div>
                           {c.level && <div style={{ marginBottom: ".7rem" }}><span className={`level-pill level-${c.level}`}>{c.level}</span></div>}
                           {(c.skills || []).length > 0 && (
@@ -2243,147 +1945,33 @@ export default function StudentDashboard() {
                 </div>
                 {myApplications.length === 0
                   ? <div className="empty-block">
-                    <div className="empty-icon">📋</div>
-                    <div className="empty-title">No applications yet</div>
-                    <div className="empty-text">Browse the feed and apply to internships and job vacancies.</div>
-                    <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => setActiveTab("feed")}>Browse Openings →</button>
-                  </div>
+                      <div className="empty-icon">📋</div>
+                      <div className="empty-title">No applications yet</div>
+                      <div className="empty-text">Browse the feed and apply to internships and job vacancies.</div>
+                      <button className="pf-save-btn" style={{ marginTop: ".9rem" }} onClick={() => setActiveTab("feed")}>Browse Openings →</button>
+                    </div>
                   : <div className="app-list">
-                    {myApplications.map((a, i) => (
-                      <motion.div key={a.id || i} className="app-card"
-                        initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: ".4rem" }}>
-                          <div>
-                            <div className="app-role">{a.role}</div>
-                            <div className="app-co">🏢 {a.company}</div>
+                      {myApplications.map((a, i) => (
+                        <motion.div key={a.id || i} className="app-card"
+                          initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: ".4rem" }}>
+                            <div>
+                              <div className="app-role">{a.role}</div>
+                              <div className="app-co">🏢 {a.company}</div>
+                            </div>
+                            <span className={`status-pill sp-${a.status}`}>{a.status}</span>
                           </div>
-                          <span className={`status-pill sp-${a.status}`}>{a.status}</span>
-                        </div>
-                        <div style={{ fontSize: ".76rem", color: "var(--muted)", marginTop: ".55rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                          <span>📅 Applied: {a.appliedOn}</span>
-                          {a.coverLetter && <span>📝 Cover letter attached</span>}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+                          <div style={{ fontSize: ".76rem", color: "var(--muted)", marginTop: ".55rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                            <span>📅 Applied: {a.appliedOn}</span>
+                            {a.coverLetter && <span>📝 Cover letter attached</span>}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                 }
               </motion.div>
             )}
-            {/* ══ MESSAGES ══ */}
-            {activeTab === "messages" && (
-              <motion.div key="messages" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="sec-head" style={{ marginBottom: "1.1rem" }}>
-                  <div>
-                    <span className="sec-title">Messages</span>
-                    <span className="sec-sub">· Chat with partner industries</span>
-                  </div>
-                </div>
-                <div className="msg-layout">
-                  {/* Conversation list */}
-                  <div className="conv-list">
-                    <div className="conv-list-head">💬 Conversations</div>
-                    <div className="conv-list-body">
-                      {industries.length === 0 ? (
-                        <div style={{ padding: "1.5rem 1rem", textAlign: "center", color: "var(--subtle)", fontSize: ".78rem" }}>
-                          No industries loaded yet.
-                        </div>
-                      ) : (
-                        industries.map(ind => {
-                          const msgs = chatMessages[ind.id] || [];
-                          const lastMsg = msgs[msgs.length - 1];
-                          return (
-                            <div
-                              key={ind.id}
-                              className={`conv-row ${activeChat === ind.id ? "active" : ""}`}
-                              onClick={() => setActiveChat(ind.id)}
-                            >
-                              <div className="conv-av2">
-                                {(ind.logo || (ind.name || "CO").substring(0, 2)).toUpperCase()}
-                              </div>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div className="conv-name2">{ind.name}</div>
-                                <div className="conv-preview2">
-                                  {lastMsg ? lastMsg.message : "Start a conversation…"}
-                                </div>
-                              </div>
-                              {msgs.length > 0 && (
-                                <div style={{ width: 7, height: 7, background: "var(--indigo)", borderRadius: "50%", flexShrink: 0 }} />
-                              )}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
 
-                  {/* Chat area */}
-                  <div className="chat-area2">
-                    {!activeChat ? (
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--subtle)", gap: ".5rem" }}>
-                        <span style={{ fontSize: "2rem" }}>💬</span>
-                        <div style={{ fontWeight: 700, color: "var(--muted)" }}>Select a company to chat</div>
-                        <div style={{ fontSize: ".76rem" }}>Choose a partner industry from the left panel.</div>
-                      </div>
-                    ) : (() => {
-                      const ind = industries.find(i => i.id === activeChat);
-                      const msgs = chatMessages[activeChat] || [];
-                      return (
-                        <>
-                          <div className="chat-head2">
-                            <div className="conv-av2">{(ind?.logo || "CO").substring(0, 2).toUpperCase()}</div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 800, fontSize: ".88rem", color: "var(--navy)", fontFamily: "Syne,sans-serif" }}>{ind?.name || "Company"}</div>
-                              <div style={{ fontSize: ".67rem", color: "var(--subtle)", display: "flex", alignItems: "center", gap: ".3rem" }}>
-                                <span style={{ width: 6, height: 6, background: "#34d399", borderRadius: "50%", display: "inline-block" }} />
-                                Active
-                              </div>
-                            </div>
-                            <div style={{ fontSize: ".7rem", color: "var(--muted)", fontWeight: 600 }}>{ind?.domain}</div>
-                          </div>
-
-                          <div className="chat-body2">
-                            {msgs.length === 0 ? (
-                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "var(--subtle)", gap: ".4rem", marginTop: "2rem" }}>
-                                <span style={{ fontSize: "1.5rem" }}>👋</span>
-                                <div style={{ fontSize: ".8rem" }}>No messages yet. Say hello!</div>
-                              </div>
-                            ) : (
-                              msgs.map((msg, i) => (
-                                <div key={i} className={`bubble ${msg.sender === "me" ? "sent" : "recv"}`}>
-                                  <div>{msg.message}</div>
-                                  <div className="bubble-time">{msg.time}</div>
-                                </div>
-                              ))
-                            )}
-                            <div ref={chatEndRef} />
-                          </div>
-
-                          <div className="chat-foot2">
-                            <input
-                              ref={chatInputRef}
-                              className="chat-inp2"
-                              placeholder="Type a message…"
-                              onKeyDown={e => {
-                                if (e.key === "Enter" && e.target.value.trim()) {
-                                  sendMessage(activeChat, e.target.value.trim());
-                                  e.target.value = "";
-                                }
-                              }}
-                            />
-                            <button className="send-btn" onClick={() => {
-                              const inp = chatInputRef.current;
-                              if (!inp?.value?.trim()) return;
-                              sendMessage(activeChat, inp.value.trim());
-                              inp.value = "";
-                            }}>➤</button>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </motion.div>
-            )}
             {/* ══ PROFILE PAGE ══ */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -2407,7 +1995,50 @@ export default function StudentDashboard() {
         </AnimatePresence>
       </div>
 
-
+      {/* ── DM PANEL ── */}
+      <AnimatePresence>
+        {activeChat && (
+          <motion.div className="dm-panel"
+            initial={{ x: 360, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 360, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 280, damping: 28 }}>
+            <div className="dm-head">
+              <div>
+                <div className="dm-recipient">{industries.find(i => i.id === activeChat)?.name ?? "Company"}</div>
+                <div className="dm-status"><span className="online-dot" />Active</div>
+              </div>
+              <button className="close-x" onClick={() => setActiveChat(null)}>✕</button>
+            </div>
+            <div className="dm-body">
+              {!(profile.chats?.[activeChat] || []).length
+                ? <div className="dm-empty"><span style={{ fontSize: "1.7rem" }}>💬</span><span>No messages yet. Say hello!</span></div>
+                : (profile.chats?.[activeChat] || []).map((msg, i) => (
+                  <div key={i} className={`bubble ${msg.sender === profile.name ? "sent" : "recv"}`}>
+                    <div>{msg.message}</div>
+                    <div className="bubble-time">{msg.time}</div>
+                  </div>
+                ))
+              }
+              <div ref={chatEndRef} />
+            </div>
+            <div className="dm-foot">
+              {/* FIX #10: null-safe chatInputRef.current check */}
+              <input ref={chatInputRef} className="dm-input" placeholder="Type a message…"
+                onKeyDown={e => {
+                  if (e.key === "Enter" && e.target.value.trim()) {
+                    sendMessage(activeChat, e.target.value.trim());
+                    e.target.value = "";
+                  }
+                }} />
+              <button className="send-btn" onClick={() => {
+                const inp = chatInputRef.current;
+                if (!inp?.value?.trim()) return;
+                sendMessage(activeChat, inp.value.trim());
+                inp.value = "";
+              }}>➤</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── POST DETAIL MODAL ── */}
       <AnimatePresence>
@@ -2428,7 +2059,7 @@ export default function StudentDashboard() {
               <div style={{ marginBottom: "1rem", lineHeight: 1.65, color: "var(--muted)", fontSize: ".86rem" }}>{postDetailModal.desc}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".7rem", marginBottom: "1.1rem", fontSize: ".84rem" }}>
                 {postDetailModal.duration && <div><strong>Duration:</strong> {postDetailModal.duration}</div>}
-                {postDetailModal.skills && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
+                {postDetailModal.skills   && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
                 {postDetailModal.offerings && <div style={{ gridColumn: "1 / -1" }}><strong>Offerings:</strong> {postDetailModal.offerings}</div>}
               </div>
               {alreadyApplied(postDetailModal.id)
@@ -2457,17 +2088,17 @@ export default function StudentDashboard() {
                 <label className="field-label">Resume</label>
                 {(profile?.resumes || []).length > 0
                   ? <div style={{ marginBottom: ".9rem" }}>
-                    {(profile.resumes || []).map((r, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: ".45rem", background: "rgba(79,70,229,.05)", border: "1px solid rgba(79,70,229,.15)", borderRadius: 10, padding: ".45rem .75rem", marginBottom: ".38rem" }}>
-                        <span>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
-                        <span style={{ fontSize: ".8rem", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
-                        <span style={{ fontSize: ".66rem", background: "#dcfce7", color: "#166534", padding: ".1rem .45rem", borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>Attached</span>
-                      </div>
-                    ))}
-                  </div>
+                      {(profile.resumes || []).map((r, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: ".45rem", background: "rgba(79,70,229,.05)", border: "1px solid rgba(79,70,229,.15)", borderRadius: 10, padding: ".45rem .75rem", marginBottom: ".38rem" }}>
+                          <span>{r.type === "application/pdf" ? "📑" : "🖼️"}</span>
+                          <span style={{ fontSize: ".8rem", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</span>
+                          <span style={{ fontSize: ".66rem", background: "#dcfce7", color: "#166534", padding: ".1rem .45rem", borderRadius: 99, fontWeight: 700, flexShrink: 0 }}>Attached</span>
+                        </div>
+                      ))}
+                    </div>
                   : <div style={{ marginBottom: ".9rem", padding: ".65rem .9rem", background: "#fff8e6", border: "1px solid #fbbf24", borderRadius: 10, fontSize: ".78rem", color: "#92400e", fontWeight: 600 }}>
-                    ⚠️ No resume on file. Go to <strong>My Profile → Resume</strong> to upload one first.
-                  </div>
+                      ⚠️ No resume on file. Go to <strong>My Profile → Resume</strong> to upload one first.
+                    </div>
                 }
                 <label className="field-label">Cover Letter</label>
                 <textarea required className="field-input" rows={4} placeholder="Explain why you're a great fit for this role…"
