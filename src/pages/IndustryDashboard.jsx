@@ -7,6 +7,15 @@ import API_BASE_URL from "../apiConfig";
 
 const API = `${API_BASE_URL}/api`;
 
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
 // ─── MOCK DATA (fallback when backend is unavailable) ─────────────────────────
 const MOCK_STUDENTS = [
   { id: "s1", name: "Arjun Mehta", email: "arjun.mehta@email.com", phone: "+91 9876512345", about: "Full Stack Developer specializing in MERN stack with 6 months of internship experience.", skills: ["React", "Node.js", "MongoDB", "Express", "AWS"], match: 97, rank: "Top 1%", experience: "6 months intern at WebDev Studio", certificates: ["AWS Cloud Practitioner", "React Advanced"], qualification: "BCA", graduation: "Delhi University", resumes: [{ name: "Arjun_Resume.pdf", type: "application/pdf", size: "245 KB" }], personalPosts: [], photo: null, applications: [] },
@@ -329,7 +338,9 @@ const lineColorForType = (type) => {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function IndustryDashboard() {
   const navigate = useNavigate();
-  const { user: authUser, profile: authProfile, signOut } = useAuth();
+  const { user: authSessionUser, authUser: contextAuthUser, signOut } = useAuth();
+
+  const activeUserId = authSessionUser?.id || contextAuthUser?.id;
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [tab, setTab] = useState("dashboard");
@@ -381,34 +392,41 @@ export default function IndustryDashboard() {
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      if (authProfile) {
-        setCompanyProfile(prev => ({
-          ...prev,
-          id: authUser?.id,
-          name: authProfile.company_name || authProfile.name || prev.name,
-          email: authProfile.email || "",
-          phone: authProfile.phone || "",
-          website: authProfile.website || "",
-          location: authProfile.location || authProfile.address || prev.location,
-          address: authProfile.address || authProfile.location || "",
-          about: authProfile.about || prev.about,
-          industry: authProfile.domain || prev.industry,
-          founded: authProfile.founded || "",
-          photo: authProfile.photo || null,
-          tagline: authProfile.tagline || prev.tagline,
-          achievements: authProfile.achievements?.length ? authProfile.achievements : prev.achievements,
-        }));
+      if (activeUserId) {
+        try {
+          const profRes = await axios.get(`${API}/profile/${activeUserId}`, { timeout: 6000 });
+          const p = profRes.data || {};
+          setCompanyProfile(prev => ({
+            ...prev,
+            id: activeUserId,
+            name: p.company_name || p.full_name || prev.name,
+            email: p.email || "",
+            phone: p.phone || "",
+            website: p.website || "",
+            location: p.location || p.address || prev.location,
+            address: p.address || p.location || "",
+            about: p.about || prev.about,
+            industry: p.domain || prev.industry,
+            founded: p.founded || "",
+            photo: p.photo || null,
+            coverPhoto: p.cover_photo || p.coverPhoto || null,
+            tagline: p.tagline || prev.tagline,
+            achievements: p.achievements?.length ? p.achievements : prev.achievements,
+          }));
+        } catch (err) {
+          console.warn("Profile fetch failed, using fallback", err);
+        }
       }
 
       try {
         const [vacsRes, studentsRes, msgsRes] = await Promise.allSettled([
           axios.get(`${API}/vacancies`, { timeout: 8000 }),
           axios.get(`${API}/users?role=student`, { timeout: 8000 }),
-          authUser?.id ? axios.get(`${API}/messages/${authUser.id}`, { timeout: 8000 }) : Promise.resolve({ data: [] }),
+          activeUserId ? axios.get(`${API}/messages/${activeUserId}`, { timeout: 8000 }) : Promise.resolve({ data: [] }),
         ]);
 
         if (vacsRes.status === "fulfilled" && Array.isArray(vacsRes.value?.data)) {
-          const uid = authUser?.id;
+          const uid = activeUserId;
           const formattedJobs = await Promise.all(
             vacsRes.value.data.map(async (v) => {
               let apps = [];
@@ -470,13 +488,13 @@ export default function IndustryDashboard() {
           setStudents(MOCK_STUDENTS);
         }
 
-        if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && authUser?.id) {
+        if (msgsRes.status === "fulfilled" && Array.isArray(msgsRes.value?.data) && activeUserId) {
           const msgs = {};
           msgsRes.value.data.forEach(m => {
-            const pid = m.sender_id === authUser.id ? m.receiver_id : m.sender_id;
+            const pid = m.sender_id === activeUserId ? m.receiver_id : m.sender_id;
             if (!msgs[pid]) msgs[pid] = [];
             msgs[pid].push({
-              mine: m.sender_id === authUser.id,
+              mine: m.sender_id === activeUserId,
               text: m.text,
               time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             });
@@ -490,7 +508,7 @@ export default function IndustryDashboard() {
       setIsLoading(false);
     };
     init();
-  }, [authUser?.id]);
+  }, [activeUserId]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages, activeChat]);
 
@@ -518,7 +536,7 @@ export default function IndustryDashboard() {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
   }, []);
 
-  const myJobs = jobs.filter(j => j.ownerId === (authUser?.id || companyProfile.id));
+  const myJobs = jobs.filter(j => j.ownerId === (activeUserId || companyProfile.id));
   const allApplications = myJobs.flatMap(j => (j.applications || []).map(a => ({ ...a, jobTitle: j.title, jobType: j.type, jobId: j.id })));
   const totalApplicants = myJobs.reduce((s, j) => s + (j.applications?.length || 0), 0);
   const shortlisted = myJobs.reduce((s, j) => s + (j.applications?.filter(a => a.status === "Shortlisted" || a.status === "Selected").length || 0), 0);
@@ -544,7 +562,7 @@ export default function IndustryDashboard() {
     }
 
     // Guard: user must be authenticated before posting
-    const ownerId = authUser?.id || companyProfile.id;
+    const ownerId = activeUserId || companyProfile.id;
     if (!ownerId) {
       toast("❌ You must be logged in to post a job. Please refresh and try again.", "var(--red)");
       return;
@@ -612,7 +630,7 @@ export default function IndustryDashboard() {
     setChatMessages(prev => ({ ...prev, [sid]: [...(prev[sid] || []), { mine: true, text, time }] }));
     setChatInput("");
     try {
-      if (authUser?.id) await axios.post(`${API}/messages`, { sender_id: authUser.id, receiver_id: sid, text });
+      if (activeUserId) await axios.post(`${API}/messages`, { sender_id: activeUserId, receiver_id: sid, text });
     } catch (_) {}
   };
 
@@ -621,9 +639,9 @@ export default function IndustryDashboard() {
     const updated = { ...companyProfile, ...profileForm };
     setCompanyProfile(updated);
     setIsEditingProfile(false);
-    if (authUser?.id) {
+    if (activeUserId) {
       try {
-        await axios.put(`${API}/profile/${authUser.id}`, {
+        await axios.put(`${API}/profile/${activeUserId}`, {
           company_name: updated.name,
           email: updated.email,
           phone: updated.phone,
@@ -633,6 +651,9 @@ export default function IndustryDashboard() {
           domain: updated.industry,
           founded: updated.founded,
           tagline: updated.tagline,
+          photo: updated.photo,
+          cover_photo: updated.coverPhoto,
+          achievements: updated.achievements,
         });
         toast("✅ Profile saved");
       } catch (err) {
@@ -643,9 +664,8 @@ export default function IndustryDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    try { await signOut(); } catch (_) {}
-    navigate("/login");
+  const handleLogout = () => {
+    setShowExitConfirm(true);
   };
 
   // ── Sidebar nav ──────────────────────────────────────────────────────────────
@@ -676,8 +696,20 @@ export default function IndustryDashboard() {
                 <button className="exit-btn-stay" onClick={() => setShowExitConfirm(false)}>Stay Here</button>
                 <button className="exit-btn-leave" onClick={async () => {
                   setShowExitConfirm(false);
-                  try { await signOut(); } catch (_) {}
-                  navigate(pendingNavRef.current || '/login');
+                  const forceRedirect = setTimeout(() => {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace("/");
+                  }, 800);
+                  try {
+                    await signOut();
+                    clearTimeout(forceRedirect);
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace("/");
+                  } catch (err) {
+                    console.error("Logout issue, forcing redirect...", err);
+                  }
                 }}>Yes, Leave</button>
               </div>
             </motion.div>
@@ -1230,11 +1262,24 @@ export default function IndustryDashboard() {
               <motion.div className="page" key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {!isEditingProfile ? (
                   <>
-                    <div className="profile-cover" style={{ marginBottom: "4.5rem" }}>
+                    <div className="profile-cover" style={{ marginBottom: "4.5rem", backgroundImage: companyProfile.coverPhoto ? `url(${companyProfile.coverPhoto})` : "none", backgroundSize: "cover", backgroundPosition: "center" }}>
+                      <label style={{ position: "absolute", top: 15, right: 15, cursor: "pointer", background: "rgba(0,0,0,0.6)", color: "white", padding: "0.5rem 0.9rem", borderRadius: "10px", fontSize: "0.75rem", fontWeight: 700, zIndex: 10, backdropFilter: "blur(4px)" }}>
+                        📷 Change Cover
+                        <input type="file" accept="image/*" style={{ display: "none" }} onChange={async e => {
+                          const f = e.target.files[0];
+                          if (!f) return;
+                          const b64 = await toBase64(f);
+                          setCompanyProfile(p => ({ ...p, coverPhoto: b64 }));
+                          if (activeUserId) {
+                             try { await axios.put(`${API}/profile/${activeUserId}`, { cover_photo: b64 }); toast("✅ Cover photo updated"); }
+                             catch { toast("❌ Failed to save cover", "var(--red)"); }
+                          }
+                        }} />
+                      </label>
                       <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={{ fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Company Profile</div>
-                        <div style={{ fontFamily: "'Cabinet Grotesk'", fontSize: "1.8rem", fontWeight: 900, color: "white" }}>{companyProfile.name}</div>
-                        <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem", marginTop: "0.4rem" }}>{companyProfile.tagline}</div>
+                        <div style={{ fontSize: "0.62rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.8)", marginBottom: 6, textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>Company Profile</div>
+                        <div style={{ fontFamily: "'Cabinet Grotesk'", fontSize: "1.8rem", fontWeight: 900, color: "white", textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}>{companyProfile.name}</div>
+                        <div style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.85rem", marginTop: "0.4rem", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>{companyProfile.tagline}</div>
                       </div>
                       <div className="profile-av-wrap" onClick={() => fileInputRef.current?.click()}>
                         {companyProfile.photo
@@ -1242,7 +1287,20 @@ export default function IndustryDashboard() {
                           : <div style={{ width: "100%", height: "100%", background: "var(--surface3)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cabinet Grotesk'", fontWeight: 900, fontSize: "2rem", color: "var(--accent2)" }}>{companyProfile.name[0]}</div>}
                       </div>
                       <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }}
-                        onChange={e => { const f = e.target.files[0]; if (f) setCompanyProfile(p => ({ ...p, photo: URL.createObjectURL(f) })); }} />
+                        onChange={async e => { 
+                          const f = e.target.files[0]; 
+                          if (!f) return;
+                          const b64 = await toBase64(f);
+                          setCompanyProfile(p => ({ ...p, photo: b64 })); 
+                          if (activeUserId) {
+                            try {
+                              await axios.put(`${API}/profile/${activeUserId}`, { photo: b64 });
+                              toast("✅ Profile photo updated");
+                            } catch (err) {
+                              toast("❌ Failed to save photo to database", "var(--red)");
+                            }
+                          }
+                        }} />
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.2rem" }}>
