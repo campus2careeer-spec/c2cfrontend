@@ -1218,8 +1218,7 @@ export default function StudentDashboard() {
     if (!profile?.id) return;
     setPfSaving(true);
     try {
-      const { certificates, resumes, personalPosts, ...safeFields } = pfForm;
-      await axios.put(`${BASE}/api/profile/${profile.id}`, safeFields, { timeout: 20000 });
+      await axios.put(`${BASE}/api/profile/${profile.id}`, pfForm, { timeout: 20000 });
       setProfile(prev => ({ ...prev, ...pfForm }));
       setPfEditing(false);
       showPfToast("✓ Profile updated");
@@ -1304,6 +1303,9 @@ export default function StudentDashboard() {
                       tenth: profile.tenth, twelfth: profile.twelfth,
                       graduation: profile.graduation, skills: profile.skills,
                       about: profile.about,
+                      resumes: profile.resumes,
+                      certificates: profile.certificates,
+                      personalPosts: profile.personalPosts,
                     });
                     pushNotify("✓ Profile saved");
                   } catch { pushNotify("Changes saved locally."); }
@@ -1344,9 +1346,11 @@ export default function StudentDashboard() {
           <div className="fs">
             <div className="fs-title">Photo</div>
             <label className="upload-btn">📷 Change Photo
-              <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+              <input type="file" accept="image/*" style={{ display: "none" }} onChange={async e => {
                 const f = e.target.files[0];
-                if (f) setProfile(p => ({ ...p, photo: URL.createObjectURL(f) }));
+                if (!f) return;
+                const b64 = await toBase64(f);
+                setProfile(p => ({ ...p, photo: b64 }));
               }} />
             </label>
           </div>
@@ -1388,12 +1392,13 @@ export default function StudentDashboard() {
           <div className="fs">
             <div className="fs-title">Upload Resume</div>
             <label className="upload-btn">📄 Add Resume
-              <input type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={e => {
+              <input type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={async e => {
                 const file = e.target.files[0];
                 if (!file) return;
+                const b64 = await toBase64(file);
                 setProfile(prev => ({
                   ...prev,
-                  resumes: [...prev.resumes, { url: URL.createObjectURL(file), name: file.name, type: file.type, size: (file.size / 1024).toFixed(0) + " KB" }],
+                  resumes: [...prev.resumes, { url: b64, name: file.name, type: file.type, size: (file.size / 1024).toFixed(0) + " KB" }],
                 }));
                 pushNotify("Resume added!");
               }} />
@@ -1409,20 +1414,22 @@ export default function StudentDashboard() {
           <div className="fs">
             <div className="fs-title">Certificate</div>
             <label className="upload-btn">+ Add Certificate
-              <input type="file" style={{ display: "none" }} onChange={e => {
+              <input type="file" style={{ display: "none" }} onChange={async e => {
                 const f = e.target.files[0];
                 if (!f) return;
-                setProfile(p => ({ ...p, certificates: [...p.certificates, { url: URL.createObjectURL(f), type: f.type }] }));
+                const b64 = await toBase64(f);
+                setProfile(p => ({ ...p, certificates: [...p.certificates, { url: b64, type: f.type }] }));
               }} />
             </label>
           </div>
           <div className="fs">
             <div className="fs-title">Activity Post</div>
             <label className="upload-btn">+ Add Post
-              <input type="file" style={{ display: "none" }} onChange={e => {
+              <input type="file" style={{ display: "none" }} onChange={async e => {
                 const f = e.target.files[0];
                 if (!f) return;
-                setProfile(p => ({ ...p, personalPosts: [...p.personalPosts, { url: URL.createObjectURL(f), type: f.type }] }));
+                const b64 = await toBase64(f);
+                setProfile(p => ({ ...p, personalPosts: [...p.personalPosts, { url: b64, type: f.type }] }));
               }} />
             </label>
           </div>
@@ -2110,7 +2117,7 @@ export default function StudentDashboard() {
                               {typeChip(v.type)}
                             </div>
                             <div className="vac-title">{v.title}</div>
-                            <div className="vac-desc">{v.desc}</div>
+                            <div className="vac-desc">{v.description || v.desc}</div>
                             <div className="skill-pills">
                               {(v.skills || "").split(",").filter(Boolean).slice(0, 5).map((sk, j) => (
                                 <span key={j} className="spill">{sk.trim()}</span>
@@ -2274,14 +2281,14 @@ export default function StudentDashboard() {
                         j.skills?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         j.dept?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         j.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        j.desc?.toLowerCase().includes(searchQuery.toLowerCase())
+                        (j.description || j.desc)?.toLowerCase().includes(searchQuery.toLowerCase())
                       )
                       .map((j, i) => (
                         <motion.div key={i} className="job-card"
                           initial={{ opacity: 0, scale: .97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}>
                           <div className="job-co">{j.industry}</div>
                           <div className="job-title">{j.job}</div>
-                          <div className="job-desc">{j.desc}</div>
+                          <div className="job-desc">{j.description || j.desc}</div>
                           <div className="job-tags">
                             {j.dept && <span className="jtag" style={{ background: "#e0f2fe", color: "#0369a1", borderColor: "#bae6fd" }}>{j.dept}</span>}
                             {j.role && <span className="jtag" style={{ background: "#ede9fe", color: "#5b21b6", borderColor: "#ddd6fe" }}>{j.role}</span>}
@@ -2305,7 +2312,7 @@ export default function StudentDashboard() {
                       j.skills?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       j.dept?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       j.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      j.desc?.toLowerCase().includes(searchQuery.toLowerCase())
+                      (j.description || j.desc)?.toLowerCase().includes(searchQuery.toLowerCase())
                     ).length === 0 && (
                         <div className="empty-block" style={{ gridColumn: "1 / -1" }}>
                           <div className="empty-icon">💼</div>
@@ -2572,7 +2579,7 @@ export default function StudentDashboard() {
                   <div style={{ color: "var(--indigo)", fontWeight: 700, fontSize: ".8rem" }}>{postDetailModal.ownerName} · {postDetailModal.type}</div>
                 </div>
               </div>
-              <div style={{ marginBottom: "1rem", lineHeight: 1.65, color: "var(--muted)", fontSize: ".86rem" }}>{postDetailModal.desc}</div>
+              <div style={{ marginBottom: "1rem", lineHeight: 1.65, color: "var(--muted)", fontSize: ".86rem" }}>{postDetailModal.description || postDetailModal.desc}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".7rem", marginBottom: "1.1rem", fontSize: ".84rem" }}>
                 {postDetailModal.duration && <div><strong>Duration:</strong> {postDetailModal.duration}</div>}
                 {postDetailModal.skills && <div><strong>Skills:</strong> {postDetailModal.skills}</div>}
